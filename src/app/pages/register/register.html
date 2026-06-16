@@ -1,0 +1,119 @@
+<main class="auth-layout auth-layout--register">
+  <section class="side-visual">
+    <div class="image-wrapper">
+      @for (slide of gymSlides; track slide.image; let index = $index) {
+        <div class="slide">
+          <img [src]="slide.image" class="slide-image" alt="Imagen de gimnasio" />
+        </div>
+      }
+      <div class="overlay"></div>
+    </div>
+  </section>
+
+  <section class="register-panel">
+    <div class="register-box">
+      <h2 class="box-title">Registro</h2>
+
+      <form class="register-form" (ngSubmit)="handleRegister()">
+        <label class="field" for="firstName">
+          <span>Nombre</span>
+          <input
+            id="firstName"
+            type="text"
+            [(ngModel)]="firstName"
+            name="firstName"
+            placeholder="Tu nombre"
+            required
+          />
+        </label>
+
+        <label class="field" for="lastName">
+          <span>Apellido</span>
+          <input
+            id="lastName"
+            type="text"
+            [(ngModel)]="lastName"
+            name="lastName"
+            placeholder="Tu apellido"
+            required
+          />
+        </label>
+
+        <label class="field" for="email">
+          <span>Correo</span>
+          <input
+            id="email"
+            type="email"
+            [(ngModel)]="email"
+            name="email"
+            placeholder="correo@gym.com"
+            required
+          />
+        </label>
+
+        <label class="field" for="phone">
+          <span>Teléfono</span>
+          <input
+            id="phone"
+            type="tel"
+            [(ngModel)]="phone"
+            name="phone"
+            placeholder="+593 99 000 0000"
+            required
+          />
+        </label>
+
+        <label class="field" for="registerPassword">
+          <span>Contraseña</span>
+          <input
+            id="registerPassword"
+            type="password"
+            [(ngModel)]="registerPassword"
+            name="registerPassword"
+            placeholder="Mínimo 8 caracteres"
+            required
+          />
+        </label>
+
+        <label class="field" for="confirmPassword">
+          <span>Confirmar contraseña</span>
+          <input
+            id="confirmPassword"
+            type="password"
+            [(ngModel)]="confirmPassword"
+            name="confirmPassword"
+            placeholder="Repite tu contraseña"
+            required
+          />
+        </label>
+
+        <label class="terms field--wide">
+          <input type="checkbox" [(ngModel)]="acceptTerms" name="acceptTerms" required />
+          <span>Acepto términos de membresía y política de datos.</span>
+        </label>
+
+        <button class="field--wide" type="submit">Crear cuenta</button>
+      </form>
+
+      <div class="switch-auth">
+        <span>¿Ya tienes cuenta?</span>
+        <button type="button" (click)="goToLogin()">Login</button>
+      </div>
+
+      @if (message) {
+        <p class="message">{{ message }}</p>
+      }
+    </div>
+  </section>
+
+  <section class="side-visual side-visual--right">
+    <div class="image-wrapper">
+      @for (slide of gymSlides; track slide.image; let index = $index) {
+        <div class="slide">
+          <img [src]="slide.image" class="slide-image" alt="Imagen de gimnasio" />
+        </div>
+      }
+      <div class="overlay overlay--right"></div>
+    </div>
+  </section>
+</main>
