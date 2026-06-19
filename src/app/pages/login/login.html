@@ -1,5 +1,11 @@
 @if (mode === 'welcome') {
-  <main class="welcome-screen">
+  <main
+    class="welcome-screen"
+    (mousemove)="createTrail($event)"
+    (mouseleave)="resetTrailPosition()"
+  >
+    <canvas class="cursor-trail" aria-hidden="true"></canvas>
+
     <div class="image-wrapper">
       @for (slide of gymSlides; track slide.image; let index = $index) {
         <div class="slide">

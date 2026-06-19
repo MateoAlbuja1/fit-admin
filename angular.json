@@ -49,8 +49,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "8kB",
-                  "maximumError": "12kB"
+                  "maximumWarning": "44kB",
+                  "maximumError": "47kB"
                 }
               ],
               "outputHashing": "all"
@@ -65,6 +65,9 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+          "options": {
+            "allowedHosts": [".loca.lt", ".lhr.life"]
+          },
           "configurations": {
             "production": {
               "buildTarget": "fit-admin:build:production"
