@@ -1,0 +1,147 @@
+.signup-form {
+  display: grid;
+  gap: 20px;
+  border: 1px solid rgba(255, 255, 255, .1);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, .08), transparent 34%),
+    #101217;
+  color: #fff;
+  padding: clamp(20px, 4vw, 34px);
+}
+
+.form-heading {
+  display: grid;
+  gap: 9px;
+}
+
+.form-heading span {
+  color: #fff;
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+h2,
+p {
+  margin: 0;
+}
+
+h2 {
+  font-size: 44px;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.form-heading p {
+  color: rgba(255, 255, 255, .7);
+  line-height: 1.55;
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+label {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  color: rgba(255, 255, 255, .82);
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.field-wide {
+  grid-column: 1 / -1;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, .14);
+  border-radius: 8px;
+  outline: none;
+  background: rgba(255, 255, 255, .07);
+  color: #fff;
+  font: inherit;
+  padding: 0 14px;
+}
+
+input,
+select {
+  height: 48px;
+}
+
+textarea {
+  min-height: 112px;
+  padding-top: 13px;
+  resize: vertical;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: rgba(255, 255, 255, .42);
+}
+
+select option {
+  color: #111;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #fff;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, .18);
+}
+
+.form-alert,
+.form-success {
+  border-radius: 8px;
+  padding: 12px 14px;
+  line-height: 1.45;
+}
+
+.form-alert {
+  border: 1px solid rgba(255, 255, 255, .28);
+  background: rgba(255, 255, 255, .08);
+  color: #fff;
+}
+
+.form-success {
+  border: 1px solid rgba(255, 255, 255, .28);
+  background: rgba(255, 255, 255, .08);
+  color: #fff;
+}
+
+button {
+  min-height: 52px;
+  border: 0;
+  border-radius: 8px;
+  background: #fff;
+  color: #050605;
+  cursor: pointer;
+  font-weight: 950;
+  text-transform: uppercase;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+
+button:hover {
+  box-shadow: 0 16px 34px rgba(255, 255, 255, .16);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 720px) {
+  h2 {
+    font-size: 34px;
+  }
+
+  .field-grid {
+    grid-template-columns: 1fr;
+  }
+}

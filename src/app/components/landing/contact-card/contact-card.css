@@ -1,0 +1,99 @@
+.contact-card {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: clamp(22px, 4vw, 42px);
+  border: 1px solid rgba(255, 255, 255, .1);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, .08), transparent 36%),
+    #101217;
+  color: #fff;
+  padding: clamp(22px, 4vw, 38px);
+}
+
+.contact-copy {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+
+.contact-copy span {
+  color: #fff;
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+h2,
+p,
+dl,
+dd {
+  margin: 0;
+}
+
+h2 {
+  font-size: 44px;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+p,
+dd {
+  color: rgba(255, 255, 255, .7);
+  line-height: 1.55;
+}
+
+dl {
+  display: grid;
+  gap: 14px;
+}
+
+dt {
+  margin-bottom: 4px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.contact-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.contact-actions a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  border-radius: 8px;
+  padding: 0 16px;
+  background: rgba(255, 255, 255, .08);
+  color: #fff;
+  font-weight: 950;
+  text-decoration: none;
+  transition: transform .18s ease, background .18s ease;
+}
+
+.contact-actions a:first-child {
+  background: #fff;
+  color: #050605;
+}
+
+.contact-actions a:hover {
+  transform: translateY(-2px);
+}
+
+@media (max-width: 760px) {
+  .contact-card {
+    grid-template-columns: 1fr;
+  }
+
+  h2 {
+    font-size: 34px;
+  }
+}

@@ -1,0 +1,9 @@
+<article class="trainer-card">
+  <img [src]="trainer.image" [alt]="trainer.name" />
+  <div>
+    <h3>{{ trainer.name }}</h3>
+    <p>{{ trainer.specialty }}</p>
+    <small>{{ trainer.experience }}</small>
+    <button type="button" (click)="viewProfile.emit(trainer)">Ver perfil</button>
+  </div>
+</article>

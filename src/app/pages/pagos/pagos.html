@@ -1,0 +1,106 @@
+@if (notice) { <div class="notice"><span>✓</span>{{ notice }}<button type="button" (click)="notice = ''">×</button></div> }
+
+<section class="metric-grid">
+  <article><span>Ingresos registrados</span><strong>${{ paidTotal.toFixed(2) }}</strong><small class="positive">Pagos conciliados</small></article>
+  <article><span>Pagos este mes</span><strong>{{ data.pagos.length }}</strong><small>Movimientos cargados</small></article>
+  <article><span>Por cobrar</span><strong>${{ pendingTotal.toFixed(2) }}</strong><small class="danger-text">Pendientes de revisión</small></article>
+  <article><span>Ticket promedio</span><strong>${{ (paidTotal / (data.pagos.length || 1)).toFixed(2) }}</strong><small>Promedio registrado</small></article>
+</section>
+
+<section class="content-card">
+  <div class="card-toolbar">
+    <div><h3>Movimientos recientes</h3><span>Historial de cobros y ventas</span></div>
+    <label class="search-field"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4" /></svg><input [(ngModel)]="search" (ngModelChange)="page = 1" placeholder="Buscar movimiento" /></label>
+  </div>
+
+  <div class="filter-panel filter-panel--selects">
+    <label class="select-filter">
+      <span>Estado</span>
+      <div class="select-filter__control">
+        <select [(ngModel)]="statusFilter" (ngModelChange)="page = 1" name="paymentStatusFilter" aria-label="Filtrar pagos por estado">
+          @for (filter of statusFilters; track filter) { <option [ngValue]="filter">{{ filter }}</option> }
+        </select>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>
+      </div>
+    </label>
+
+    <label class="select-filter">
+      <span>Método</span>
+      <div class="select-filter__control">
+        <select [(ngModel)]="methodFilter" (ngModelChange)="page = 1" name="paymentMethodFilter" aria-label="Filtrar pagos por método">
+          @for (filter of methodFilters; track filter) { <option [ngValue]="filter">{{ filter }}</option> }
+        </select>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>
+      </div>
+    </label>
+
+    <label class="select-filter">
+      <span>Concepto</span>
+      <div class="select-filter__control">
+        <select [(ngModel)]="conceptFilter" (ngModelChange)="page = 1" name="paymentConceptFilter" aria-label="Filtrar pagos por concepto">
+          @for (filter of conceptFilters; track filter) { <option [ngValue]="filter">{{ filter }}</option> }
+        </select>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>
+      </div>
+    </label>
+
+    @if (statusFilter !== 'Todos' || methodFilter !== 'Todos' || conceptFilter !== 'Todos') {
+      <button class="clear-filter" type="button" (click)="setStatusFilter('Todos'); setMethodFilter('Todos'); setConceptFilter('Todos')">Limpiar filtros</button>
+    }
+  </div>
+
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>ID</th><th>Cliente</th><th>Concepto</th><th>Método</th><th>Fecha</th><th>Monto</th><th>Estado</th><th>Acciones</th></tr></thead>
+      <tbody>
+        @for (payment of paged; track payment.id) {
+          <tr>
+            <td>#{{ payment.id }}</td>
+            <td><strong>{{ payment.member }}</strong></td>
+            <td>{{ payment.concept }}</td>
+            <td>{{ payment.method }}</td>
+            <td>{{ payment.date }}</td>
+            <td><strong>${{ payment.amount.toFixed(2) }}</strong></td>
+            <td><span class="badge" [class.badge--warning]="payment.status === 'Pendiente'">{{ payment.status }}</span></td>
+            <td><div class="row-actions"><button class="text-button" type="button" (click)="openEdit(payment)">Editar</button></div></td>
+          </tr>
+        } @empty {
+          <tr><td colspan="8"><div class="empty-state"><strong>Sin pagos</strong><span>No hay movimientos con estos filtros.</span></div></td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="table-footer"><span>Mostrando {{ paged.length }} de {{ filtered.length }} movimientos</span><div><button type="button" (click)="changePage(-1)" [disabled]="page === 1">‹</button><b>Página {{ page }} de {{ pageCount }}</b><button type="button" (click)="changePage(1)" [disabled]="page === pageCount">›</button></div></div>
+</section>
+
+@if (editingPaymentId) {
+  <div class="form-overlay" (click)="cancelEdit()">
+    <section class="form-drawer" (click)="$event.stopPropagation()">
+      <header><div><span>EDITAR MOVIMIENTO</span><h2>Pago</h2></div><button type="button" (click)="cancelEdit()">×</button></header>
+      <form (ngSubmit)="saveEdit()">
+        <label><span>Cliente *</span><input [(ngModel)]="editPayment.member" name="editMember" required /></label>
+        <label><span>Concepto</span><input [(ngModel)]="editPayment.concept" name="editConcept" /></label>
+        <label><span>Método</span><select [(ngModel)]="editPayment.method" name="editMethod"><option>Efectivo</option><option>Transferencia</option><option>Tarjeta</option></select></label>
+        <label><span>Monto *</span><input type="number" min="0" step="0.01" [(ngModel)]="editPayment.amount" name="editAmount" /></label>
+        <label><span>Estado</span><select [(ngModel)]="editPayment.status" name="editStatus"><option>Pagado</option><option>Pendiente</option></select></label>
+        <div class="form-navigation"><button class="secondary-button" type="button" (click)="cancelEdit()">Cancelar</button><button class="primary-button" type="submit">Guardar cambios</button></div>
+      </form>
+    </section>
+  </div>
+}
+
+@if (showForm) {
+  <div class="form-overlay" (click)="showForm = false">
+    <section class="form-drawer" (click)="$event.stopPropagation()">
+      <header><div><span>NUEVO REGISTRO</span><h2>Pago</h2></div><button type="button" (click)="showForm = false">×</button></header>
+      <form (ngSubmit)="addPayment()">
+        <label><span>Cliente *</span><input [(ngModel)]="newPayment.member" name="member" required /></label>
+        <label><span>Concepto</span><select [(ngModel)]="newPayment.concept" name="concept"><option>Membresía mensual</option><option>Membresía trimestral</option><option>Membresía anual</option><option>Venta de suplemento</option><option>Otro</option></select></label>
+        <label><span>Método</span><select [(ngModel)]="newPayment.method" name="method"><option>Efectivo</option><option>Transferencia</option><option>Tarjeta</option></select></label>
+        <label><span>Monto *</span><input type="number" min="0" step="0.01" [(ngModel)]="newPayment.amount" name="amount" /></label>
+        <button class="primary-button form-submit" type="submit">Confirmar pago</button>
+      </form>
+    </section>
+  </div>
+}

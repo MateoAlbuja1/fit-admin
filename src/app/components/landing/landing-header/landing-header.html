@@ -1,0 +1,43 @@
+<header class="landing-header">
+  <p class="motivational-quote">Sueña sin limites, vive sin miedos.</p>
+
+  <form class="search" role="search" (submit)="submitSearch($event)">
+    <span class="search-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><path d="m21 21-4.35-4.35M10.6 18a7.4 7.4 0 1 1 0-14.8 7.4 7.4 0 0 1 0 14.8Z" /></svg>
+    </span>
+    <input
+      type="search"
+      name="landingSearch"
+      autocomplete="off"
+      placeholder="Buscar en WX GYM"
+      [ngModel]="searchQuery"
+      (ngModelChange)="updateSearch($event)"
+    />
+
+    @if (searchQuery.length > 0) {
+      <div class="search-results">
+        @if (searchResults.length > 0) {
+          @for (result of searchResults; track result.label) {
+            <button type="button" (click)="selectResult(result)">
+              <span>{{ result.category }}</span>
+              <strong>{{ result.label }}</strong>
+              <small>{{ result.description }}</small>
+            </button>
+          }
+        } @else {
+          <p>No encontramos coincidencias.</p>
+        }
+      </div>
+    }
+  </form>
+
+  <div class="header-actions">
+    <button class="top-cart" type="button" (click)="cartClick.emit()" [class.has-items]="cartCount > 0" aria-label="Abrir carrito de compras">
+      <span class="material-icons" aria-hidden="true">shopping_cart</span>
+      @if (cartCount > 0) {
+        <b>{{ cartCount }}</b>
+      }
+    </button>
+    <a class="login-link" routerLink="/login">Iniciar sesion</a>
+  </div>
+</header>

@@ -1,0 +1,140 @@
+.membership-card {
+  position: relative;
+  display: grid;
+  gap: 14px;
+  min-height: 100%;
+  border: 1px solid rgba(255, 255, 255, .1);
+  border-radius: 8px;
+  background: linear-gradient(180deg, #171b22, #0d1015);
+  color: #fff;
+  padding: 24px;
+  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+
+.membership-card.is-featured {
+  border-color: rgba(255, 255, 255, .42);
+  box-shadow: 0 22px 60px rgba(255, 255, 255, .1);
+}
+
+.membership-card:hover {
+  border-color: rgba(255, 255, 255, .38);
+  transform: translateY(-4px);
+}
+
+.featured-label {
+  width: fit-content;
+  border-radius: 999px;
+  background: #fff;
+  color: #050605;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.best-for {
+  width: fit-content;
+  border: 1px solid rgba(255, 255, 255, .14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .07);
+  color: rgba(255, 255, 255, .82);
+  padding: 7px 10px;
+  font-size: 11px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+h3,
+p,
+ul {
+  margin: 0;
+}
+
+h3 {
+  font-size: 22px;
+}
+
+strong {
+  font-size: 44px;
+  line-height: .95;
+}
+
+small,
+p,
+li {
+  color: rgba(255, 255, 255, .68);
+}
+
+p {
+  line-height: 1.5;
+}
+
+ul {
+  display: grid;
+  gap: 10px;
+  padding: 0;
+  list-style: none;
+}
+
+li {
+  position: relative;
+  padding-left: 22px;
+  line-height: 1.4;
+}
+
+li::before {
+  position: absolute;
+  left: 0;
+  color: #fff;
+  content: "+";
+  font-weight: 950;
+}
+
+.plan-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  align-self: end;
+}
+
+button {
+  align-self: end;
+  min-height: 48px;
+  border: 0;
+  border-radius: 8px;
+  background: #fff;
+  color: #090b0f;
+  cursor: pointer;
+  font-weight: 950;
+  text-transform: uppercase;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+
+.whatsapp-plan {
+  border: 1px solid rgba(255, 255, 255, .18);
+  background: transparent;
+  color: #fff;
+}
+
+button:hover {
+  box-shadow: 0 16px 34px rgba(255, 255, 255, .16);
+  transform: translateY(-2px);
+}
+
+.is-featured button {
+  background: #fff;
+  color: #050605;
+}
+
+.is-featured .whatsapp-plan {
+  border-color: rgba(255, 255, 255, .2);
+  background: transparent;
+  color: #fff;
+}
+
+@media (max-width: 420px) {
+  .plan-actions {
+    grid-template-columns: 1fr;
+  }
+}

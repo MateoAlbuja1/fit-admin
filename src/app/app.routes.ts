@@ -4,8 +4,7 @@ export const routes: Routes = [
   {
     path: '',
     loadComponent: () =>
-      import('./pages/login/login').then(m => m.LoginComponent),
-    data: { mode: 'welcome' },
+      import('./pages/landing/landing').then(m => m.LandingComponent),
     pathMatch: 'full'
   },
   {
@@ -27,47 +26,47 @@ export const routes: Routes = [
   {
     path: '',
     loadComponent: () =>
-      import('./layouts/admin-layout/admin-layout').then(m => m.AdminLayoutComponent),
+      import('./layouts/layout-administrativo/layout-administrativo').then(m => m.LayoutAdministrativoComponent),
     children: [
       {
         path: 'clientes',
-        loadComponent: () => import('./pages/clients/clients').then(m => m.ClientsPageComponent),
-        data: { meta: { module: 'clients', eyebrow: 'Administración de usuarios', title: 'Clientes' } }
+        loadComponent: () => import('./pages/clientes/clientes').then(m => m.PaginaClientesComponent),
+        data: { meta: { modulo: 'clientes', eyebrow: 'Administración de usuarios', title: 'Clientes' } }
       },
       {
         path: 'membresias',
-        loadComponent: () => import('./pages/memberships/memberships').then(m => m.MembershipsPageComponent),
-        data: { meta: { module: 'memberships', eyebrow: 'Planes y vigencias', title: 'Membresías' } }
+        loadComponent: () => import('./pages/membresias/membresias').then(m => m.PaginaMembresiasComponent),
+        data: { meta: { modulo: 'membresias', eyebrow: 'Planes y vigencias', title: 'Membresías' } }
       },
       {
         path: 'asistencia',
-        loadComponent: () => import('./pages/attendance/attendance').then(m => m.AttendancePageComponent),
-        data: { meta: { module: 'attendance', eyebrow: 'Acceso al gimnasio', title: 'Control de asistencia' } }
+        loadComponent: () => import('./pages/asistencia/asistencia').then(m => m.PaginaAsistenciaComponent),
+        data: { meta: { modulo: 'asistencia', eyebrow: 'Acceso al gimnasio', title: 'Control de asistencia' } }
       },
       {
         path: 'pagos',
-        loadComponent: () => import('./pages/payments/payments').then(m => m.PaymentsPageComponent),
-        data: { meta: { module: 'payments', eyebrow: 'Gestión financiera', title: 'Pagos' } }
+        loadComponent: () => import('./pages/pagos/pagos').then(m => m.PaginaPagosComponent),
+        data: { meta: { modulo: 'pagos', eyebrow: 'Gestión financiera', title: 'Pagos' } }
       },
       {
         path: 'inventario/suplementos',
-        loadComponent: () => import('./pages/inventory/supplements/supplements').then(m => m.SupplementsPageComponent),
-        data: { meta: { module: 'supplements', eyebrow: 'Stock comercial', title: 'Inventario de suplementos' } }
+        loadComponent: () => import('./pages/inventario/suplementos/suplementos').then(m => m.PaginaSuplementosComponent),
+        data: { meta: { modulo: 'suplementos', eyebrow: 'Stock comercial', title: 'Inventario de suplementos' } }
       },
       {
         path: 'inventario/maquinas',
-        loadComponent: () => import('./pages/inventory/machines/machines').then(m => m.MachinesPageComponent),
-        data: { meta: { module: 'machines', eyebrow: 'Activos del gimnasio', title: 'Inventario de máquinas' } }
+        loadComponent: () => import('./pages/inventario/maquinas/maquinas').then(m => m.PaginaMaquinasComponent),
+        data: { meta: { modulo: 'maquinas', eyebrow: 'Activos del gimnasio', title: 'Inventario de máquinas' } }
       },
       {
         path: 'reportes',
-        loadComponent: () => import('./pages/reports/reports').then(m => m.ReportsPageComponent),
-        data: { meta: { module: 'reports', eyebrow: 'Análisis administrativo', title: 'Reportes' } }
+        loadComponent: () => import('./pages/reportes/reportes').then(m => m.PaginaReportesComponent),
+        data: { meta: { modulo: 'reportes', eyebrow: 'Análisis administrativo', title: 'Reportes' } }
       }
     ]
   },
   {
     path: '**',
-    redirectTo: 'login'
+    redirectTo: ''
   }
 ];

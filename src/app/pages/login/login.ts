@@ -27,7 +27,7 @@ interface TrailPoint {
   styleUrls: ['./login.css']
 })
 export class LoginComponent implements OnInit, OnDestroy {
-  mode: AuthMode = 'welcome';
+  mode: AuthMode = 'login';
 
   username = '';
   password = '';
@@ -64,7 +64,7 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.routeSub = this.route.data.subscribe(data => {
-      this.mode = data['mode'] === 'login' ? 'login' : 'welcome';
+      this.mode = data['mode'] === 'welcome' ? 'welcome' : 'login';
       this.message = '';
 
       if (this.mode !== 'welcome') {
@@ -231,6 +231,12 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   handleSubmit(): void {
     this.message = '';
-    this.router.navigate(['/dashboard']);
+
+    if (this.username.trim() === 'admin' && this.password === 'admin') {
+      this.router.navigate(['/dashboard']);
+      return;
+    }
+
+    this.message = 'Credenciales invalidas. Usa admin / admin para ingresar al panel administrativo.';
   }
 }

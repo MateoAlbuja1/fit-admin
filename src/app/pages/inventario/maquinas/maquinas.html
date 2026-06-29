@@ -1,0 +1,133 @@
+@if (notice) {
+  <div class="notice">
+    <span>✓</span>{{ notice }}
+    <button type="button" (click)="notice = ''">×</button>
+  </div>
+}
+
+<section class="inventory-summary">
+  <article><span>Equipos registrados</span><strong>{{ data.maquinas.length }}</strong></article>
+  <article><span>Operativos</span><strong>{{ operational }}</strong></article>
+  <article><span>Requieren atención</span><strong class="warning-text">{{ attention }}</strong></article>
+</section>
+
+<section class="inventory-toolbar">
+  <div>
+    <h3>Equipamiento del gimnasio</h3>
+    <span>Los equipos que requieren atención aparecen primero</span>
+  </div>
+  <div class="inventory-tools">
+    <div class="view-switch">
+      <button type="button" [class.active]="view === 'grid'" (click)="view = 'grid'" aria-label="Vista de tarjetas"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></button>
+      <button type="button" [class.active]="view === 'list'" (click)="view = 'list'" aria-label="Vista de lista"><svg viewBox="0 0 24 24"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg></button>
+    </div>
+    <label class="search-field">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4" /></svg>
+      <input [(ngModel)]="search" placeholder="Buscar máquina o zona" />
+    </label>
+  </div>
+</section>
+
+@if (view === 'grid') {
+  <section class="inventory-grid inventory-grid--machines">
+    @for (item of items; track item.id) {
+      <article class="inventory-card machine-card" [class.machine-card--warning]="item.status === 'Mantenimiento'" [class.inventory-card--priority]="item.status === 'Fuera de servicio'">
+        <div class="item-photo">
+          @if (item.photo) { <img [src]="item.photo" [alt]="item.name" /> }
+          @else { <span>{{ item.name.slice(0,2).toUpperCase() }}</span> }
+          <b>{{ item.type }}</b>
+          @if (item.status !== 'Operativa') { <em>{{ item.status.toUpperCase() }}</em> }
+        </div>
+        <div class="item-content">
+          <div class="item-title"><h3>{{ item.name }}</h3><span class="badge" [class.badge--warning]="item.status === 'Mantenimiento'" [class.badge--danger]="item.status === 'Fuera de servicio'">{{ item.status }}</span></div>
+          <dl>
+            <div><dt>Ubicación</dt><dd>{{ item.location }}</dd></div>
+            <div><dt>Mantenimiento</dt><dd>{{ item.nextMaintenance || 'Sin programar' }}</dd></div>
+          </dl>
+          <div class="card-actions">
+            <button class="secondary-button" type="button" (click)="showDetail(item)">Ver ficha</button>
+            <button class="secondary-button" type="button" (click)="toggleStatus(item)">{{ item.status === 'Mantenimiento' ? 'Activar' : 'Mantenimiento' }}</button>
+            <button class="secondary-button danger-action icon-delete" type="button" (click)="remove(item)" aria-label="Eliminar máquina" title="Eliminar">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 15h10l1-15"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+            </button>
+          </div>
+        </div>
+      </article>
+    }
+  </section>
+} @else {
+  <section class="inventory-list-card">
+    <div class="inventory-list-scroll">
+      <div class="inventory-list-head inventory-list-head--machines"><span>Equipo</span><span>Tipo</span><span>Estado</span><span>Ubicación</span><span>Mantenimiento</span><span>Acciones</span></div>
+      @for (item of items; track item.id) {
+        <article class="inventory-list-row inventory-list-row--machines" [class.inventory-list-row--priority]="item.status === 'Fuera de servicio'" [class.inventory-list-row--warning]="item.status === 'Mantenimiento'">
+          <div class="list-product">
+            <div class="list-product__photo"><img [src]="item.photo" [alt]="item.name" /></div>
+            <div><strong>{{ item.name }}</strong><small>{{ item.status === 'Operativa' ? 'Disponible' : 'Requiere atención' }}</small></div>
+          </div>
+          <span class="list-category">{{ item.type }}</span>
+          <span class="machine-state"><span class="badge" [class.badge--warning]="item.status === 'Mantenimiento'" [class.badge--danger]="item.status === 'Fuera de servicio'">{{ item.status }}</span></span>
+          <span class="machine-location">{{ item.location }}</span>
+          <strong class="machine-maintenance">{{ item.nextMaintenance }}</strong>
+          <div class="list-actions">
+            <button class="list-detail" type="button" (click)="showDetail(item)">Ver ficha</button>
+            <button class="machine-status-action" type="button" (click)="toggleStatus(item)">{{ item.status === 'Mantenimiento' ? 'Activar' : 'Mantenimiento' }}</button>
+            <button class="list-delete icon-delete" type="button" (click)="remove(item)" aria-label="Eliminar máquina" title="Eliminar">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 15h10l1-15"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+            </button>
+          </div>
+        </article>
+      }
+    </div>
+  </section>
+}
+
+@if (maquinaAEliminar) {
+  <div class="confirm-overlay" (click)="cancelarEliminacion()">
+    <section class="confirm-dialog" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="titulo-eliminar-maquina">
+      <span class="confirm-icon">!</span>
+      <div class="confirm-copy">
+        <span>CONFIRMAR ELIMINACIÓN</span>
+        <h2 id="titulo-eliminar-maquina">¿Seguro desea eliminar?</h2>
+        <p>Se eliminará <strong>{{ maquinaAEliminar.name }}</strong> del inventario de máquinas. Esta acción no se puede deshacer.</p>
+      </div>
+      <div class="confirm-actions">
+        <button class="secondary-button" type="button" (click)="cancelarEliminacion()">Cancelar</button>
+        <button class="confirm-danger" type="button" (click)="confirmarEliminacion()">Aceptar</button>
+      </div>
+    </section>
+  </div>
+}
+
+@if (detail) {
+  <div class="detail-overlay" (click)="detail = null">
+    <aside class="detail-drawer" (click)="$event.stopPropagation()">
+      <header><div><span>FICHA DE EQUIPO</span><h2>{{ detail.title }}</h2></div><button type="button" (click)="detail = null">×</button></header>
+      <img class="detail-photo" [src]="detail.photo" [alt]="detail.title" />
+      <div class="detail-intro"><span class="badge" [class.badge--warning]="detail.status === 'Mantenimiento'" [class.badge--danger]="detail.status === 'Fuera de servicio'">{{ detail.status }}</span><p>{{ detail.subtitle }}</p></div>
+      <dl class="detail-fields">@for (field of detail.fields; track field.label) { <div><dt>{{ field.label }}</dt><dd>{{ field.value }}</dd></div> }</dl>
+      <button class="primary-button detail-close" type="button" (click)="detail = null">Cerrar ficha</button>
+    </aside>
+  </div>
+}
+
+@if (showForm) {
+  <div class="form-overlay" (click)="showForm = false">
+    <section class="form-drawer" (click)="$event.stopPropagation()">
+      <header><div><span>NUEVO REGISTRO</span><h2>Máquina</h2></div><button type="button" (click)="showForm = false">×</button></header>
+      <div class="form-progress"><button type="button" [class.active]="formStep === 1" (click)="formStep = 1"><b>1</b><span>Identificación</span></button><i></i><button type="button" [class.active]="formStep === 2" (click)="formStep = 2"><b>2</b><span>Detalles</span></button></div>
+      <form (ngSubmit)="add()">
+        @if (formStep === 1) {
+          <label class="photo-upload"><input type="file" accept="image/*" (change)="handlePhoto($event)" />@if (newItem.photo) { <img [src]="newItem.photo" alt="Vista previa" /> } @else { <strong>Agregar fotografía</strong><span>PNG o JPG · máximo 4 MB</span> }</label>
+          <label><span>Nombre *</span><input [(ngModel)]="newItem.name" name="name" /></label>
+          <label><span>Tipo *</span><input [(ngModel)]="newItem.type" name="type" /></label>
+          <label><span>Ubicación</span><input [(ngModel)]="newItem.location" name="location" /></label>
+          <button class="primary-button form-submit" type="button" (click)="formStep = 2">Continuar</button>
+        } @else {
+          <div class="form-row"><label><span>Estado</span><select [(ngModel)]="newItem.status" name="status"><option>Operativa</option><option>Mantenimiento</option><option>Fuera de servicio</option></select></label><label><span>Próximo mantenimiento</span><input type="date" [(ngModel)]="newItem.nextMaintenance" name="maintenance" /></label></div>
+          <div class="form-navigation"><button class="secondary-button" type="button" (click)="formStep = 1">Atrás</button><button class="primary-button" type="submit">Guardar máquina</button></div>
+        }
+      </form>
+    </section>
+  </div>
+}

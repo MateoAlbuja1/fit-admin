@@ -1,0 +1,46 @@
+<section class="hero-carousel" aria-label="Carrusel principal de WX GYM">
+  <div class="hero-media" aria-hidden="true">
+    @for (slide of slides; track slide.title; let index = $index) {
+      <img [class.is-active]="index === activeIndex" [src]="slide.image" [alt]="slide.alt" />
+    }
+  </div>
+
+  <div class="hero-overlay"></div>
+
+  @if (activeSlide; as slide) {
+    <div class="hero-content">
+      <p class="eyebrow">{{ slide.eyebrow }}</p>
+      <h1>{{ slide.title }}</h1>
+      <p class="hero-copy">{{ slide.description }}</p>
+      <div class="hero-actions">
+        <button class="primary-action" type="button" (click)="signup.emit()">Inscribete ahora</button>
+        <button class="secondary-action" type="button" (click)="viewPlans.emit()">Ver planes</button>
+      </div>
+      <div class="hero-stats" aria-label="Resumen del gimnasio">
+        <span><strong>08:00 - 21:00</strong><small>Lunes a viernes</small></span>
+        <span><strong>$25.00</strong><small>Planes desde</small></span>
+        <span><strong>Caupicho</strong><small>Quito, Ecuador</small></span>
+      </div>
+    </div>
+  }
+
+  <div class="carousel-controls" aria-label="Controles del carrusel">
+    <button type="button" aria-label="Diapositiva anterior" (click)="previous()">
+      <svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6" /></svg>
+    </button>
+    <button type="button" aria-label="Diapositiva siguiente" (click)="next()">
+      <svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></svg>
+    </button>
+  </div>
+
+  <div class="carousel-dots" aria-label="Indicadores del carrusel">
+    @for (slide of slides; track slide.title; let index = $index) {
+      <button
+        type="button"
+        [class.is-active]="index === activeIndex"
+        [attr.aria-label]="'Ver diapositiva ' + (index + 1)"
+        (click)="goTo(index)"
+      ></button>
+    }
+  </div>
+</section>

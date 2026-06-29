@@ -1,0 +1,24 @@
+<article class="product-card">
+  <div class="product-image" [class.is-contained]="product.imageFit === 'contain'">
+    <img [src]="product.image" [alt]="product.name" />
+    @if (product.discount) {
+      <span>{{ product.discount }}</span>
+    }
+    <div class="product-hover">
+      <strong>Descripcion rapida</strong>
+      <p>{{ product.description }}</p>
+    </div>
+  </div>
+
+  <div class="product-body">
+    <small>{{ product.category }}</small>
+    <h3>{{ product.name }}</h3>
+    <div class="meta">
+      <strong>{{ product.price }}</strong>
+      <span>{{ product.rating }}</span>
+    </div>
+    <div class="actions">
+      <button class="add" type="button" (click)="add.emit(product)">Agregar al carrito</button>
+    </div>
+  </div>
+</article>

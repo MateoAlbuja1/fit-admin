@@ -1,0 +1,78 @@
+<form class="signup-form" #signupForm="ngForm" (ngSubmit)="submit(signupForm)" novalidate>
+  <div class="form-heading">
+    <span>Inscripcion</span>
+    <h2>Unete a WX GYM</h2>
+    <p>Completa tus datos y empieza tu cambio fisico con nosotros.</p>
+  </div>
+
+  <div class="field-grid">
+    <label>
+      Nombre completo
+      <input type="text" name="fullName" [(ngModel)]="formData.fullName" required placeholder="Ej. Mateo Andrade" />
+    </label>
+
+    <label>
+      Edad
+      <input type="number" name="age" [(ngModel)]="formData.age" required min="12" placeholder="18" />
+    </label>
+
+    <label>
+      Numero telefonico
+      <input type="tel" name="phone" [(ngModel)]="formData.phone" required placeholder="0980674115" />
+    </label>
+
+    <label>
+      Correo electronico
+      <input type="email" name="email" [(ngModel)]="formData.email" required email placeholder="correo@ejemplo.com" />
+    </label>
+
+    <label>
+      Tipo de plan
+      <select name="planType" [(ngModel)]="formData.planType" required>
+        <option value="">Selecciona un plan</option>
+        @for (plan of planOptions; track plan) {
+          <option [value]="plan">{{ plan }}</option>
+        }
+      </select>
+    </label>
+
+    <label>
+      Objetivo de entrenamiento
+      <select name="goal" [(ngModel)]="formData.goal" required>
+        <option value="">Selecciona tu objetivo</option>
+        @for (goal of goalOptions; track goal) {
+          <option [value]="goal">{{ goal }}</option>
+        }
+      </select>
+    </label>
+
+    <label>
+      Horario preferido
+      <select name="schedule" [(ngModel)]="formData.schedule" required>
+        <option value="">Selecciona un horario</option>
+        @for (schedule of scheduleOptions; track schedule) {
+          <option [value]="schedule">{{ schedule }}</option>
+        }
+      </select>
+    </label>
+
+    <label class="field-wide">
+      Mensaje adicional
+      <textarea name="message" [(ngModel)]="formData.message" required rows="4" placeholder="Cuentanos tu meta principal"></textarea>
+    </label>
+  </div>
+
+  @if (submitted && signupForm.invalid) {
+    <p class="form-alert">Completa todos los campos para enviar tu inscripcion.</p>
+  }
+
+  @if (submitted && formData.age !== null && formData.age < 12) {
+    <p class="form-alert">La edad minima para registrarse es 12 anos.</p>
+  }
+
+  @if (successMessage) {
+    <p class="form-success">{{ successMessage }}</p>
+  }
+
+  <button type="submit">Enviar inscripcion</button>
+</form>

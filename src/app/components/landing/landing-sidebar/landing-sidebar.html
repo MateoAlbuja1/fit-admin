@@ -1,0 +1,37 @@
+<aside class="landing-sidebar" aria-label="Menu lateral publico">
+  <header>
+    <span class="brand-logo"><img src="/assets/img/wx-fitness-gym-logo.png" alt="WX Fitness Gym" /></span>
+    <div>
+      <strong>WX Fitness Gym</strong>
+      <small>Quito - Caupicho</small>
+    </div>
+  </header>
+
+  <nav>
+    @for (item of items; track item.anchor) {
+      <section class="nav-group">
+        <button
+          type="button"
+          [class.is-active]="item.anchor === activeAnchor"
+          [attr.aria-current]="item.anchor === activeAnchor ? 'page' : null"
+          [attr.title]="item.label"
+          (click)="navigateTo(item.anchor)"
+        >
+          <span class="material-icons" aria-hidden="true">{{ item.icon }}</span>
+          <b>{{ item.label }}</b>
+        </button>
+
+        @if (item.children?.length && item.anchor === 'tienda' && activeAnchor === 'tienda') {
+          <div class="child-links" aria-label="Categorias de tienda">
+            <strong>Categorias</strong>
+            @for (child of item.children; track child.label) {
+              <button type="button" (click)="navigateTo(child.anchor)">
+                <span>{{ child.label }}</span>
+              </button>
+            }
+          </div>
+        }
+      </section>
+    }
+  </nav>
+</aside>

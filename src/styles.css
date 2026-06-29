@@ -2,6 +2,561 @@
 
 html,
 body {
+  margin: 0;
   max-width: 100%;
   overflow-x: hidden;
+  scroll-behavior: smooth;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+.confirm-overlay {
+  position: fixed;
+  z-index: 140;
+  top: 0;
+  left: 0;
+  display: grid;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  place-items: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, .58);
+  backdrop-filter: blur(4px);
+}
+
+.confirm-dialog {
+  width: min(100%, 430px);
+  padding: 28px;
+  border: 1px solid rgba(197, 69, 69, .22);
+  border-radius: 18px;
+  background: #fff;
+  color: #111;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, .28);
+  text-align: center;
+}
+
+.confirm-icon {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  margin: 0 auto 16px;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(197, 69, 69, .1);
+  color: #c54545;
+  font-weight: 900;
+}
+
+.confirm-copy span {
+  color: #c54545;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+.confirm-copy h2 {
+  margin: 8px 0 10px;
+  font-size: 25px;
+}
+
+.confirm-copy p {
+  margin: 0;
+  color: #777;
+  line-height: 1.45;
+}
+
+.confirm-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.confirm-danger {
+  min-height: 40px;
+  border: 1px solid #c54545;
+  border-radius: 8px;
+  background: #c54545;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.dark-mode .confirm-dialog {
+  border-color: rgba(255, 99, 99, .35);
+  background: #101a2b;
+  color: #f5f7fb;
+}
+
+.dark-mode .confirm-copy p {
+  color: #9ba9bc;
+}
+
+.filter-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 14px 20px 18px;
+  border-bottom: 1px solid #eeeeec;
+  background: linear-gradient(180deg, #fff, #fafafa);
+}
+
+.filter-panel--selects {
+  justify-content: flex-start;
+}
+
+.select-filter {
+  display: grid;
+  min-width: 190px;
+  gap: 7px;
+}
+
+.select-filter > span {
+  color: #8a8a86;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.select-filter__control {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.select-filter__control select {
+  width: 100%;
+  height: 42px;
+  appearance: none;
+  border: 1px solid #dededb;
+  border-radius: 12px;
+  outline: none;
+  background: #fff;
+  color: #151515;
+  padding: 0 42px 0 14px;
+  font-size: 14px;
+  font-weight: 800;
+  box-shadow: 0 10px 24px rgba(17, 17, 17, .04);
+  cursor: pointer;
+  transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+
+.select-filter__control select:hover,
+.select-filter__control select:focus {
+  border-color: #111;
+  box-shadow: 0 12px 26px rgba(17, 17, 17, .08);
+}
+
+.select-filter__control svg {
+  position: absolute;
+  right: 13px;
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+  stroke: currentColor;
+  stroke-width: 2.3;
+  fill: none;
+  color: #111;
+}
+
+.clear-filter {
+  height: 42px;
+  border: 1px solid #dededb;
+  border-radius: 12px;
+  background: #111;
+  color: #fff;
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 12px 24px rgba(17, 17, 17, .12);
+}
+
+.dark-mode .filter-panel {
+  border-bottom-color: #222a34;
+  background: linear-gradient(180deg, #111823, #0d141d);
+}
+
+.dark-mode .select-filter > span {
+  color: #8d99a8;
+}
+
+.dark-mode .select-filter__control select {
+  border-color: #2a3442;
+  background: #151d28;
+  color: #f4f7fb;
+  box-shadow: none;
+}
+
+.dark-mode .select-filter__control select:hover,
+.dark-mode .select-filter__control select:focus {
+  border-color: #0b93c7;
+  box-shadow: 0 0 0 3px rgba(11, 147, 199, .13);
+}
+
+.dark-mode .select-filter__control svg {
+  color: #dce6f2;
+}
+
+.dark-mode .clear-filter {
+  border-color: #0b93c7;
+  background: #0b93c7;
+}
+
+.row-actions {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: none !important;
+}
+
+.row-actions .text-button {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid #dededb;
+  border-radius: 9px;
+  background: #fff;
+  color: #111;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.row-actions .text-button:hover {
+  border-color: #111;
+  background: #111;
+  color: #fff;
+}
+
+.row-actions .text-button--renew {
+  border-color: rgba(197, 69, 69, .28);
+  color: #c54545;
+}
+
+.row-actions .text-button--muted {
+  color: #6f6f6f;
+}
+
+.dark-mode .row-actions .text-button {
+  border-color: #2a3442;
+  background: #151d28;
+  color: #edf3f8;
+}
+
+.dark-mode .row-actions .text-button:hover {
+  border-color: #0b93c7;
+  background: #0b93c7;
+  color: #fff;
+}
+
+.dark-mode .row-actions .text-button--renew {
+  border-color: rgba(255, 113, 113, .32);
+  color: #ff8a8a;
+}
+
+/* Public landing layout fallback: keeps the fixed client menu from covering content. */
+app-landing {
+  --landing-sidebar-width: 92px;
+  display: block;
+  min-height: 100vh;
+  background: #07080a;
+}
+
+app-landing app-landing-header,
+app-landing .landing-public,
+app-landing app-landing-footer {
+  margin-left: var(--landing-sidebar-width);
+}
+
+app-landing .promo-modal {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+}
+
+app-landing .promo-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, .78), rgba(0, 0, 0, .88)),
+    rgba(0, 0, 0, .78);
+  backdrop-filter: blur(10px);
+}
+
+app-landing .promo-dialog {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(260px, .78fr) minmax(0, 1fr);
+  width: min(100%, 920px);
+  min-height: 560px;
+  overflow: hidden;
+  gap: 0;
+  border: 1px solid rgba(255, 255, 255, .26);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, .1), transparent 36%),
+    #090b10;
+  color: #fff;
+  padding: 0;
+  box-shadow: 0 34px 120px rgba(0, 0, 0, .64);
+}
+
+app-landing .promo-close {
+  position: absolute;
+  z-index: 3;
+  top: 14px;
+  right: 14px;
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .07);
+  color: #fff;
+  cursor: pointer;
+  font-weight: 950;
+}
+
+app-landing .promo-media {
+  position: relative;
+  min-height: 100%;
+  overflow: hidden;
+  border-right: 1px solid rgba(255, 255, 255, .12);
+  background: #050605;
+}
+
+app-landing .promo-media img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: .72;
+  filter: grayscale(.15) contrast(1.12);
+}
+
+app-landing .promo-media::after {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, .18), rgba(0, 0, 0, .9)),
+    linear-gradient(90deg, rgba(255, 255, 255, .12), transparent 52%);
+  content: '';
+}
+
+app-landing .promo-media strong {
+  position: absolute;
+  z-index: 1;
+  left: 22px;
+  bottom: 54px;
+  display: grid;
+  width: 148px;
+  height: 74px;
+  place-items: center;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, .72);
+  color: #fff;
+  font-size: 17px;
+  font-weight: 950;
+  overflow: hidden;
+  padding: 8px;
+}
+
+app-landing .promo-media strong img {
+  position: static;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 1;
+  filter: none;
+}
+
+app-landing .promo-media span {
+  position: absolute;
+  z-index: 1;
+  left: 22px;
+  bottom: 24px;
+  color: rgba(255, 255, 255, .72);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+app-landing .promo-content {
+  display: grid;
+  align-content: center;
+  gap: 15px;
+  padding: clamp(28px, 5vw, 54px);
+}
+
+app-landing .promo-kicker {
+  color: #fff;
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+app-landing .promo-content h2,
+app-landing .promo-content p {
+  margin: 0;
+}
+
+app-landing .promo-content h2 {
+  max-width: 520px;
+  font-size: 50px;
+  font-weight: 950;
+  line-height: .98;
+  text-transform: uppercase;
+}
+
+app-landing .promo-content p {
+  color: rgba(255, 255, 255, .72);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+app-landing .promo-offer {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  gap: 10px;
+  align-items: end;
+  width: fit-content;
+  margin: 4px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, .18);
+  padding-bottom: 12px;
+}
+
+app-landing .promo-offer span,
+app-landing .promo-offer small {
+  color: rgba(255, 255, 255, .62);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+app-landing .promo-offer strong {
+  font-size: 76px;
+  font-weight: 950;
+  line-height: .78;
+}
+
+app-landing .promo-benefits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+app-landing .promo-benefits small {
+  border: 1px solid rgba(255, 255, 255, .14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .07);
+  color: rgba(255, 255, 255, .82);
+  padding: 8px 10px;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+app-landing .promo-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+app-landing .promo-mini-grid div {
+  display: grid;
+  gap: 4px;
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .055);
+  padding: 13px;
+}
+
+app-landing .promo-mini-grid b {
+  font-size: 24px;
+}
+
+app-landing .promo-mini-grid span {
+  color: rgba(255, 255, 255, .64);
+  font-size: 12px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+app-landing .promo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+app-landing .promo-actions button {
+  min-height: 48px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 950;
+  padding: 0 18px;
+  text-transform: uppercase;
+}
+
+app-landing .promo-actions button:first-child {
+  border: 1px solid #fff;
+  background: #fff;
+  color: #050605;
+}
+
+app-landing .promo-actions button:last-child {
+  border: 1px solid rgba(255, 255, 255, .18);
+  background: transparent;
+  color: #fff;
+}
+
+@media (max-width: 860px) {
+  app-landing {
+    --landing-sidebar-width: 64px;
+  }
+}
+
+@media (max-width: 720px) {
+  app-landing {
+    --landing-sidebar-width: 0px;
+  }
+
+  app-landing .promo-dialog {
+    grid-template-columns: 1fr;
+    min-height: 0;
+    max-height: calc(100vh - 28px);
+    overflow: auto;
+  }
+
+  app-landing .promo-media {
+    min-height: 170px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, .12);
+  }
+
+  app-landing .promo-content h2 {
+    font-size: 34px;
+  }
+
+  app-landing .promo-offer strong {
+    font-size: 56px;
+  }
+
+  app-landing .promo-mini-grid {
+    grid-template-columns: 1fr;
+  }
+
+  app-landing .promo-actions {
+    display: grid;
+  }
 }
