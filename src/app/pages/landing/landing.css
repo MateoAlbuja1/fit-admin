@@ -12,6 +12,7 @@
   background: #07080a;
   color: #fff;
   font-family: Arial, Helvetica, sans-serif;
+  overflow-x: clip;
 }
 
 * {
@@ -23,6 +24,7 @@
   background:
     linear-gradient(180deg, #08090b 0%, #11151b 36%, #08090c 100%);
   min-width: 0;
+  overflow-x: hidden;
 }
 
 .section-view {
@@ -436,8 +438,11 @@ app-landing-footer {
 
 .store-section .product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 260px));
   gap: 18px;
+  justify-content: start;
+  align-items: start;
+  max-width: 100%;
   overflow: visible;
 }
 
@@ -457,33 +462,41 @@ app-landing-footer {
 .cart-items {
   display: grid;
   gap: 12px;
+  align-content: start;
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 .cart-items article {
   display: grid;
-  grid-template-columns: 62px 1fr;
+  grid-template-columns: 74px 1fr;
   gap: 12px;
   border: 1px solid rgba(255, 255, 255, .1);
   border-radius: 8px;
-  background: rgba(255, 255, 255, .055);
-  padding: 10px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .085), rgba(255, 255, 255, .04));
+  min-width: 0;
+  padding: 12px;
 }
 
 .cart-items img {
-  width: 62px;
-  height: 62px;
+  width: 74px;
+  height: 74px;
+  border: 1px solid rgba(255, 255, 255, .12);
   border-radius: 8px;
   object-fit: cover;
+  background: #fff;
 }
 
 .cart-items article > div {
   display: grid;
   gap: 6px;
+  min-width: 0;
 }
 
 .cart-items strong,
 .cart-items span {
   line-height: 1.25;
+  overflow-wrap: anywhere;
 }
 
 .cart-items span,
@@ -500,25 +513,76 @@ app-landing-footer {
 }
 
 .quantity-controls button {
-  min-width: 32px;
-  min-height: 32px;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  place-items: center;
   border: 1px solid rgba(255, 255, 255, .16);
-  background: rgba(255, 255, 255, .07);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .08);
   color: #fff;
+  padding: 0;
+  transition: background .18s ease, color .18s ease, transform .18s ease;
+}
+
+.quantity-controls button:hover {
+  background: #fff;
+  color: #050605;
+  transform: translateY(-1px);
+}
+
+.quantity-controls .material-icons {
+  font-size: 18px;
 }
 
 .quantity-controls b {
-  min-width: 24px;
+  display: grid;
+  min-width: 28px;
+  height: 34px;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .08);
   text-align: center;
 }
 
 .quantity-controls .remove-item {
-  padding: 0 10px;
+  margin-left: auto;
+  border-color: rgba(255, 255, 255, .22);
 }
 
 .cart-checkout {
   display: grid;
   gap: 9px;
+  position: sticky;
+  bottom: -22px;
+  margin: 0 -22px -22px;
+  border-top: 1px solid rgba(255, 255, 255, .12);
+  background: linear-gradient(180deg, rgba(16, 18, 23, .92), #090a0d);
+  padding: 14px 22px 22px;
+}
+
+.checkout-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .06);
+  min-width: 0;
+  padding: 12px 14px;
+}
+
+.checkout-total span {
+  color: rgba(255, 255, 255, .62);
+  font-size: 12px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.checkout-total strong {
+  font-size: 24px;
 }
 
 .cart-checkout a,
@@ -539,6 +603,39 @@ app-landing-footer {
   border: 1px solid rgba(255, 255, 255, .18);
   background: transparent;
   color: #fff;
+}
+
+.empty-cart {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 10px;
+  min-height: 260px;
+  border: 1px dashed rgba(255, 255, 255, .18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .04);
+  padding: 24px;
+  text-align: center;
+}
+
+.empty-cart .material-icons {
+  display: grid;
+  width: 64px;
+  height: 64px;
+  place-items: center;
+  border-radius: 999px;
+  background: #fff;
+  color: #050605;
+  font-size: 32px;
+}
+
+.empty-cart strong {
+  color: #fff;
+  font-size: 22px;
+}
+
+.empty-cart p {
+  margin: 0;
 }
 
 .social-section {
@@ -603,15 +700,37 @@ app-landing-footer {
 
 .review-avatar {
   display: grid;
-  width: 42px;
-  height: 42px;
+  position: relative;
+  width: 48px;
+  height: 48px;
   place-items: center;
-  min-width: 42px;
+  min-width: 48px;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, .18);
   border-radius: 999px;
-  background: linear-gradient(135deg, #fff, rgba(255, 255, 255, .55));
+  background: rgba(255, 255, 255, .1);
   color: #050605;
   font-size: 16px;
   font-weight: 950;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, .28);
+}
+
+.review-avatar img {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.review-avatar b {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #fff, rgba(255, 255, 255, .55));
+  color: #050605;
 }
 
 .review-card header div {
@@ -661,6 +780,7 @@ app-landing-footer {
   position: fixed;
   z-index: 1100;
   inset: 0;
+  overflow: hidden;
 }
 
 .cart-backdrop {
@@ -678,9 +798,11 @@ app-landing-footer {
   display: grid;
   grid-template-rows: auto 1fr auto;
   gap: 16px;
-  width: min(100%, 430px);
+  width: min(100%, 460px);
+  max-width: 100vw;
   height: 100%;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   border-left: 1px solid rgba(255, 255, 255, .14);
   background:
     linear-gradient(135deg, rgba(255, 255, 255, .08), transparent 36%),
@@ -695,13 +817,15 @@ app-landing-footer {
   align-items: center;
   justify-content: space-between;
   gap: 14px;
+  min-width: 0;
   border-bottom: 1px solid rgba(255, 255, 255, .12);
   padding-bottom: 16px;
 }
 
 .cart-sheet header div {
   display: grid;
-  gap: 6px;
+  gap: 5px;
+  min-width: 0;
 }
 
 .cart-sheet header span {
@@ -712,19 +836,38 @@ app-landing-footer {
 }
 
 .cart-sheet header strong {
-  font-size: 40px;
-  line-height: .9;
+  font-size: 28px;
+  line-height: 1;
 }
 
-.cart-sheet header button {
-  width: 40px;
-  height: 40px;
+.cart-sheet header small {
+  color: rgba(255, 255, 255, .62);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.cart-sheet header .cart-close {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  place-items: center;
   border: 1px solid rgba(255, 255, 255, .18);
   border-radius: 8px;
   background: rgba(255, 255, 255, .07);
   color: #fff;
   cursor: pointer;
   font-weight: 950;
+}
+
+.cart-sheet header .cart-close span {
+  display: block;
+  color: #fff;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1;
+  transform: translateY(-1px);
 }
 
 .why-grid article {
@@ -940,7 +1083,9 @@ app-landing-footer {
   background: rgba(255, 255, 255, .07);
   color: #fff;
   cursor: pointer;
+  font-size: 22px;
   font-weight: 950;
+  line-height: 1;
 }
 
 .promo-media {
@@ -961,7 +1106,7 @@ app-landing-footer {
   box-sizing: border-box;
   object-fit: contain;
   opacity: 1;
-  padding: 22px 20px 90px;
+  padding: 22px 20px 52px;
   filter: drop-shadow(0 24px 32px rgba(0, 0, 0, .42));
 }
 
@@ -974,33 +1119,16 @@ app-landing-footer {
   content: '';
 }
 
-.promo-media strong {
-  position: absolute;
-  z-index: 1;
-  left: 22px;
-  bottom: 44px;
-  display: grid;
-  width: fit-content;
-  min-height: 44px;
-  place-items: center;
-  border-radius: 8px;
-  background: rgba(0, 0, 0, .72);
-  color: #fff;
-  font-size: 15px;
-  font-weight: 950;
-  overflow: hidden;
-  padding: 11px 13px;
-  text-transform: uppercase;
-}
-
 .promo-media span {
   position: absolute;
   z-index: 1;
   left: 22px;
-  bottom: 18px;
+  right: 22px;
+  bottom: 16px;
   color: rgba(255, 255, 255, .72);
   font-size: 12px;
   font-weight: 900;
+  text-align: center;
   text-transform: uppercase;
 }
 
@@ -1133,18 +1261,6 @@ app-landing-footer {
   color: #fff;
 }
 
-.promo-session {
-  width: fit-content;
-  border: 0;
-  background: transparent;
-  color: rgba(255, 255, 255, .58);
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 850;
-  padding: 0;
-  text-decoration: underline;
-}
-
 @media (max-width: 1080px) {
   .impact-strip {
     grid-template-columns: 1fr;
@@ -1169,10 +1285,6 @@ app-landing-footer {
 
   .store-layout {
     grid-template-columns: 1fr;
-  }
-
-  .store-categories {
-    position: static;
   }
 }
 
@@ -1296,10 +1408,6 @@ app-landing-footer {
     min-height: 170px;
     border-right: 0;
     border-bottom: 1px solid rgba(255, 255, 255, .12);
-  }
-
-  .promo-media strong {
-    bottom: 48px;
   }
 
   .promo-content h2 {

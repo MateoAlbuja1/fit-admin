@@ -13,6 +13,7 @@ import { ServiceCardComponent, LandingService } from '../../components/landing/s
 interface SocialProof {
   name: string;
   initial: string;
+  photo: string;
   result: string;
   quote: string;
   meta: string;
@@ -49,7 +50,6 @@ interface CartItem {
 })
 export class LandingComponent implements OnInit {
   private readonly whatsappPhone = '593980674115';
-  private readonly promoStorageKey = 'wxGymCreatinePromoDismissed';
   private readonly trackedAnchors = ['inicio', 'servicios', 'planes', 'tienda', 'contacto'];
 
   sidebarOpen = false;
@@ -64,37 +64,37 @@ export class LandingComponent implements OnInit {
 
   readonly slides: CarouselSlide[] = [
     {
-      eyebrow: 'WX GYM / Quito - Caupicho',
-      title: 'Entrena fuerte en Caupicho',
-      description: 'Entrena fuerza, cardio y acondicionamiento en un espacio real de Caupicho, con maquinas listas y ambiente profesional.',
+      eyebrow: 'WX Fitness Gym',
+      title: 'Construye tu mejor version',
+      description: 'Entrena fuerza, cardio y acondicionamiento con enfoque, disciplina y maquinas listas para progresar cada semana.',
       image: '/assets/img/gym-carousel-1.jpg',
       alt: 'Area principal de entrenamiento de WX GYM'
     },
     {
-      eyebrow: 'Area de musculacion',
-      title: 'Zona de fuerza equipada',
-      description: 'Maquinas, bancas, poleas y pesas para entrenar con progresion, buena tecnica y rutinas claras.',
+      eyebrow: 'Fuerza y musculacion',
+      title: 'Sube el nivel de tu rutina',
+      description: 'Pesas, poleas, bancas y maquinas para entrenar con tecnica, intensidad y objetivos claros.',
       image: '/assets/img/gym-carousel-2.jpg',
       alt: 'Zona de musculacion con maquinas y pesos'
     },
     {
-      eyebrow: 'Vista y ambiente',
-      title: 'Entrena con vista a Quito',
-      description: 'Un gimnasio oscuro, moderno y amplio para concentrarte en tu rutina sin distracciones.',
+      eyebrow: 'Ambiente fitness',
+      title: 'Concentrate en tu progreso',
+      description: 'Un espacio moderno para entrenar sin distracciones, mantener constancia y superar tus marcas.',
       image: '/assets/img/gym-carousel-4.jpg',
-      alt: 'Zona de entrenamiento con vista a Quito'
+      alt: 'Zona moderna de entrenamiento de WX GYM'
     },
     {
       eyebrow: 'Cardio y acondicionamiento',
-      title: 'Ritmo, fuerza y constancia',
-      description: 'Combina musculacion, cardio y clases para mejorar tu condicion fisica semana a semana.',
+      title: 'Resistencia para rendir mas',
+      description: 'Combina cardio, fuerza y acondicionamiento para ganar energia, control y mejor condicion fisica.',
       image: '/assets/img/gym-cycling-zone.jpg',
       alt: 'Zona de cardio y bicicletas de WX GYM'
     },
     {
-      eyebrow: 'WX GYM real',
-      title: 'Espacio moderno para progresar',
-      description: 'Fotos reales del gimnasio, equipos disponibles y una experiencia pensada para entrenar mejor.',
+      eyebrow: 'Entrenamiento real',
+      title: 'Haz que cada sesion cuente',
+      description: 'Rutinas, seguimiento y equipo disponible para convertir la constancia en resultados visibles.',
       image: '/assets/img/gym-carousel-3.jpg',
       alt: 'Interior moderno de WX GYM'
     }
@@ -113,7 +113,7 @@ export class LandingComponent implements OnInit {
         { label: 'Creatinas', anchor: 'tienda:Creatinas' },
         { label: 'Vitaminas y minerales', anchor: 'tienda:Vitaminas y minerales' },
         { label: 'Pre-entrenos', anchor: 'tienda:Pre-entrenos' },
-        { label: 'Barras y snacks', anchor: 'tienda:Barras y snacks de proteina' }
+        { label: 'Barras y snacks de proteina', anchor: 'tienda:Barras y snacks de proteina' }
       ]
     },
     { label: 'Contacto', anchor: 'contacto', icon: 'call' }
@@ -190,10 +190,148 @@ export class LandingComponent implements OnInit {
   ];
 
   readonly products: FitnessProduct[] = [
-    { name: 'Proteina Whey', price: '$38.00', discount: '10% OFF', rating: '4.8/5', image: '/assets/img/gym-store-bg.jpg', category: 'Proteinas', description: 'Proteina para recuperacion muscular despues de entrenamientos de fuerza.' },
-    { name: 'Proteina Isolate', price: '$46.00', rating: '4.9/5', image: '/assets/img/gym-carousel-1.jpg', category: 'Proteinas', description: 'Opcion ligera y de rapida absorcion para completar tu consumo diario de proteina.' },
-    { name: 'Creatina Dragon Pharma', price: '$24.00', discount: 'Promo', rating: '4.9/5', image: '/assets/img/creatine-dragon-pharma.png', imageFit: 'contain', category: 'Creatinas', description: 'Creatina monohidratada de 300 g, 60 servicios de 5 g para fuerza, potencia y rendimiento.' },
-    { name: 'Creatina micronizada', price: '$22.00', rating: '4.8/5', image: '/assets/img/gym-carousel-2.jpg', category: 'Creatinas', description: 'Apoyo para progresar en fuerza y sostener mejor el volumen de entrenamiento.' },
+    {
+      name: 'Dragon Whey Phorm 2 lb',
+      price: '$48.00',
+      discount: 'Nuevo',
+      rating: '4.8/5',
+      image: '/assets/img/products/proteins/dragon-whey-phorm.png',
+      factsImage: '/assets/img/products/proteins/dragon-whey-phorm-facts.png',
+      imageFit: 'contain',
+      category: 'Proteinas',
+      description: 'Proteina whey de chocolate blanco y vainilla para recuperacion muscular.'
+    },
+    {
+      name: 'ON Gold Standard Whey',
+      price: '$55.00',
+      rating: '4.9/5',
+      image: '/assets/img/products/proteins/on-gold-standard-whey.png',
+      factsImage: '/assets/img/products/proteins/on-gold-standard-facts.png',
+      imageFit: 'contain',
+      category: 'Proteinas',
+      description: 'Whey premium de rapida mezcla, ideal para despues del entrenamiento.'
+    },
+    {
+      name: 'RC King Whey',
+      price: '$78.00',
+      rating: '4.8/5',
+      image: '/assets/img/products/proteins/rc-king-whey.png',
+      factsImage: '/assets/img/products/proteins/rc-king-whey-facts.png',
+      imageFit: 'contain',
+      category: 'Proteinas',
+      description: 'Formato grande con 25 g de proteina por porcion para uso constante.'
+    },
+    {
+      name: 'BPI Hydro HD',
+      price: '$82.00',
+      rating: '4.8/5',
+      image: '/assets/img/products/proteins/bpi-hydro-hd.png',
+      factsImage: '/assets/img/products/proteins/bpi-hydro-hd-facts.png',
+      imageFit: 'contain',
+      category: 'Proteinas',
+      description: 'Proteina hidrolizada de absorcion rapida para recuperacion exigente.'
+    },
+    {
+      name: 'Dymatize ISO100',
+      price: '$95.00',
+      rating: '4.9/5',
+      image: '/assets/img/products/proteins/dymatize-iso100.png',
+      factsImage: '/assets/img/products/proteins/dymatize-iso100-facts.png',
+      imageFit: 'contain',
+      category: 'Proteinas',
+      description: 'Isolate hidrolizado, bajo en grasa y carbohidratos, opcion premium.'
+    },
+    {
+      name: 'Sascha Isolate',
+      price: '$58.00',
+      rating: '4.8/5',
+      image: '/assets/img/products/proteins/sascha-isolate.png',
+      factsImage: '/assets/img/products/proteins/sascha-isolate-facts.png',
+      imageFit: 'contain',
+      category: 'Proteinas',
+      description: 'Whey isolate sin azucar, pensado para definicion y nutricion diaria.'
+    },
+    {
+      name: 'Creatina Dragon Pharma',
+      price: '$35.00',
+      discount: 'Promo',
+      rating: '4.9/5',
+      image: '/assets/img/creatine-dragon-pharma.png',
+      factsImage: '/assets/img/products/creatines/dragon-pharma-facts.png',
+      imageFit: 'contain',
+      category: 'Creatinas',
+      description: 'Creatina monohidratada de 300 g para fuerza, potencia y rendimiento.'
+    },
+    {
+      name: 'BPI Micronized Creatine 1 kg',
+      price: '$75.00',
+      rating: '4.9/5',
+      image: '/assets/img/products/creatines/bpi-micronized-creatine.png',
+      factsImage: '/assets/img/products/creatines/bpi-micronized-facts.png',
+      imageFit: 'contain',
+      category: 'Creatinas',
+      description: 'Creatina micronizada importada, formato grande para uso prolongado.'
+    },
+    {
+      name: 'Beverly Creapure Cherry',
+      price: '$48.00',
+      rating: '4.8/5',
+      image: '/assets/img/products/creatines/beverly-creapure-cherry.png',
+      factsImage: '/assets/img/products/creatines/beverly-creapure-facts.png',
+      imageFit: 'contain',
+      category: 'Creatinas',
+      description: 'Creatina con Creapure y sabor cherry, opcion premium para rendimiento.'
+    },
+    {
+      name: 'MuscleMeds Creatine Decanate',
+      price: '$42.00',
+      rating: '4.8/5',
+      image: '/assets/img/products/creatines/musclemeds-decanate.png',
+      factsImage: '/assets/img/products/creatines/musclemeds-decanate-facts.png',
+      imageFit: 'contain',
+      category: 'Creatinas',
+      description: 'Creatina decanate de 60 servicios, enfocada en fuerza y recuperacion.'
+    },
+    {
+      name: 'Integralmedica Creatina Hardcore',
+      price: '$24.00',
+      rating: '4.7/5',
+      image: '/assets/img/products/creatines/integralmedica-hardcore.png',
+      factsImage: '/assets/img/products/creatines/integralmedica-hardcore-facts.png',
+      imageFit: 'contain',
+      category: 'Creatinas',
+      description: 'Creatina monohidratada de 150 g, opcion compacta y accesible.'
+    },
+    {
+      name: 'ON Micronized Creatine',
+      price: '$58.00',
+      rating: '4.9/5',
+      image: '/assets/img/products/creatines/on-micronized-creatine.png',
+      factsImage: '/assets/img/products/creatines/on-micronized-facts.png',
+      imageFit: 'contain',
+      category: 'Creatinas',
+      description: 'Creatina micronizada Optimum Nutrition para entrenamiento de fuerza.'
+    },
+    {
+      name: 'RC Creatine NS',
+      price: '$55.00',
+      rating: '4.8/5',
+      image: '/assets/img/products/creatines/rc-creatine-ns.png',
+      factsImage: '/assets/img/products/creatines/rc-creatine-ns-facts.png',
+      imageFit: 'contain',
+      category: 'Creatinas',
+      description: 'Creatina sin sabor de alto rendimiento, formato grande para constancia.'
+    },
+    {
+      name: 'RAW Essentials Creatine',
+      price: '$48.00',
+      rating: '4.8/5',
+      image: '/assets/img/products/creatines/raw-essentials-creatine.png',
+      factsImage: '/assets/img/products/creatines/raw-essentials-facts.png',
+      imageFit: 'contain',
+      category: 'Creatinas',
+      description: 'Creatina monohidratada 100% pura, 100 servicios aproximados.'
+    },
     { name: 'Multivitaminico diario', price: '$18.00', rating: '4.7/5', image: '/assets/img/gym-carousel-3.jpg', category: 'Vitaminas y minerales', description: 'Vitaminas y minerales para complementar alimentacion, energia y bienestar general.' },
     { name: 'Magnesio + zinc', price: '$16.00', discount: 'Nuevo', rating: '4.7/5', image: '/assets/img/gym-carousel-4.jpg', category: 'Vitaminas y minerales', description: 'Minerales de apoyo para descanso, recuperacion y rendimiento diario.' },
     { name: 'Pre entreno energia', price: '$26.00', rating: '4.7/5', image: '/assets/img/gym-cycling-zone.jpg', category: 'Pre-entrenos', description: 'Formula para entrenar con mas enfoque, intensidad y resistencia en sesiones exigentes.' },
@@ -206,6 +344,7 @@ export class LandingComponent implements OnInit {
     {
       name: 'Jeca Chusin',
       initial: 'J',
+      photo: '/assets/img/reviews/jeca-chusin.png',
       result: '5.0',
       quote: 'Muy bien trato, recomendado y te ayudan con la rutina.',
       meta: '2 opiniones',
@@ -214,6 +353,7 @@ export class LandingComponent implements OnInit {
     {
       name: 'Aracely Silva',
       initial: 'A',
+      photo: '/assets/img/reviews/aracely-silva.png',
       result: '5.0',
       quote: 'Buena atencion, tambien transmiten los partidos.',
       meta: '5 opiniones',
@@ -222,6 +362,7 @@ export class LandingComponent implements OnInit {
     {
       name: 'Abigail Berrones',
       initial: 'A',
+      photo: '/assets/img/reviews/abigail-berrones.png',
       result: '5.0',
       quote: 'Excelente muy buenas rutinas.',
       meta: '1 opinion',
@@ -230,6 +371,7 @@ export class LandingComponent implements OnInit {
     {
       name: 'Milena Almagro',
       initial: 'M',
+      photo: '/assets/img/reviews/milena-almagro.png',
       result: '5.0',
       quote: 'El mejor gimnasio del Sur de Quito.',
       meta: '1 opinion',
@@ -238,6 +380,7 @@ export class LandingComponent implements OnInit {
     {
       name: 'Pato Taco',
       initial: 'P',
+      photo: '/assets/img/reviews/pato-taco.png',
       result: '5.0',
       quote: 'No es bueno... es excelente.',
       meta: '1 opinion',
@@ -246,6 +389,7 @@ export class LandingComponent implements OnInit {
     {
       name: 'Kattya Silvana',
       initial: 'K',
+      photo: '/assets/img/reviews/kattya-silvana.png',
       result: '5.0',
       quote: 'Excelente servicio.',
       meta: '1 opinion - 3 fotos',
@@ -269,7 +413,7 @@ export class LandingComponent implements OnInit {
     { label: 'Creatinas', category: 'Tienda', description: 'Suplementos para fuerza y rendimiento.', anchor: 'tienda:Creatinas' },
     { label: 'Vitaminas y minerales', category: 'Tienda', description: 'Soporte diario para bienestar.', anchor: 'tienda:Vitaminas y minerales' },
     { label: 'Pre-entrenos', category: 'Tienda', description: 'Energia y enfoque antes de entrenar.', anchor: 'tienda:Pre-entrenos' },
-    { label: 'Barras y snacks', category: 'Tienda', description: 'Snacks de proteina listos para llevar.', anchor: 'tienda:Barras y snacks de proteina' },
+    { label: 'Barras y snacks de proteina', category: 'Tienda', description: 'Snacks proteicos para llevar.', anchor: 'tienda:Barras y snacks de proteina' },
     { label: 'Carrito', category: 'Tienda', description: 'Arma tu pedido de suplementos.', anchor: 'tienda' },
     { label: 'Inscripcion', category: 'Contacto', description: 'Formulario para nuevos clientes.', anchor: 'inscripcion' },
     { label: 'WhatsApp', category: 'Contacto', description: 'Contacto rapido para inscribirte.', anchor: 'contacto' }
@@ -278,9 +422,7 @@ export class LandingComponent implements OnInit {
   constructor(@Inject(PLATFORM_ID) private platformId: object) {}
 
   ngOnInit(): void {
-    if (!isPlatformBrowser(this.platformId)) return;
-
-    this.showPromo = sessionStorage.getItem(this.promoStorageKey) !== 'true';
+    this.showPromo = true;
   }
 
   get searchResults(): SearchResult[] {
@@ -327,11 +469,8 @@ export class LandingComponent implements OnInit {
     this.searchTerm = query;
   }
 
-  closePromo(rememberSession = false): void {
+  closePromo(): void {
     this.showPromo = false;
-    if (rememberSession && isPlatformBrowser(this.platformId)) {
-      sessionStorage.setItem(this.promoStorageKey, 'true');
-    }
   }
 
   acceptPromo(): void {
@@ -402,9 +541,6 @@ export class LandingComponent implements OnInit {
 
   removeCartItem(item: CartItem): void {
     this.cartItems = this.cartItems.filter(cartItem => cartItem.product.name !== item.product.name);
-    if (!this.cartItems.length) {
-      this.cartOpen = false;
-    }
   }
 
   openCart(): void {
@@ -417,7 +553,6 @@ export class LandingComponent implements OnInit {
 
   clearCart(): void {
     this.cartItems = [];
-    this.cartOpen = false;
   }
 
   showCart(): void {

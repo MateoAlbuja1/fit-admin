@@ -1,13 +1,21 @@
-<article class="product-card">
+<article class="product-card" [class.has-facts]="product.factsImage">
   <div class="product-image" [class.is-contained]="product.imageFit === 'contain'">
-    <img [src]="product.image" [alt]="product.name" />
+    <img class="product-main" [src]="product.image" [alt]="product.name" />
+    @if (product.factsImage) {
+      <img class="facts-image" [src]="product.factsImage" [alt]="product.factsAlt || 'Tabla nutricional de ' + product.name" />
+      <div class="facts-cue">
+        <strong>Tabla nutricional</strong>
+      </div>
+    }
     @if (product.discount) {
       <span>{{ product.discount }}</span>
     }
-    <div class="product-hover">
-      <strong>Descripcion rapida</strong>
-      <p>{{ product.description }}</p>
-    </div>
+    @if (!product.factsImage) {
+      <div class="product-hover">
+        <strong>Descripcion rapida</strong>
+        <p>{{ product.description }}</p>
+      </div>
+    }
   </div>
 
   <div class="product-body">

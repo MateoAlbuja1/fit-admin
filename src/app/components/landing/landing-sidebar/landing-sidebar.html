@@ -13,15 +13,20 @@
         <button
           type="button"
           [class.is-active]="item.anchor === activeAnchor"
+          [class.is-expanded]="isExpanded(item)"
           [attr.aria-current]="item.anchor === activeAnchor ? 'page' : null"
+          [attr.aria-expanded]="item.children?.length ? isExpanded(item) : null"
           [attr.title]="item.label"
-          (click)="navigateTo(item.anchor)"
+          (click)="handleItemClick(item)"
         >
           <span class="material-icons" aria-hidden="true">{{ item.icon }}</span>
           <b>{{ item.label }}</b>
+          @if (item.children?.length) {
+            <span class="material-icons dropdown-cue" aria-hidden="true">expand_more</span>
+          }
         </button>
 
-        @if (item.children?.length && item.anchor === 'tienda' && activeAnchor === 'tienda') {
+        @if (item.children?.length && isExpanded(item)) {
           <div class="child-links" aria-label="Categorias de tienda">
             <strong>Categorias</strong>
             @for (child of item.children; track child.label) {

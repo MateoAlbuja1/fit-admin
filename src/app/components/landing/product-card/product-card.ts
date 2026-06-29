@@ -6,6 +6,8 @@ export interface FitnessProduct {
   discount?: string;
   rating: string;
   image: string;
+  factsImage?: string;
+  factsAlt?: string;
   imageFit?: 'cover' | 'contain';
   category: string;
   description: string;

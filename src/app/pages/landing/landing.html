@@ -36,10 +36,9 @@
   <section class="promo-modal" role="dialog" aria-modal="true" aria-labelledby="promo-title">
     <button class="promo-backdrop" type="button" tabindex="-1" aria-hidden="true"></button>
     <article class="promo-dialog" aria-describedby="promo-copy">
-      <button class="promo-close" type="button" aria-label="Cerrar promocion" (click)="closePromo()">x</button>
+      <button class="promo-close" type="button" aria-label="Cerrar promocion" (click)="closePromo()">&times;</button>
       <div class="promo-media" aria-hidden="true">
         <img src="/assets/img/creatine-dragon-pharma.png" alt="" />
-        <strong>Dragon Pharma</strong>
         <span>Disponible en WX GYM</span>
       </div>
       <div class="promo-content">
@@ -48,7 +47,7 @@
         <p id="promo-copy">300 g, 60 servicios y compra directa por WhatsApp.</p>
         <div class="promo-offer">
           <span>Ahora</span>
-          <strong>$24</strong>
+          <strong>$35</strong>
           <small>promo</small>
         </div>
         <div class="promo-benefits">
@@ -60,7 +59,6 @@
           <button type="button" (click)="acceptPromo()">Comprar creatina</button>
           <button type="button" (click)="closePromo()">Explorar WX GYM</button>
         </div>
-        <button class="promo-session" type="button" (click)="closePromo(true)">No mostrar otra vez esta sesion</button>
       </div>
     </article>
   </section>
@@ -77,13 +75,13 @@
 
       <section class="impact-strip" aria-label="Resumen de WX GYM">
         <div>
-          <span>WX GYM / Caupicho</span>
-          <strong>Fuerza real, rutina clara y acompanamiento desde el primer dia.</strong>
+          <span>WX Fitness Gym</span>
+          <strong>Entrena con proposito, mejora tu tecnica y manten la constancia.</strong>
         </div>
         <ul>
           <li><b>01</b><span>Evaluacion fisica</span></li>
-          <li><b>02</b><span>Plan guiado</span></li>
-          <li><b>03</b><span>Seguimiento</span></li>
+          <li><b>02</b><span>Rutina enfocada</span></li>
+          <li><b>03</b><span>Progreso medible</span></li>
         </ul>
       </section>
     </section>
@@ -127,7 +125,7 @@
       <div>
         <span>Tienda fitness</span>
         <h2>Suplementos WX</h2>
-        <p>Elige categoria y agrega al carrito.</p>
+        <p>Elige categoria y arma tu pedido.</p>
       </div>
     </div>
 
@@ -202,14 +200,17 @@
       @for (story of socialProof; track story.name) {
         <article class="review-card">
           <header>
-            <span class="review-avatar">{{ story.initial }}</span>
+            <span class="review-avatar">
+              <img [src]="story.photo" [alt]="'Foto de ' + story.name" />
+              <b aria-hidden="true">{{ story.initial }}</b>
+            </span>
             <div>
               <strong>{{ story.name }}</strong>
               <small>{{ story.meta }}</small>
             </div>
           </header>
           <div class="review-rating">
-            <span>★★★★★</span>
+            <span>5/5</span>
             <small>{{ story.time }}</small>
           </div>
           <p>{{ story.quote }}</p>
@@ -228,10 +229,13 @@
     <aside class="cart-sheet">
       <header>
         <div>
-          <span>Carrito de compras</span>
-          <strong>{{ formatCurrency(cartSubtotal) }}</strong>
+          <span>Carrito fitness</span>
+          <strong>{{ cartCount }} producto(s)</strong>
+          <small>Total estimado: {{ formatCurrency(cartSubtotal) }}</small>
         </div>
-        <button type="button" aria-label="Cerrar carrito" (click)="closeCart()">x</button>
+        <button class="cart-close" type="button" aria-label="Cerrar carrito" (click)="closeCart()">
+          <span aria-hidden="true">&times;</span>
+        </button>
       </header>
 
       @if (cartItems.length) {
@@ -243,10 +247,16 @@
                 <strong>{{ item.product.name }}</strong>
                 <span>{{ item.product.price }} / {{ item.product.category }}</span>
                 <div class="quantity-controls">
-                  <button type="button" aria-label="Restar producto" (click)="decreaseCartItem(item)">-</button>
+                  <button type="button" aria-label="Restar producto" (click)="decreaseCartItem(item)">
+                    <span class="material-icons" aria-hidden="true">remove</span>
+                  </button>
                   <b>{{ item.quantity }}</b>
-                  <button type="button" aria-label="Sumar producto" (click)="increaseCartItem(item)">+</button>
-                  <button class="remove-item" type="button" (click)="removeCartItem(item)">Quitar</button>
+                  <button type="button" aria-label="Sumar producto" (click)="increaseCartItem(item)">
+                    <span class="material-icons" aria-hidden="true">add</span>
+                  </button>
+                  <button class="remove-item" type="button" aria-label="Quitar producto" (click)="removeCartItem(item)">
+                    <span class="material-icons" aria-hidden="true">delete</span>
+                  </button>
                 </div>
               </div>
             </article>
@@ -254,11 +264,19 @@
         </div>
 
         <div class="cart-checkout">
+          <div class="checkout-total">
+            <span>Subtotal</span>
+            <strong>{{ formatCurrency(cartSubtotal) }}</strong>
+          </div>
           <a [href]="cartWhatsappUrl" target="_blank" rel="noreferrer">Finalizar compra por WhatsApp</a>
           <button type="button" (click)="clearCart()">Vaciar carrito</button>
         </div>
       } @else {
-        <p class="empty-cart">Tu carrito esta vacio. Agrega suplementos o accesorios desde la tienda.</p>
+        <div class="empty-cart">
+          <span class="material-icons" aria-hidden="true">shopping_cart</span>
+          <strong>Carrito vacio</strong>
+          <p>Agrega suplementos desde la tienda.</p>
+        </div>
       }
     </aside>
   </section>

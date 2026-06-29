@@ -19,7 +19,28 @@ export class LandingSidebarComponent {
 
   @Output() navigate = new EventEmitter<string>();
 
+  expandedAnchor = '';
+
+  handleItemClick(item: SidebarSection): void {
+    if (item.children?.length) {
+      const isOpen = this.expandedAnchor === item.anchor;
+      this.expandedAnchor = isOpen ? '' : item.anchor;
+
+      if (!isOpen) {
+        this.navigate.emit(item.anchor);
+      }
+      return;
+    }
+
+    this.expandedAnchor = '';
+    this.navigate.emit(item.anchor);
+  }
+
   navigateTo(anchor: string): void {
     this.navigate.emit(anchor);
+  }
+
+  isExpanded(item: SidebarSection): boolean {
+    return this.expandedAnchor === item.anchor;
   }
 }

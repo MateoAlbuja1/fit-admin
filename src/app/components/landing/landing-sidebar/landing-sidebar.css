@@ -131,11 +131,36 @@ nav .material-icons {
 }
 
 nav b {
+  flex: 1;
   max-width: 100%;
   color: inherit;
   font-size: 14px;
   font-weight: 950;
   line-height: 1.15;
+}
+
+.dropdown-cue {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .08);
+  font-size: 19px;
+  transition: transform .18s ease, background .18s ease, border-color .18s ease;
+}
+
+nav > .nav-group > button:hover .dropdown-cue {
+  border-color: rgba(255, 255, 255, .34);
+}
+
+nav > .nav-group > button.is-expanded .dropdown-cue {
+  border-color: rgba(5, 6, 5, .12);
+  background: #050605;
+  color: #fff;
+  transform: rotate(180deg);
 }
 
 .child-links {
@@ -222,6 +247,13 @@ nav b {
 
   nav b {
     font-size: 10px;
+  }
+
+  .dropdown-cue {
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    font-size: 18px;
   }
 }
 
