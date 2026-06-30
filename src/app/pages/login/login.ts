@@ -229,6 +229,12 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.router.navigate(['/registro']);
   }
 
+  goHome(): void {
+    this.message = '';
+    this.clearTrail();
+    this.router.navigate(['/']);
+  }
+
   handleSubmit(): void {
     this.message = '';
 

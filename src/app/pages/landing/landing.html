@@ -88,17 +88,58 @@
   }
 
   @if (activeAnchor === 'servicios') {
-  <section id="servicios" class="landing-section section-panel">
-    <div class="section-heading">
-      <span>Servicios destacados</span>
-      <h2>Todo lo que necesitas para entrenar mejor</h2>
-      <p>Musculacion, cardio, clases grupales, evaluacion fisica y rutinas para principiantes en un solo lugar.</p>
+  <section id="servicios" class="landing-section section-panel services-view">
+    <div class="section-heading services-heading">
+      <span>Servicios WX</span>
+      <h2>Elige como quieres entrenar</h2>
+      <p>Selecciona un servicio desde el menu lateral y revisa lo esencial.</p>
     </div>
 
-    <div class="service-grid">
-      @for (service of services; track service.name) {
-        <app-service-card [service]="service" (viewMore)="focusService($event)" />
-      }
+    <div class="services-workbench">
+      <article class="service-experience">
+        <div class="service-visual-zone">
+          <figure>
+            <img [src]="selectedService.image" [alt]="selectedService.name" />
+            <figcaption>{{ selectedService.badge }}</figcaption>
+          </figure>
+
+          <div class="session-summary">
+            <span>Sesion recomendada</span>
+            <strong>{{ selectedService.duration }}</strong>
+            <small>{{ selectedService.intensity }}</small>
+          </div>
+        </div>
+
+        <div class="service-program">
+          <span>{{ selectedService.focus }}</span>
+          <h3>{{ selectedService.name }}</h3>
+          <p>{{ selectedService.description }}</p>
+
+          <section class="training-goal-panel">
+            <small>Objetivo</small>
+            <strong>{{ selectedService.trainingGoal }}</strong>
+          </section>
+
+          <section class="session-route">
+            <header>
+              <span>Incluye</span>
+              <b>{{ selectedService.bestFor }}</b>
+            </header>
+            <ul>
+              @for (step of selectedService.sessionFlow; track step) {
+                <li>
+                  <span>{{ step }}</span>
+                </li>
+              }
+            </ul>
+          </section>
+
+          <div class="service-detail-actions">
+            <button type="button" (click)="requestService(selectedService)">Reservar evaluacion</button>
+            <button type="button" (click)="navigateTo('planes')">Ver planes</button>
+          </div>
+        </div>
+      </article>
     </div>
   </section>
   }

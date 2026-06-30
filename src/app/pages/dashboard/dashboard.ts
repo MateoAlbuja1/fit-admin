@@ -285,6 +285,22 @@ export class DashboardComponent {
     this.alertsRead = true;
   }
 
+  logout(): void {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem('fitadmin-session');
+      localStorage.removeItem('fitadmin-auth');
+      localStorage.removeItem('fitadmin-admin-session');
+    }
+
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.removeItem('fitadmin-session');
+      sessionStorage.removeItem('fitadmin-auth');
+      sessionStorage.removeItem('fitadmin-admin-session');
+    }
+
+    this.router.navigate(['/login']);
+  }
+
   setPeriod(period: PeriodoDashboard): void {
     this.selectedPeriod = period;
     this.refreshDashboard(`Vista actualizada: ${this.periodLabel.toLowerCase()}.`);

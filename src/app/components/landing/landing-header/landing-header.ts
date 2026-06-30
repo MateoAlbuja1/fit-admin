@@ -30,7 +30,7 @@ export class LandingHeaderComponent {
   }
 
   selectResult(result: SearchResult): void {
-    this.searchQueryChange.emit(result.label);
+    this.searchQueryChange.emit('');
     this.navigate.emit(result.anchor);
   }
 

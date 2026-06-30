@@ -69,6 +69,22 @@ export class LayoutAdministrativoComponent implements OnInit, OnDestroy {
     this.alertasLeidas = true;
   }
 
+  logout(): void {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem('fitadmin-session');
+      localStorage.removeItem('fitadmin-auth');
+      localStorage.removeItem('fitadmin-admin-session');
+    }
+
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.removeItem('fitadmin-session');
+      sessionStorage.removeItem('fitadmin-auth');
+      sessionStorage.removeItem('fitadmin-admin-session');
+    }
+
+    this.router.navigate(['/login']);
+  }
+
   private updateMeta(): void {
     let snapshot = this.router.routerState.snapshot.root;
     while (snapshot.firstChild) snapshot = snapshot.firstChild;

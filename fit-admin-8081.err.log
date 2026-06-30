@@ -1,0 +1,242 @@
+X [ERROR] TS2739: Type '{ name: string; description: string; image: string; badge: string; }' is missing the following properties from type 'LandingService': focus, duration, bestFor, includes [plugin angular-compiler]
+
+    src/app/pages/landing/landing.ts:123:4:
+      123 │     {
+          ╵     ^
+
+
+X [ERROR] TS2739: Type '{ name: string; description: string; image: string; badge: string; }' is missing the following properties from type 'LandingService': focus, duration, bestFor, includes [plugin angular-compiler]
+
+    src/app/pages/landing/landing.ts:129:4:
+      129 │     {
+          ╵     ^
+
+
+X [ERROR] TS2739: Type '{ name: string; description: string; image: string; badge: string; }' is missing the following properties from type 'LandingService': focus, duration, bestFor, includes [plugin angular-compiler]
+
+    src/app/pages/landing/landing.ts:135:4:
+      135 │     {
+          ╵     ^
+
+
+X [ERROR] TS2739: Type '{ name: string; description: string; image: string; badge: string; }' is missing the following properties from type 'LandingService': focus, duration, bestFor, includes [plugin angular-compiler]
+
+    src/app/pages/landing/landing.ts:141:4:
+      141 │     {
+          ╵     ^
+
+
+X [ERROR] TS2739: Type '{ name: string; description: string; image: string; badge: string; }' is missing the following properties from type 'LandingService': focus, duration, bestFor, includes [plugin angular-compiler]
+
+    src/app/pages/landing/landing.ts:147:4:
+      147 │     {
+          ╵     ^
+
+
+X [ERROR] TS2739: Type '{ name: string; description: string; image: string; badge: string; }' is missing the following properties from type 'LandingService': focus, duration, bestFor, includes [plugin angular-compiler]
+
+    src/app/pages/landing/landing.ts:153:4:
+      153 │     {
+          ╵     ^
+
+
+X [ERROR] TS2739: Type '{ name: string; description: string; image: string; badge: string; }' is missing the following properties from type 'LandingService': focus, duration, bestFor, includes [plugin angular-compiler]
+
+    src/app/pages/landing/landing.ts:123:4:
+      123 │     {
+          ╵     ^
+
+
+X [ERROR] TS2739: Type '{ name: string; description: string; image: string; badge: string; }' is missing the following properties from type 'LandingService': focus, duration, bestFor, includes [plugin angular-compiler]
+
+    src/app/pages/landing/landing.ts:129:4:
+      129 │     {
+          ╵     ^
+
+
+X [ERROR] TS2739: Type '{ name: string; description: string; image: string; badge: string; }' is missing the following properties from type 'LandingService': focus, duration, bestFor, includes [plugin angular-compiler]
+
+    src/app/pages/landing/landing.ts:135:4:
+      135 │     {
+          ╵     ^
+
+
+X [ERROR] TS2739: Type '{ name: string; description: string; image: string; badge: string; }' is missing the following properties from type 'LandingService': focus, duration, bestFor, includes [plugin angular-compiler]
+
+    src/app/pages/landing/landing.ts:141:4:
+      141 │     {
+          ╵     ^
+
+
+X [ERROR] TS2739: Type '{ name: string; description: string; image: string; badge: string; }' is missing the following properties from type 'LandingService': focus, duration, bestFor, includes [plugin angular-compiler]
+
+    src/app/pages/landing/landing.ts:147:4:
+      147 │     {
+          ╵     ^
+
+
+X [ERROR] TS2739: Type '{ name: string; description: string; image: string; badge: string; }' is missing the following properties from type 'LandingService': focus, duration, bestFor, includes [plugin angular-compiler]
+
+    src/app/pages/landing/landing.ts:153:4:
+      153 │     {
+          ╵     ^
+
+
+X [ERROR] TS2739: Type '{ name: string; description: string; image: string; badge: string; }' is missing the following properties from type 'LandingService': focus, duration, bestFor, includes [plugin angular-compiler]
+
+    src/app/pages/landing/landing.ts:123:4:
+      123 │     {
+          ╵     ^
+
+
+X [ERROR] TS2739: Type '{ name: string; description: string; image: string; badge: string; }' is missing the following properties from type 'LandingService': focus, duration, bestFor, includes [plugin angular-compiler]
+
+    src/app/pages/landing/landing.ts:129:4:
+      129 │     {
+          ╵     ^
+
+
+X [ERROR] TS2739: Type '{ name: string; description: string; image: string; badge: string; }' is missing the following properties from type 'LandingService': focus, duration, bestFor, includes [plugin angular-compiler]
+
+    src/app/pages/landing/landing.ts:135:4:
+      135 │     {
+          ╵     ^
+
+
+X [ERROR] TS2739: Type '{ name: string; description: string; image: string; badge: string; }' is missing the following properties from type 'LandingService': focus, duration, bestFor, includes [plugin angular-compiler]
+
+    src/app/pages/landing/landing.ts:141:4:
+      141 │     {
+          ╵     ^
+
+
+X [ERROR] TS2739: Type '{ name: string; description: string; image: string; badge: string; }' is missing the following properties from type 'LandingService': focus, duration, bestFor, includes [plugin angular-compiler]
+
+    src/app/pages/landing/landing.ts:147:4:
+      147 │     {
+          ╵     ^
+
+
+X [ERROR] TS2739: Type '{ name: string; description: string; image: string; badge: string; }' is missing the following properties from type 'LandingService': focus, duration, bestFor, includes [plugin angular-compiler]
+
+    src/app/pages/landing/landing.ts:153:4:
+      153 │     {
+          ╵     ^
+
+
+X [ERROR] TS2339: Property 'goHome' does not exist on type 'LoginComponent'. [plugin angular-compiler]
+
+    src/app/pages/login/login.html:30:15:
+      30 │       (click)="goHome()"
+         ╵                ~~~~~~
+
+  Error occurs in the template of component LoginComponent.
+
+    src/app/pages/login/login.ts:26:15:
+      26 │   templateUrl: './login.html',
+         ╵                ~~~~~~~~~~~~~~
+
+
+X [ERROR] NG8001: 'app-service-card' is not a known element:
+1. If 'app-service-card' is an Angular component, then verify that it is included in the '@Component.imports' of this component.
+2. If 'app-service-card' is a Web Component then add 'CUSTOM_ELEMENTS_SCHEMA' to the '@Component.schemas' of this component to suppress this message. [plugin angular-compiler]
+
+    src/app/pages/landing/landing.html:134:8:
+      134 │         <app-service-card [service]="service" [active]="service.n...
+          ╵         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  Error occurs in the template of component LandingComponent.
+
+    src/app/pages/landing/landing.ts:47:15:
+      47 │   templateUrl: './landing.html',
+         ╵                ~~~~~~~~~~~~~~~~
+
+
+X [ERROR] NG8002: Can't bind to 'service' since it isn't a known property of 'app-service-card'.
+1. If 'app-service-card' is an Angular component and it has 'service' input, then verify that it is included in the '@Component.imports' of this component.
+2. If 'app-service-card' is a Web Component then add 'CUSTOM_ELEMENTS_SCHEMA' to the '@Component.schemas' of this component to suppress this message.
+3. To allow any property add 'NO_ERRORS_SCHEMA' to the '@Component.schemas' of this component. [plugin angular-compiler]
+
+    src/app/pages/landing/landing.html:134:26:
+      134 │ ...    <app-service-card [service]="service" [active]="service.na...
+          ╵                          ~~~~~~~~~~~~~~~~~~~
+
+  Error occurs in the template of component LandingComponent.
+
+    src/app/pages/landing/landing.ts:47:15:
+      47 │   templateUrl: './landing.html',
+         ╵                ~~~~~~~~~~~~~~~~
+
+
+X [ERROR] NG8002: Can't bind to 'active' since it isn't a known property of 'app-service-card'.
+1. If 'app-service-card' is an Angular component and it has 'active' input, then verify that it is included in the '@Component.imports' of this component.
+2. If 'app-service-card' is a Web Component then add 'CUSTOM_ELEMENTS_SCHEMA' to the '@Component.schemas' of this component to suppress this message.
+3. To allow any property add 'NO_ERRORS_SCHEMA' to the '@Component.schemas' of this component. [plugin angular-compiler]
+
+    src/app/pages/landing/landing.html:134:46:
+      134 │ ..."service" [active]="service.name === selectedService.name" (vi...
+          ╵              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  Error occurs in the template of component LandingComponent.
+
+    src/app/pages/landing/landing.ts:47:15:
+      47 │   templateUrl: './landing.html',
+         ╵                ~~~~~~~~~~~~~~~~
+
+
+X [ERROR] TS2345: Argument of type 'Event' is not assignable to parameter of type 'LandingService'.
+  Type 'Event' is missing the following properties from type 'LandingService': name, description, image, badge, and 4 more. [plugin angular-compiler]
+
+    src/app/pages/landing/landing.html:134:120:
+      134 │ ...me === selectedService.name" (viewMore)="focusService($event)" />
+          ╵                                                          ~~~~~~
+
+  Error occurs in the template of component LandingComponent.
+
+    src/app/pages/landing/landing.ts:47:15:
+      47 │   templateUrl: './landing.html',
+         ╵                ~~~~~~~~~~~~~~~~
+
+
+X [ERROR] TS2739: Type '{ name: string; description: string; image: string; badge: string; focus: string; duration: string; bestFor: string; includes: string[]; }' is missing the following properties from type 'LandingService': intensity, trainingGoal, sessionFlow, tools [plugin angular-compiler]
+
+    src/app/pages/landing/landing.ts:135:4:
+      135 │     {
+          ╵     ^
+
+
+X [ERROR] TS2739: Type '{ name: string; description: string; image: string; badge: string; focus: string; duration: string; bestFor: string; includes: string[]; }' is missing the following properties from type 'LandingService': intensity, trainingGoal, sessionFlow, tools [plugin angular-compiler]
+
+    src/app/pages/landing/landing.ts:145:4:
+      145 │     {
+          ╵     ^
+
+
+X [ERROR] TS2739: Type '{ name: string; description: string; image: string; badge: string; focus: string; duration: string; bestFor: string; includes: string[]; }' is missing the following properties from type 'LandingService': intensity, trainingGoal, sessionFlow, tools [plugin angular-compiler]
+
+    src/app/pages/landing/landing.ts:155:4:
+      155 │     {
+          ╵     ^
+
+
+X [ERROR] TS2739: Type '{ name: string; description: string; image: string; badge: string; focus: string; duration: string; bestFor: string; includes: string[]; }' is missing the following properties from type 'LandingService': intensity, trainingGoal, sessionFlow, tools [plugin angular-compiler]
+
+    src/app/pages/landing/landing.ts:165:4:
+      165 │     {
+          ╵     ^
+
+
+X [ERROR] TS2739: Type '{ name: string; description: string; image: string; badge: string; focus: string; duration: string; bestFor: string; includes: string[]; }' is missing the following properties from type 'LandingService': intensity, trainingGoal, sessionFlow, tools [plugin angular-compiler]
+
+    src/app/pages/landing/landing.ts:175:4:
+      175 │     {
+          ╵     ^
+
+
+X [ERROR] TS2739: Type '{ name: string; description: string; image: string; badge: string; focus: string; duration: string; bestFor: string; includes: string[]; }' is missing the following properties from type 'LandingService': intensity, trainingGoal, sessionFlow, tools [plugin angular-compiler]
+
+    src/app/pages/landing/landing.ts:185:4:
+      185 │     {
+          ╵     ^
+
+

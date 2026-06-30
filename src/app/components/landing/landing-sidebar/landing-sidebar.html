@@ -27,8 +27,8 @@
         </button>
 
         @if (item.children?.length && isExpanded(item)) {
-          <div class="child-links" aria-label="Categorias de tienda">
-            <strong>Categorias</strong>
+          <div class="child-links" [attr.aria-label]="item.label + ' opciones'">
+            <strong>Opciones</strong>
             @for (child of item.children; track child.label) {
               <button type="button" (click)="navigateTo(child.anchor)">
                 <span>{{ child.label }}</span>

@@ -23,6 +23,15 @@
   </main>
 } @else {
   <main class="auth-layout auth-layout--login">
+    <button
+      class="login-back"
+      type="button"
+      aria-label="Volver a la pagina principal"
+      (click)="goHome()"
+    >
+      <span aria-hidden="true">&larr;</span>
+    </button>
+
     <section class="visual-panel">
       <div class="image-wrapper">
         @for (slide of gymSlides; track slide.image; let index = $index) {

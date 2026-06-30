@@ -65,6 +65,8 @@ svg { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: 
 .admin-chip { display: flex; align-items: center; gap: 9px; padding-left: 5px; }
 .admin-chip > span { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 50%; background: #111; color: #fff; font-size: 10px; font-weight: 900; }
 .admin-chip div { display: flex; flex-direction: column; gap: 2px; }.admin-chip strong { font-size: 10px; }.admin-chip small { color: #999; font-size: 8px; }
+.logout-button { display: flex; align-items: center; gap: 8px; }
+.logout-button svg { width: 16px; height: 16px; }
 .workspace { padding-top: 24px; animation: workspaceIn .32s ease both; }
 .primary-button, .secondary-button { min-height: 40px; padding: 0 16px; border-radius: 8px; cursor: pointer; font-size: 10px; font-weight: 900; }
 .primary-button { border: 1px solid #111; background: #111; color: #fff; box-shadow: 0 8px 20px rgba(0,0,0,.11); }
@@ -144,6 +146,8 @@ tbody tr:hover { background: #fbfbfa; }
   .drawer-toggle { display: none; }
   .drawer { width: 82px; padding-inline: 12px; }.brand { justify-content: center; padding-inline: 0; }.brand-copy,.gym-card div,.gym-card .status-dot,.nav-label,.nav-item span,.support-card,.profile-mini > span:last-child { display: none; }.gym-card { justify-content: center; padding: 10px; }.gym-card__logo { width: 42px; }.nav-item { justify-content: center; padding: 0; }.nav-item.active i { right: -12px; }.profile-mini { justify-content: center; }.main-content { margin-left: 82px; padding-inline: 22px; }.admin-chip div { display: none; }.report-layout { grid-template-columns: 1fr; }.report-preview { min-height: 400px; }
   .topbar { width: calc(100% + 44px); margin-inline: -22px; padding-inline: 22px; }
+  .logout-button { width: 40px; padding: 0; }
+  .logout-button span { display: none; }
 }
 
 @media (max-width: 640px) {
