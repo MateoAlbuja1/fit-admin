@@ -200,6 +200,231 @@ app-landing-footer {
   font-size: 18px;
 }
 
+.member-profile-view {
+  display: grid;
+  align-content: center;
+  gap: 18px;
+  background:
+    radial-gradient(circle at 82% 18%, rgba(255, 255, 255, .1), transparent 28%),
+    linear-gradient(180deg, #090b0f 0%, #12161d 50%, #07080b 100%);
+}
+
+.member-profile-hero {
+  display: grid;
+  grid-template-columns: minmax(300px, .85fr) minmax(360px, 1.15fr);
+  gap: 16px;
+  align-items: stretch;
+}
+
+.member-welcome,
+.member-chart-card,
+.member-stat-grid article,
+.member-profile-detail article {
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .095), rgba(255, 255, 255, .035));
+  box-shadow: 0 22px 48px rgba(0, 0, 0, .22);
+}
+
+.member-welcome {
+  display: grid;
+  gap: 12px;
+  align-content: center;
+  min-height: 310px;
+  padding: clamp(24px, 4vw, 36px);
+}
+
+.member-welcome span,
+.member-chart-card span,
+.member-stat-grid span,
+.member-profile-detail span {
+  color: rgba(255, 255, 255, .62);
+  font-size: 11px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.member-welcome h2 {
+  margin: 0;
+  font-size: clamp(38px, 5vw, 68px);
+  font-weight: 950;
+  line-height: .94;
+  text-transform: uppercase;
+}
+
+.member-welcome p {
+  margin: 0;
+  color: rgba(255, 255, 255, .7);
+  line-height: 1.55;
+}
+
+.member-profile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.member-profile-actions button {
+  min-height: 44px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 950;
+  padding: 0 18px;
+}
+
+.member-profile-actions button:first-child {
+  border: 1px solid #fff;
+  background: #fff;
+  color: #050605;
+}
+
+.member-profile-actions button:last-child {
+  border: 1px solid rgba(255, 255, 255, .2);
+  background: transparent;
+  color: #fff;
+}
+
+.member-chart-card {
+  display: grid;
+  gap: 18px;
+  min-height: 310px;
+  padding: clamp(20px, 3vw, 28px);
+}
+
+.member-chart-card header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.member-chart-card header div {
+  display: grid;
+  gap: 4px;
+}
+
+.member-chart-card strong,
+.member-chart-card b {
+  color: #fff;
+}
+
+.member-chart-card strong {
+  font-size: 18px;
+}
+
+.member-chart-card b {
+  font-size: 34px;
+  line-height: .9;
+}
+
+.member-trend-chart {
+  display: grid;
+  gap: 10px;
+}
+
+.member-trend-chart svg {
+  display: block;
+  width: 100%;
+  min-height: 190px;
+  overflow: visible;
+}
+
+.trend-grid-line {
+  fill: none;
+  stroke: rgba(255, 255, 255, .11);
+  stroke-width: 1;
+}
+
+.trend-area {
+  fill: url(#memberTrendFill);
+}
+
+.trend-line {
+  fill: none;
+  stroke: #fff;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 5;
+  filter: drop-shadow(0 14px 18px rgba(255, 255, 255, .14));
+}
+
+.trend-dot {
+  fill: #050605;
+  stroke: #fff;
+  stroke-width: 3;
+}
+
+.member-trend-labels {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.member-trend-labels span,
+.member-trend-chart > small {
+  color: rgba(255, 255, 255, .58);
+  font-size: 11px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.member-trend-chart > small {
+  text-align: left;
+}
+
+.member-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.member-stat-grid article {
+  display: grid;
+  gap: 6px;
+  min-height: 90px;
+  align-content: center;
+  padding: 15px;
+}
+
+.member-stat-grid strong {
+  color: #fff;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.member-stat-grid small {
+  color: rgba(255, 255, 255, .58);
+  font-size: 12px;
+}
+
+.member-profile-detail {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.member-profile-detail article {
+  display: grid;
+  gap: 9px;
+  min-height: 150px;
+  align-content: start;
+  padding: 18px;
+}
+
+.member-profile-detail h3 {
+  margin: 0;
+  color: #fff;
+  font-size: 23px;
+  line-height: 1.05;
+}
+
+.member-profile-detail p {
+  margin: 0;
+  color: rgba(255, 255, 255, .66);
+  line-height: 1.55;
+}
+
 .brand-experience {
   display: grid;
   grid-template-columns: minmax(0, .9fr) minmax(360px, 1.1fr);
@@ -1914,8 +2139,14 @@ app-landing-footer {
 }
 
 @media (max-width: 1080px) {
-  .impact-strip {
+  .impact-strip,
+  .member-profile-hero,
+  .member-profile-detail {
     grid-template-columns: 1fr;
+  }
+
+  .member-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .brand-experience {
@@ -2087,6 +2318,10 @@ app-landing-footer {
   }
 
   .impact-strip ul {
+    grid-template-columns: 1fr;
+  }
+
+  .member-stat-grid {
     grid-template-columns: 1fr;
   }
 

@@ -1,4 +1,4 @@
-<div class="dashboard-shell" [class.drawer-collapsed]="drawerCollapsed" [class.dark-mode]="darkMode">
+<div class="dashboard-shell" [class.drawer-collapsed]="drawerCollapsed" [class.dark-mode]="darkMode" [class.member-mode]="isMember">
   <aside class="drawer" aria-label="Menú principal">
     <button class="drawer-toggle" type="button" (click)="toggleDrawer()" [attr.aria-label]="drawerCollapsed ? 'Expandir menú' : 'Contraer menú'">
       <svg viewBox="0 0 24 24"><path [attr.d]="drawerCollapsed ? 'm9 18 6-6-6-6' : 'm15 18-6-6 6-6'" /></svg>
@@ -32,7 +32,7 @@
 
     <div class="drawer-footer">
       <div class="support-card"><span>SEDE ACTUAL</span><strong>WX GYM · Caupicho</strong></div>
-      <div class="profile-mini"><span class="avatar">MA</span><span><strong>Mateo Admin</strong><small>Administrador</small></span></div>
+      <div class="profile-mini"><span class="avatar">{{ currentUser.initials }}</span><span><strong>{{ currentUser.name }}</strong><small>{{ currentUser.subtitle }}</small></span></div>
     </div>
   </aside>
 
@@ -43,8 +43,8 @@
 
     <header class="topbar">
       <div>
-        <span class="eyebrow">Panel administrativo</span>
-        <h1>Dashboard</h1>
+        <span class="eyebrow">{{ topbarEyebrow }}</span>
+        <h1>{{ topbarTitle }}</h1>
       </div>
       <div class="topbar-actions">
         <div class="search-shell">
@@ -117,6 +117,48 @@
       <button type="button" (click)="goTo('/pagos')"><span>↗</span><strong>Nuevo pago</strong><small>Ir al módulo de pagos</small></button>
       <button type="button" (click)="goTo('/reportes')"><span>▣</span><strong>Generar reporte</strong><small>Administrativo y financiero</small></button>
     </section>
+
+    @if (isMember) {
+      <section class="member-welcome">
+        <span class="panel-kicker">Bienvenido</span>
+        <h2>{{ welcomeTitle }}</h2>
+        <p>{{ welcomeSubtitle }}</p>
+      </section>
+
+      <section class="member-summary" aria-label="Resumen del miembro">
+        <article class="member-card member-card--main">
+          <span>Peso actual</span>
+          <strong>{{ memberStats.weight }}</strong>
+          <small>Meta: {{ memberStats.goalWeight }}</small>
+        </article>
+
+        <article class="member-card">
+          <span>Progreso</span>
+          <strong>{{ memberStats.progress }}%</strong>
+          <div class="member-progress"><i [style.width.%]="memberStats.progress"></i></div>
+          <small>{{ memberStats.nextCheck }}</small>
+        </article>
+
+        <article class="member-card">
+          <span>Membresia</span>
+          <strong>{{ memberStats.renewalDate }}</strong>
+          <small>Renueva en {{ memberStats.daysLeft }} dias</small>
+        </article>
+      </section>
+
+      <section class="member-panel">
+        <div>
+          <span class="panel-kicker">Rutina activa</span>
+          <h2>{{ memberStats.routine }}</h2>
+          <p>Entrenamiento guiado para ganar constancia, fuerza y mejor condicion fisica.</p>
+        </div>
+        <div class="member-routine">
+          <span>Plan</span>
+          <strong>{{ memberStats.plan }}</strong>
+          <small>Incluye seguimiento mensual</small>
+        </div>
+      </section>
+    }
 
     <section class="stat-grid" aria-label="Indicadores principales">
       <article class="stat-card stat-card--dark stat-card--clickable" role="button" tabindex="0" (click)="goTo('/pagos')" (keydown.enter)="goTo('/pagos')">

@@ -4,6 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { DatosGimnasioService } from '../../core/servicios/datos-gimnasio.service';
 
 type PeriodoDashboard = 'dia' | 'semana' | 'mes';
+type UserRole = 'admin' | 'member';
 
 interface ResultadoBusqueda {
   tipo: string;
@@ -25,6 +26,14 @@ interface DiaAsistencia {
   peak: string;
 }
 
+interface DashboardUser {
+  role: UserRole;
+  username: string;
+  name: string;
+  initials: string;
+  subtitle: string;
+}
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -42,6 +51,35 @@ export class DashboardComponent {
   selectedDay = 'Jue';
   lastUpdated = new Date();
   notice = '';
+
+  readonly adminUser: DashboardUser = {
+    role: 'admin',
+    username: 'admin',
+    name: 'Mateo Admin',
+    initials: 'MA',
+    subtitle: 'Administrador'
+  };
+
+  readonly memberUser: DashboardUser = {
+    role: 'member',
+    username: 'miembro',
+    name: 'Miembro',
+    initials: 'M',
+    subtitle: 'Miembro activo'
+  };
+
+  currentUser: DashboardUser = this.adminUser;
+
+  readonly memberStats = {
+    weight: '74.5 kg',
+    goalWeight: '72 kg',
+    progress: 68,
+    renewalDate: '04 jul 2026',
+    daysLeft: 3,
+    plan: 'Plan mensual',
+    routine: 'Fuerza + cardio',
+    nextCheck: 'Evaluacion mensual'
+  };
 
   readonly periodOptions: Array<{ label: string; value: PeriodoDashboard }> = [
     { label: 'Hoy', value: 'dia' },
@@ -69,7 +107,34 @@ export class DashboardComponent {
     if (typeof localStorage !== 'undefined') {
       this.darkMode = localStorage.getItem('fitadmin-theme-v2') !== 'light';
     }
+    this.currentUser = this.loadCurrentUser();
+    if (this.currentUser.role === 'member') {
+      this.router.navigate(['/']);
+      return;
+    }
     this.selectedDay = this.weekDays[this.weekDays.length - 4]?.day ?? 'Jue';
+  }
+
+  get isMember(): boolean {
+    return this.currentUser.role === 'member';
+  }
+
+  get topbarEyebrow(): string {
+    return this.isMember ? 'Panel de miembro' : 'Panel administrativo';
+  }
+
+  get topbarTitle(): string {
+    return this.isMember ? 'Mi progreso' : 'Dashboard';
+  }
+
+  get welcomeTitle(): string {
+    return this.isMember ? `Bienvenido, ${this.currentUser.name}` : 'Buenos dias, Mateo';
+  }
+
+  get welcomeSubtitle(): string {
+    return this.isMember
+      ? 'Tu resumen de entrenamiento, progreso y membresia.'
+      : 'Rendimiento operativo de WX GYM Caupicho en tiempo real.';
   }
 
   get alerts() {
@@ -315,6 +380,7 @@ export class DashboardComponent {
   }
 
   openFirstSearchResult(): void {
+    if (this.isMember) return;
     const [first] = this.searchResults;
     if (first) this.goTo(first.ruta);
   }
@@ -398,5 +464,56 @@ export class DashboardComponent {
 
   private todayShort(): string {
     return new Date().toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' }).replace('.', '');
+  }
+
+  private loadCurrentUser(): DashboardUser {
+    const session = this.readSession();
+
+    if (session?.role === 'member') {
+      return {
+        ...this.memberUser,
+        name: this.safeText(session.name, this.memberUser.name),
+        initials: this.safeText(session.initials, this.memberUser.initials),
+        subtitle: this.safeText(session.subtitle, this.memberUser.subtitle),
+        username: this.safeText(session.username, this.memberUser.username)
+      };
+    }
+
+    if (session?.role === 'admin') {
+      return {
+        ...this.adminUser,
+        name: this.safeText(session.name, this.adminUser.name),
+        initials: this.safeText(session.initials, this.adminUser.initials),
+        subtitle: this.safeText(session.subtitle, this.adminUser.subtitle),
+        username: this.safeText(session.username, this.adminUser.username)
+      };
+    }
+
+    return this.adminUser;
+  }
+
+  private readSession(): Partial<DashboardUser> | null {
+    const raw = this.readStorage('local') ?? this.readStorage('session');
+    if (!raw) return null;
+
+    try {
+      return JSON.parse(raw) as Partial<DashboardUser>;
+    } catch {
+      return null;
+    }
+  }
+
+  private readStorage(type: 'local' | 'session'): string | null {
+    if (type === 'local' && typeof localStorage !== 'undefined') {
+      return localStorage.getItem('fitadmin-session');
+    }
+    if (type === 'session' && typeof sessionStorage !== 'undefined') {
+      return sessionStorage.getItem('fitadmin-session');
+    }
+    return null;
+  }
+
+  private safeText(value: unknown, fallback: string): string {
+    return typeof value === 'string' && value.trim() ? value : fallback;
   }
 }

@@ -10,7 +10,10 @@
 <app-landing-sidebar
   [items]="sidebarItems"
   [activeAnchor]="activeAnchor"
+  [memberProfile]="memberSidebarProfile"
   (navigate)="navigateTo($event)"
+  (logoutMember)="logoutMember()"
+  (openMemberProfile)="openMemberProfile()"
 />
 
 <nav class="mobile-bottom-nav" aria-label="Menu publico movil">
@@ -72,19 +75,65 @@
         (signup)="navigateTo('contacto')"
         (viewPlans)="navigateTo('planes')"
       />
-
-      <section class="impact-strip" aria-label="Resumen de WX GYM">
-        <div>
-          <span>WX Fitness Gym</span>
-          <strong>Entrena con proposito, mejora tu tecnica y manten la constancia.</strong>
-        </div>
-        <ul>
-          <li><b>01</b><span>Evaluacion fisica</span></li>
-          <li><b>02</b><span>Rutina enfocada</span></li>
-          <li><b>03</b><span>Progreso medible</span></li>
-        </ul>
-      </section>
     </section>
+  }
+
+  @if (activeAnchor === 'perfil' && isMemberLoggedIn && memberSession) {
+  <section id="perfil" class="landing-section section-panel member-profile-view">
+    <div class="member-profile-hero">
+      <article class="member-welcome">
+        <span>Perfil de miembro</span>
+        <h2>Bienvenido, {{ memberSession.name }}</h2>
+        <p>Tu progreso, peso y membresia en WX Fitness Gym.</p>
+        <div class="member-profile-actions">
+          <button type="button" (click)="navigateTo('planes')">Renovar membresia</button>
+          <button type="button" (click)="navigateTo('tienda')">Ver tienda</button>
+        </div>
+      </article>
+
+      <article class="member-chart-card">
+        <header>
+          <div>
+            <span>Tendencia</span>
+            <strong>Progreso de 6 semanas</strong>
+          </div>
+          <b>{{ memberTrendCurrent }}%</b>
+        </header>
+        <div class="member-trend-chart" aria-label="Grafico de tendencia de rendimiento">
+          <svg viewBox="0 0 300 160" preserveAspectRatio="none" role="img" aria-label="Tendencia de progreso del miembro">
+            <defs>
+              <linearGradient id="memberTrendFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="rgba(255,255,255,.35)" />
+                <stop offset="100%" stop-color="rgba(255,255,255,0)" />
+              </linearGradient>
+            </defs>
+            <path class="trend-grid-line" d="M0 42H300M0 84H300M0 126H300" />
+            <polygon class="trend-area" [attr.points]="memberTrendAreaPoints" />
+            <polyline class="trend-line" [attr.points]="memberTrendPoints" />
+            @for (point of memberPerformance; track point.label; let index = $index) {
+              <circle class="trend-dot" [attr.cx]="trendPointX(index)" [attr.cy]="trendPointY(point.value)" r="4" />
+            }
+          </svg>
+          <div class="member-trend-labels" aria-hidden="true">
+            @for (point of memberPerformance; track point.label) {
+              <span>{{ point.label }}</span>
+            }
+          </div>
+          <small>+{{ memberTrendDelta }} puntos desde el inicio del plan</small>
+        </div>
+      </article>
+    </div>
+
+    <div class="member-stat-grid">
+      @for (stat of memberStats; track stat.label) {
+        <article>
+          <span>{{ stat.label }}</span>
+          <strong>{{ stat.value }}</strong>
+          <small>{{ stat.detail }}</small>
+        </article>
+      }
+    </div>
+  </section>
   }
 
   @if (activeAnchor === 'servicios') {

@@ -5,10 +5,11 @@ import { DemoFormComponent } from '../../components/landing/demo-form/demo-form'
 import { LandingCarouselComponent, CarouselSlide } from '../../components/landing/landing-carousel/landing-carousel';
 import { LandingFooterComponent } from '../../components/landing/landing-footer/landing-footer';
 import { LandingHeaderComponent, SearchResult } from '../../components/landing/landing-header/landing-header';
-import { LandingSidebarComponent, SidebarSection } from '../../components/landing/landing-sidebar/landing-sidebar';
+import { LandingSidebarComponent, SidebarMemberProfile, SidebarSection } from '../../components/landing/landing-sidebar/landing-sidebar';
 import { MembershipCardComponent, MembershipPlan } from '../../components/landing/membership-card/membership-card';
 import { ProductCardComponent, FitnessProduct } from '../../components/landing/product-card/product-card';
 import { LandingService } from '../../components/landing/service-card/service-card';
+import { DatosGimnasioService } from '../../core/servicios/datos-gimnasio.service';
 
 interface SocialProof {
   name: string;
@@ -31,6 +32,25 @@ interface CartItem {
   quantity: number;
 }
 
+interface MemberSession {
+  role: 'admin' | 'member';
+  username: string;
+  name: string;
+  initials: string;
+  subtitle: string;
+}
+
+interface MemberStat {
+  label: string;
+  value: string;
+  detail: string;
+}
+
+interface MemberPerformancePoint {
+  label: string;
+  value: number;
+}
+
 @Component({
   selector: 'app-landing',
   standalone: true,
@@ -49,7 +69,7 @@ interface CartItem {
 })
 export class LandingComponent implements OnInit {
   private readonly whatsappPhone = '593980674115';
-  private readonly trackedAnchors = ['inicio', 'servicios', 'planes', 'tienda', 'contacto'];
+  private readonly trackedAnchors = ['inicio', 'servicios', 'planes', 'tienda', 'contacto', 'perfil'];
 
   sidebarOpen = false;
   showPromo = true;
@@ -61,6 +81,23 @@ export class LandingComponent implements OnInit {
   selectedPlan = '';
   activeStoreCategory = 'Todos';
   activeServiceName = 'Musculacion';
+  memberSession: MemberSession | null = null;
+
+  readonly memberStats: MemberStat[] = [
+    { label: 'Peso actual', value: '74.5 kg', detail: 'Meta: 72 kg' },
+    { label: 'Progreso', value: '68%', detail: 'Rutina de fuerza' },
+    { label: 'Asistencia', value: '14/20', detail: 'Sesiones del mes' },
+    { label: 'Renovacion', value: '04 jul', detail: 'Plan mensual activo' }
+  ];
+
+  readonly memberPerformance: MemberPerformancePoint[] = [
+    { label: 'Sem 1', value: 46 },
+    { label: 'Sem 2', value: 54 },
+    { label: 'Sem 3', value: 61 },
+    { label: 'Sem 4', value: 66 },
+    { label: 'Sem 5', value: 74 },
+    { label: 'Sem 6', value: 82 }
+  ];
 
   readonly slides: CarouselSlide[] = [
     {
@@ -249,7 +286,7 @@ export class LandingComponent implements OnInit {
     }
   ];
 
-  readonly products: FitnessProduct[] = [
+  private readonly clientProductCatalogBackup: FitnessProduct[] = [
     {
       name: 'Dragon Whey Phorm 2 lb',
       price: '$48.00',
@@ -524,8 +561,11 @@ export class LandingComponent implements OnInit {
       category: 'Pre-entrenos',
       description: 'Energia y rendimiento para completar repeticiones con mas intensidad.'
     },
-    { name: 'Barra proteica chocolate', price: '$3.50', rating: '4.6/5', image: '/assets/img/gym-store-bg.jpg', category: 'Barras y snacks de proteina', description: 'Snack practico para antes o despues de entrenar, facil de llevar en la mochila.' },
-    { name: 'Snack proteico WX', price: '$4.00', rating: '4.7/5', image: '/assets/img/gym-carousel-3.jpg', category: 'Barras y snacks de proteina', description: 'Opcion rapida para sumar proteina sin complicarte entre clases, trabajo o entrenamiento.' }
+    { name: 'Promix Protein Puff Mint', price: '$38.00', rating: '4.8/5', image: '/assets/img/products/bars-snacks/promix-protein-puff-mint.png', factsImage: '/assets/img/products/bars-snacks/promix-protein-puff-mint-facts.png', imageFit: 'contain', category: 'Barras y snacks de proteina', description: 'Caja de 12 barras proteicas mint chocolate, 15 g de proteina por barra.' },
+    { name: 'Gatorade Protein Bar Chocolate', price: '$34.00', rating: '4.7/5', image: '/assets/img/products/bars-snacks/gatorade-protein-bar-chocolate.png', factsImage: '/assets/img/products/bars-snacks/gatorade-protein-bar-chocolate-facts.png', imageFit: 'contain', category: 'Barras y snacks de proteina', description: 'Caja de 12 barras con 20 g de proteina, ideal para recuperar energia.' },
+    { name: 'Jocko Protein Shake Coffee', price: '$46.00', discount: 'Nuevo', rating: '4.8/5', image: '/assets/img/products/bars-snacks/jocko-protein-shake-coffee.png', factsImage: '/assets/img/products/bars-snacks/jocko-protein-shake-coffee-facts.png', imageFit: 'contain', category: 'Barras y snacks de proteina', description: 'Pack de 12 bebidas listas, 30 g de proteina y sabor sweet cream coffee.' },
+    { name: 'Quaker Chocolate Rice Cakes', price: '$14.00', rating: '4.6/5', image: '/assets/img/products/bars-snacks/quaker-rice-cakes-chocolate.png', factsImage: '/assets/img/products/bars-snacks/quaker-rice-cakes-chocolate-facts.png', imageFit: 'contain', category: 'Barras y snacks de proteina', description: 'Pack de rice cakes de chocolate, snack liviano para antes del entrenamiento.' },
+    { name: 'Lean Body Protein Shake', price: '$52.00', rating: '4.8/5', image: '/assets/img/products/bars-snacks/lean-body-protein-shake-orange.png', factsImage: '/assets/img/products/bars-snacks/lean-body-protein-shake-orange-facts.png', imageFit: 'contain', category: 'Barras y snacks de proteina', description: 'Pack de 12 shakes orange creamsicle con 40 g de proteina y 0 g de azucar.' }
   ];
 
   readonly socialProof: SocialProof[] = [
@@ -607,16 +647,43 @@ export class LandingComponent implements OnInit {
     { label: 'WhatsApp', category: 'Contacto', description: 'Contacto rapido para inscribirte.', anchor: 'contacto' }
   ];
 
-  constructor(@Inject(PLATFORM_ID) private platformId: object) {}
+  constructor(
+    @Inject(PLATFORM_ID) private platformId: object,
+    private data: DatosGimnasioService
+  ) {}
 
   ngOnInit(): void {
     this.showPromo = true;
+    this.loadMemberSession();
+  }
+
+  get products(): FitnessProduct[] {
+    return this.data.suplementos.map(product => ({
+      name: product.name,
+      price: this.formatCurrency(product.price),
+      discount: product.discount,
+      rating: product.rating ?? '4.7/5',
+      image: product.photo,
+      factsImage: product.factsPhoto,
+      factsAlt: product.factsPhoto ? `Tabla nutricional de ${product.name}` : undefined,
+      imageFit: product.imageFit,
+      category: product.category,
+      description: product.description
+    }));
   }
 
   get searchResults(): SearchResult[] {
     const term = this.normalize(this.searchTerm);
     if (!term) return [];
-    return this.searchIndex
+
+    const productResults: SearchResult[] = this.products.map(product => ({
+      label: product.name,
+      category: product.category,
+      description: product.description,
+      anchor: `tienda:${product.category}`
+    }));
+
+    return [...this.searchIndex, ...productResults]
       .filter(item => this.normalize(`${item.label} ${item.category} ${item.description}`).includes(term))
       .slice(0, 6);
   }
@@ -639,6 +706,45 @@ export class LandingComponent implements OnInit {
 
   get selectedService(): LandingService {
     return this.services.find(service => service.name === this.activeServiceName) ?? this.services[0];
+  }
+
+  get isMemberLoggedIn(): boolean {
+    return this.memberSession?.role === 'member';
+  }
+
+  get memberSidebarProfile(): SidebarMemberProfile | null {
+    if (!this.isMemberLoggedIn || !this.memberSession) {
+      return null;
+    }
+
+    return {
+      name: this.memberSession.name,
+      initials: this.memberSession.initials,
+      subtitle: this.memberSession.subtitle,
+      weight: '74.5 kg',
+      progress: '68%',
+      renewal: '04 jul',
+      plan: 'Mensual'
+    };
+  }
+
+  get memberTrendCurrent(): number {
+    return this.memberPerformance[this.memberPerformance.length - 1]?.value ?? 0;
+  }
+
+  get memberTrendDelta(): number {
+    const firstValue = this.memberPerformance[0]?.value ?? 0;
+    return this.memberTrendCurrent - firstValue;
+  }
+
+  get memberTrendPoints(): string {
+    return this.memberPerformance
+      .map((point, index) => `${this.trendPointX(index)},${this.trendPointY(point.value)}`)
+      .join(' ');
+  }
+
+  get memberTrendAreaPoints(): string {
+    return `0,160 ${this.memberTrendPoints} 300,160`;
   }
 
   get whatsappSignupUrl(): string {
@@ -771,6 +877,24 @@ export class LandingComponent implements OnInit {
     this.navigateTo('contacto');
   }
 
+  openMemberProfile(): void {
+    if (this.isMemberLoggedIn) {
+      this.navigateTo('perfil');
+    }
+  }
+
+  logoutMember(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.removeItem('fitadmin-session');
+      localStorage.removeItem('fitadmin-auth');
+      sessionStorage.removeItem('fitadmin-session');
+      sessionStorage.removeItem('fitadmin-auth');
+    }
+
+    this.memberSession = null;
+    this.activeAnchor = 'inicio';
+  }
+
   private flashNotice(): void {
     if (isPlatformBrowser(this.platformId)) {
       window.setTimeout(() => {
@@ -783,12 +907,52 @@ export class LandingComponent implements OnInit {
     return `$${value.toFixed(2)}`;
   }
 
+  trendPointX(index: number): number {
+    const maxIndex = Math.max(this.memberPerformance.length - 1, 1);
+    return Math.round((index / maxIndex) * 300);
+  }
+
+  trendPointY(value: number): number {
+    const boundedValue = Math.max(0, Math.min(value, 100));
+    return Math.round(148 - (boundedValue / 100) * 124);
+  }
+
   private priceToNumber(price: string): number {
     return Number(price.replace(/[^0-9.]/g, '')) || 0;
   }
 
   private buildWhatsappUrl(message: string): string {
     return `https://wa.me/${this.whatsappPhone}?text=${encodeURIComponent(message)}`;
+  }
+
+  private loadMemberSession(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    const rawSession = localStorage.getItem('fitadmin-session') ?? sessionStorage.getItem('fitadmin-session');
+    if (!rawSession) {
+      this.memberSession = null;
+      return;
+    }
+
+    try {
+      const session = JSON.parse(rawSession) as MemberSession;
+      this.memberSession = session.role === 'member'
+        ? {
+            ...session,
+            name: this.cleanMemberName(session.name),
+            initials: 'M'
+          }
+        : null;
+    } catch {
+      this.memberSession = null;
+    }
+  }
+
+  private cleanMemberName(name: string): string {
+    const cleanedName = name.replace(/\s*WX\b/gi, '').trim();
+    return cleanedName || 'Miembro';
   }
 
   private normalize(value: string): string {

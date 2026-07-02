@@ -39,4 +39,30 @@
       </section>
     }
   </nav>
+
+  @if (memberProfile) {
+    <section class="member-profile-shell">
+      <footer
+        class="member-profile"
+        [class.is-active]="activeAnchor === 'perfil'"
+        role="button"
+        tabindex="0"
+        aria-label="Abrir perfil de miembro"
+        (click)="showMemberProfile()"
+        (keydown.enter)="showMemberProfile()"
+        (keydown.space)="showMemberProfile()"
+      >
+        <span class="member-avatar" aria-hidden="true">
+          <span class="material-icons">person</span>
+        </span>
+        <div>
+          <strong>{{ memberProfile.name }}</strong>
+          <small>Ver perfil</small>
+        </div>
+        <button type="button" aria-label="Cerrar sesion de miembro" (click)="$event.stopPropagation(); logoutMember.emit()">
+          <span class="material-icons" aria-hidden="true">logout</span>
+        </button>
+      </footer>
+    </section>
+  }
 </aside>

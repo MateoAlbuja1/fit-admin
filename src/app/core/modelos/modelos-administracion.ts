@@ -60,6 +60,10 @@ export interface Suplemento {
   minStock: number;
   price: number;
   photo: string;
+  discount?: string;
+  rating?: string;
+  factsPhoto?: string;
+  imageFit?: 'cover' | 'contain';
 }
 
 export interface Maquina {

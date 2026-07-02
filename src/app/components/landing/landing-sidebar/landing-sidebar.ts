@@ -7,6 +7,16 @@ export interface SidebarSection {
   children?: Array<{ label: string; anchor: string }>;
 }
 
+export interface SidebarMemberProfile {
+  name: string;
+  initials: string;
+  subtitle: string;
+  weight?: string;
+  progress?: string;
+  renewal?: string;
+  plan?: string;
+}
+
 @Component({
   selector: 'app-landing-sidebar',
   standalone: true,
@@ -16,8 +26,11 @@ export interface SidebarSection {
 export class LandingSidebarComponent {
   @Input() items: SidebarSection[] = [];
   @Input() activeAnchor = 'inicio';
+  @Input() memberProfile: SidebarMemberProfile | null = null;
 
   @Output() navigate = new EventEmitter<string>();
+  @Output() logoutMember = new EventEmitter<void>();
+  @Output() openMemberProfile = new EventEmitter<void>();
 
   expandedAnchor = '';
 
@@ -42,5 +55,10 @@ export class LandingSidebarComponent {
 
   isExpanded(item: SidebarSection): boolean {
     return this.expandedAnchor === item.anchor;
+  }
+
+  showMemberProfile(): void {
+    this.expandedAnchor = '';
+    this.openMemberProfile.emit();
   }
 }

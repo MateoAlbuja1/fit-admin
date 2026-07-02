@@ -4,7 +4,7 @@
   top: 0;
   left: 0;
   display: grid;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto 1fr auto;
   width: 276px;
   height: 100vh;
   height: 100dvh;
@@ -205,6 +205,98 @@ nav > .nav-group > button.is-expanded .dropdown-cue {
   padding-left: 8px;
 }
 
+.member-profile-shell {
+  display: grid;
+  gap: 8px;
+  margin: 12px 14px 16px;
+}
+
+.member-profile {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 36px;
+  gap: 10px;
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .09), rgba(255, 255, 255, .035));
+  cursor: pointer;
+  padding: 10px;
+  transition: border-color .18s ease, background .18s ease, transform .18s ease;
+}
+
+.member-profile:hover,
+.member-profile:focus-visible,
+.member-profile.is-active {
+  border-color: rgba(255, 255, 255, .28);
+  background: rgba(255, 255, 255, .11);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.member-avatar {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 999px;
+  background: #fff;
+  color: #050605;
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.member-avatar .material-icons {
+  font-size: 23px;
+}
+
+.member-profile div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.member-profile strong {
+  overflow: hidden;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 950;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.member-profile small {
+  overflow: hidden;
+  color: rgba(255, 255, 255, .58);
+  font-size: 11px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.member-profile button {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border: 1px solid rgba(255, 82, 82, .36);
+  border-radius: 8px;
+  background: rgba(255, 82, 82, .12);
+  color: #ff5a5a;
+  cursor: pointer;
+  padding: 0;
+  transition: background .18s ease, color .18s ease, transform .18s ease;
+}
+
+.member-profile button:hover {
+  background: #ff3b3b;
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.member-profile button .material-icons {
+  font-size: 20px;
+}
+
 @media (max-width: 860px) {
   .landing-sidebar {
     width: 108px;
@@ -254,6 +346,20 @@ nav > .nav-group > button.is-expanded .dropdown-cue {
     height: 22px;
     min-width: 22px;
     font-size: 18px;
+  }
+
+  .member-profile-shell {
+    margin: 8px;
+  }
+
+  .member-profile {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    padding: 8px;
+  }
+
+  .member-profile div {
+    display: none;
   }
 }
 

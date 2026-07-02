@@ -29,6 +29,32 @@
   </div>
 </section>
 
+<div class="filter-panel filter-panel--selects">
+  <label class="select-filter">
+    <span>Categoria</span>
+    <div class="select-filter__control">
+      <select [(ngModel)]="categoryFilter" name="supplementCategoryFilter" aria-label="Filtrar suplementos por categoria">
+        @for (filter of categoryFilters; track filter) { <option [ngValue]="filter">{{ filter }}</option> }
+      </select>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>
+    </div>
+  </label>
+
+  <label class="select-filter">
+    <span>Stock</span>
+    <div class="select-filter__control">
+      <select [(ngModel)]="stockFilter" name="supplementStockFilter" aria-label="Filtrar suplementos por stock">
+        @for (filter of stockFilters; track filter) { <option [ngValue]="filter">{{ filter }}</option> }
+      </select>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>
+    </div>
+  </label>
+
+  @if (categoryFilter !== 'Todas' || stockFilter !== 'Todos') {
+    <button class="clear-filter" type="button" (click)="setCategoryFilter('Todas'); setStockFilter('Todos')">Limpiar filtros</button>
+  }
+</div>
+
 @if (view === 'grid') {
   <section class="inventory-grid">
     @for (item of items; track item.id) {

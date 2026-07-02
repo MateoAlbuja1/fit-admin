@@ -8,6 +8,7 @@ import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 
 type AuthMode = 'welcome' | 'login';
+type UserRole = 'admin' | 'member';
 
 interface GymSlide {
   image: string;
@@ -237,12 +238,63 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   handleSubmit(): void {
     this.message = '';
+    const username = this.username.trim().toLowerCase();
 
-    if (this.username.trim() === 'admin' && this.password === 'admin') {
+    if (username === 'admin' && this.password === 'admin') {
+      this.saveSession({
+        role: 'admin',
+        username: 'admin',
+        name: 'Mateo Admin',
+        initials: 'MA',
+        subtitle: 'Administrador'
+      });
       this.router.navigate(['/dashboard']);
       return;
     }
 
-    this.message = 'Credenciales invalidas. Usa admin / admin para ingresar al panel administrativo.';
+    if (username === 'miembro' && this.password === 'miembro') {
+      this.saveSession({
+        role: 'member',
+        username: 'miembro',
+        name: 'Miembro',
+        initials: 'M',
+        subtitle: 'Miembro activo'
+      });
+      this.router.navigate(['/']);
+      return;
+    }
+
+    this.message = 'Credenciales invalidas. Usa admin / admin o miembro / miembro para ingresar.';
+  }
+
+  private saveSession(session: { role: UserRole; username: string; name: string; initials: string; subtitle: string }): void {
+    const payload = JSON.stringify(session);
+
+    if (typeof localStorage !== 'undefined') {
+      if (this.remember) {
+        localStorage.setItem('fitadmin-session', payload);
+        localStorage.setItem('fitadmin-auth', 'true');
+      } else {
+        localStorage.removeItem('fitadmin-session');
+        localStorage.removeItem('fitadmin-auth');
+      }
+
+      if (session.role === 'admin') {
+        localStorage.setItem('fitadmin-admin-session', payload);
+      } else {
+        localStorage.removeItem('fitadmin-admin-session');
+      }
+    }
+
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.setItem('fitadmin-session', payload);
+      sessionStorage.setItem('fitadmin-auth', 'true');
+
+      if (session.role === 'admin') {
+        sessionStorage.setItem('fitadmin-admin-session', payload);
+      } else {
+        sessionStorage.removeItem('fitadmin-admin-session');
+      }
+    }
   }
 }

@@ -53,6 +53,16 @@
   padding: clamp(58px, 8vw, 108px) clamp(26px, 6vw, 92px);
 }
 
+h1 {
+  max-width: 800px;
+  margin: 0;
+  font-size: 82px;
+  font-weight: 950;
+  line-height: .9;
+  overflow-wrap: break-word;
+  text-transform: uppercase;
+}
+
 .eyebrow {
   width: fit-content;
   margin: 0 0 18px;
@@ -62,16 +72,6 @@
   font-size: 12px;
   font-weight: 950;
   letter-spacing: 0;
-  text-transform: uppercase;
-}
-
-h1 {
-  max-width: 800px;
-  margin: 0;
-  font-size: 82px;
-  font-weight: 950;
-  line-height: .9;
-  overflow-wrap: break-word;
   text-transform: uppercase;
 }
 
@@ -117,34 +117,6 @@ h1 {
 .secondary-action:hover,
 .carousel-controls button:hover {
   transform: translateY(-2px);
-}
-
-.hero-stats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  width: min(100%, 720px);
-  margin-top: 42px;
-}
-
-.hero-stats span {
-  display: grid;
-  gap: 4px;
-  min-height: 82px;
-  align-content: center;
-  border: 1px solid rgba(255, 255, 255, .14);
-  border-radius: 8px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, .1), rgba(0, 0, 0, .36));
-  padding: 14px;
-  backdrop-filter: blur(10px);
-}
-
-.hero-stats strong {
-  font-size: 18px;
-}
-
-.hero-stats small {
-  color: rgba(255, 255, 255, .62);
 }
 
 .carousel-controls {
@@ -221,10 +193,6 @@ svg {
 
   .hero-overlay {
     background: linear-gradient(0deg, rgba(0, 0, 0, .82), rgba(0, 0, 0, .42));
-  }
-
-  .hero-stats {
-    grid-template-columns: 1fr;
   }
 
   .carousel-controls {
