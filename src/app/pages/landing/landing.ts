@@ -140,31 +140,31 @@ export class LandingComponent implements OnInit {
   readonly sidebarItems: SidebarSection[] = [
     { label: 'Inicio', anchor: 'inicio', icon: 'home' },
     {
+      label: 'Productos',
+      anchor: 'tienda',
+      icon: 'shopping_bag',
+      children: [
+        { label: 'Proteinas', anchor: 'tienda:Proteinas', badge: 'TOP', badgeTone: 'hot' },
+        { label: 'Creatinas', anchor: 'tienda:Creatinas', badge: 'NEW', badgeTone: 'new' },
+        { label: 'Vitaminas y minerales', anchor: 'tienda:Vitaminas y minerales' },
+        { label: 'Pre-entrenos', anchor: 'tienda:Pre-entrenos' },
+        { label: 'Barras y snacks', anchor: 'tienda:Barras y snacks de proteina', badge: 'SALE', badgeTone: 'sale' }
+      ]
+    },
+    {
       label: 'Servicios',
       anchor: 'servicios',
       icon: 'fitness_center',
       children: [
         { label: 'Musculacion', anchor: 'servicios:Musculacion' },
         { label: 'Cardio', anchor: 'servicios:Cardio' },
-        { label: 'Personalizado', anchor: 'servicios:Entrenamiento personalizado' },
+        { label: 'Personalizado', anchor: 'servicios:Entrenamiento personalizado', badge: 'PRO', badgeTone: 'hot' },
         { label: 'Clases grupales', anchor: 'servicios:Clases grupales' },
         { label: 'Evaluacion fisica', anchor: 'servicios:Evaluacion fisica' },
         { label: 'Principiantes', anchor: 'servicios:Rutinas para principiantes' }
       ]
     },
     { label: 'Planes', anchor: 'planes', icon: 'workspace_premium' },
-    {
-      label: 'Tienda',
-      anchor: 'tienda',
-      icon: 'shopping_bag',
-      children: [
-        { label: 'Proteinas', anchor: 'tienda:Proteinas' },
-        { label: 'Creatinas', anchor: 'tienda:Creatinas' },
-        { label: 'Vitaminas y minerales', anchor: 'tienda:Vitaminas y minerales' },
-        { label: 'Pre-entrenos', anchor: 'tienda:Pre-entrenos' },
-        { label: 'Barras y snacks de proteina', anchor: 'tienda:Barras y snacks de proteina' }
-      ]
-    },
     { label: 'Contacto', anchor: 'contacto', icon: 'call' }
   ];
 

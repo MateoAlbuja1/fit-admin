@@ -2,14 +2,17 @@
   <header>
     <span class="brand-logo"><img src="/assets/img/wx-fitness-gym-logo.png" alt="WX Fitness Gym" /></span>
     <div>
-      <strong>WX Fitness Gym</strong>
-      <small>Quito - Caupicho</small>
+      <strong>GX GYM</strong>
+      <small>Fitness Gym - Caupicho</small>
     </div>
   </header>
 
   <nav>
     @for (item of items; track item.anchor) {
       <section class="nav-group">
+        @if (item.eyebrow) {
+          <span class="nav-eyebrow">{{ item.eyebrow }}</span>
+        }
         <button
           type="button"
           [class.is-active]="item.anchor === activeAnchor"
@@ -28,10 +31,12 @@
 
         @if (item.children?.length && isExpanded(item)) {
           <div class="child-links" [attr.aria-label]="item.label + ' opciones'">
-            <strong>Opciones</strong>
             @for (child of item.children; track child.label) {
               <button type="button" (click)="navigateTo(child.anchor)">
                 <span>{{ child.label }}</span>
+                @if (child.badge) {
+                  <em [class]="'badge-' + (child.badgeTone ?? 'new')">{{ child.badge }}</em>
+                }
               </button>
             }
           </div>

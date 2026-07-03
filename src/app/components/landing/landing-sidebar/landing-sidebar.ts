@@ -4,7 +4,8 @@ export interface SidebarSection {
   label: string;
   anchor: string;
   icon: string;
-  children?: Array<{ label: string; anchor: string }>;
+  eyebrow?: string;
+  children?: Array<{ label: string; anchor: string; badge?: string; badgeTone?: 'sale' | 'new' | 'hot' }>;
 }
 
 export interface SidebarMemberProfile {
@@ -32,7 +33,7 @@ export class LandingSidebarComponent {
   @Output() logoutMember = new EventEmitter<void>();
   @Output() openMemberProfile = new EventEmitter<void>();
 
-  expandedAnchor = '';
+  expandedAnchor = 'tienda';
 
   handleItemClick(item: SidebarSection): void {
     if (item.children?.length) {
@@ -50,6 +51,12 @@ export class LandingSidebarComponent {
   }
 
   navigateTo(anchor: string): void {
+    if (anchor.startsWith('servicios:')) {
+      this.expandedAnchor = 'servicios';
+    }
+    if (anchor.startsWith('tienda:')) {
+      this.expandedAnchor = 'tienda';
+    }
     this.navigate.emit(anchor);
   }
 
