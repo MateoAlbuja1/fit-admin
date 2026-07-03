@@ -1,0 +1,151 @@
+@if (notice) {
+  <div class="notice"><span>✓</span>{{ notice }}<button type="button" (click)="resetNotice()">×</button></div>
+}
+
+<section class="settings-shell">
+  <aside class="settings-sidebar" aria-label="Menú de configuración">
+    <span class="section-kicker">Configuración</span>
+    <h2>Centro de ajustes</h2>
+    <p>Selecciona una sección para editar la información del sistema administrativo.</p>
+
+    <nav class="settings-tabs">
+      @for (panel of panels; track panel.id) {
+        <button type="button" [class.active]="activePanel === panel.id" (click)="setPanel(panel.id)">
+          <i>{{ panel.icon }}</i>
+          <span>
+            <strong>{{ panel.label }}</strong>
+            <small>{{ panel.description }}</small>
+          </span>
+        </button>
+      }
+    </nav>
+  </aside>
+
+  <section class="settings-panel">
+    @switch (activePanel) {
+      @case ('gimnasio') {
+        <article class="settings-screen">
+          <header>
+            <div><span>IDENTIDAD</span><h3>Datos del gimnasio</h3></div>
+            <b>01</b>
+          </header>
+
+          <div class="settings-form">
+            <label><span>Nombre comercial</span><input [(ngModel)]="gimnasio.nombre" name="gymName" /></label>
+            <label><span>Sede / barrio</span><input [(ngModel)]="gimnasio.sede" name="gymBranch" /></label>
+            <label><span>Ciudad</span><input [(ngModel)]="gimnasio.ciudad" name="gymCity" /></label>
+            <label><span>Teléfono</span><input [(ngModel)]="gimnasio.telefono" name="gymPhone" /></label>
+            <label><span>Correo</span><input type="email" [(ngModel)]="gimnasio.email" name="gymEmail" /></label>
+            <label class="settings-form__full"><span>Dirección</span><input [(ngModel)]="gimnasio.direccion" name="gymAddress" /></label>
+          </div>
+
+          <div class="settings-divider"></div>
+
+          <header class="settings-subheader">
+            <div><span>OPERACIÓN</span><h3>Horarios de atención</h3></div>
+          </header>
+
+          <div class="schedule-list">
+            @for (horario of horarios; track horario.dia) {
+              <div class="schedule-row">
+                <label class="schedule-day"><input type="checkbox" [(ngModel)]="horario.activo" [name]="'active' + horario.dia" /><strong>{{ horario.dia }}</strong></label>
+                <label><span>Apertura</span><input type="time" [(ngModel)]="horario.apertura" [name]="'open' + horario.dia" [disabled]="!horario.activo" /></label>
+                <label><span>Cierre</span><input type="time" [(ngModel)]="horario.cierre" [name]="'close' + horario.dia" [disabled]="!horario.activo" /></label>
+                <small [class.closed]="!horario.activo">{{ horario.activo ? 'Activo' : 'Cerrado' }}</small>
+              </div>
+            }
+          </div>
+        </article>
+      }
+
+      @case ('administrador') {
+        <article class="settings-screen">
+          <header>
+            <div><span>CUENTA</span><h3>Administrador</h3></div>
+            <b>02</b>
+          </header>
+
+          <div class="admin-profile-card">
+            <span>MA</span>
+            <div>
+              <strong>{{ cuenta.administrador }}</strong>
+              <small>{{ cuenta.rol }} principal del sistema</small>
+            </div>
+          </div>
+
+          <div class="settings-form">
+            <label><span>Nombre</span><input [(ngModel)]="cuenta.administrador" name="adminName" /></label>
+            <label><span>Rol</span><select [(ngModel)]="cuenta.rol" name="adminRole"><option>Administrador</option><option>Recepción</option><option>Supervisor</option></select></label>
+            <label><span>Usuario</span><input [(ngModel)]="cuenta.usuario" name="adminUser" /></label>
+            <label><span>Correo</span><input type="email" [(ngModel)]="cuenta.correo" name="adminEmail" /></label>
+          </div>
+
+          <div class="settings-divider"></div>
+
+          <header class="settings-subheader">
+            <div><span>PERMISOS</span><h3>Acceso administrativo</h3></div>
+          </header>
+
+          <div class="permissions-grid">
+            <article><strong>Dashboard</strong><span>Visualización completa</span></article>
+            <article><strong>Inventarios</strong><span>Crear, editar y eliminar</span></article>
+            <article><strong>Pagos</strong><span>Registrar y consultar</span></article>
+            <article><strong>Reportes</strong><span>Generar informes</span></article>
+          </div>
+        </article>
+      }
+
+      @case ('seguridad') {
+        <article class="settings-screen">
+          <header>
+            <div><span>SEGURIDAD</span><h3>Acceso y respaldo</h3></div>
+            <b>03</b>
+          </header>
+
+          <div class="toggle-list">
+            <label><span><strong>Doble verificación</strong><small>Solicitar validación adicional para administradores.</small></span><input type="checkbox" [(ngModel)]="seguridad.dobleFactor" name="twoFactor" /></label>
+            <label><span><strong>Bloqueo de sesión</strong><small>Cerrar sesión tras inactividad prolongada.</small></span><input type="checkbox" [(ngModel)]="seguridad.bloqueoSesion" name="sessionLock" /></label>
+            <label><span><strong>Copias automáticas</strong><small>Respaldar datos administrativos cada día.</small></span><input type="checkbox" [(ngModel)]="seguridad.copiasAutomaticas" name="autoBackup" /></label>
+            <label><span><strong>Alertas críticas</strong><small>Avisar sobre vencimientos, stock bajo y mantenimientos.</small></span><input type="checkbox" [(ngModel)]="seguridad.alertasCriticas" name="criticalAlerts" /></label>
+          </div>
+
+          <div class="settings-divider"></div>
+
+          <header class="settings-subheader">
+            <div><span>CONTRASEÑA</span><h3>Cambiar contraseña</h3></div>
+          </header>
+
+          <div class="settings-form">
+            <label><span>Contraseña actual</span><input type="password" [(ngModel)]="password.actual" name="currentPassword" /></label>
+            <label><span>Nueva contraseña</span><input type="password" [(ngModel)]="password.nueva" name="newPassword" /></label>
+            <label><span>Confirmar contraseña</span><input type="password" [(ngModel)]="password.confirmar" name="confirmPassword" /></label>
+          </div>
+
+          <div class="settings-divider"></div>
+
+          <header class="settings-subheader">
+            <div><span>HISTORIAL</span><h3>Inicios de sesión</h3></div>
+          </header>
+
+          <div class="security-table">
+            <div class="security-head"><span>Fecha</span><span>Usuario</span><span>Dispositivo</span><span>IP</span><span>Estado</span></div>
+            @for (entry of loginHistory; track entry.date) {
+              <div class="security-row">
+                <span>{{ entry.date }}</span>
+                <span>{{ entry.user }}</span>
+                <span>{{ entry.device }}</span>
+                <span>{{ entry.ip }}</span>
+                <b [class.blocked]="entry.status === 'Bloqueado'">{{ entry.status }}</b>
+              </div>
+            }
+          </div>
+        </article>
+      }
+    }
+  </section>
+</section>
+
+<section class="settings-actions">
+  <button class="secondary-button" type="button">Restaurar valores</button>
+  <button class="primary-button" type="button" (click)="saveSettings()">Guardar configuración</button>
+</section>

@@ -19,31 +19,36 @@ button { color: inherit; }
 svg { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; }
 .admin-shell { min-height: 100vh; }
 
-.drawer { position: fixed; z-index: 20; inset: 0 auto 0 0; display: flex; width: 276px; flex-direction: column; padding: 26px 18px 18px; overflow-y: auto; border-right: 1px solid #202020; background: linear-gradient(180deg,#080808,#0d0d0d 60%,#080808); color: #fff; transition: width .24s ease; }
+.drawer { position: fixed; z-index: 20; inset: 0 auto 0 0; display: flex; width: 276px; flex-direction: column; padding: 18px 14px 14px; overflow: hidden; border-right: 1px solid #202020; background: linear-gradient(180deg,#080808,#0d0d0d 60%,#080808); color: #fff; transition: width .24s ease; }
 .drawer-toggle { position: absolute; z-index: 3; top: 31px; right: -13px; display: grid; width: 27px; height: 27px; place-items: center; border: 1px solid #d8d8d8; border-radius: 50%; background: #fff; color: #222; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,.15); }.drawer-toggle svg { width: 13px; }
-.brand { display: flex; align-items: center; gap: 12px; padding: 0 8px 26px; }
+.brand { display: flex; align-items: center; gap: 12px; padding: 0 8px 14px; }
 .brand-mark { display: grid; width: 40px; height: 40px; place-items: center; border: 1px solid #fff; border-radius: 9px; background: #fff; color: #090909; font-size: 13px; font-weight: 900; letter-spacing: .04em; }
 .brand-copy { display: flex; flex-direction: column; gap: 4px; }
 .brand-copy strong { font-size: 16px; letter-spacing: 1.4px; }
 .brand-copy span { color: #777; font-size: 10px; letter-spacing: .7px; text-transform: uppercase; }
-.gym-card { display: flex; align-items: center; gap: 10px; padding: 13px; border: 1px solid #292929; border-radius: 11px; background: linear-gradient(135deg,#181818,#121212); }
+.gym-card { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border: 1px solid #292929; border-radius: 11px; background: linear-gradient(135deg,#181818,#121212); }
 .gym-card__logo { display: grid; width: 58px; height: 36px; flex: 0 0 auto; place-items: center; overflow: hidden; border: 1px solid #333; border-radius: 7px; background: #000; }
 .gym-card__logo img { width: 100%; height: 100%; object-fit: contain; }
 .gym-card > div { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 3px; }
 .gym-card strong { font-size: 11px; letter-spacing: .7px; }
 .gym-card div span { overflow: hidden; color: #777; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
 .status-dot { width: 7px; height: 7px; flex: 0 0 auto; border-radius: 50%; background: var(--positive); box-shadow: 0 0 0 4px rgba(37,143,98,.14); }
-.nav-label { margin: 27px 12px 9px; color: #555; font-size: 9px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; }
-.main-nav { display: flex; flex-direction: column; gap: 4px; }
-.nav-item { position: relative; display: flex; min-height: 44px; align-items: center; gap: 13px; padding: 0 12px; border-radius: 8px; color: #858585; text-decoration: none; transition: .18s ease; }
+.nav-label { margin: 8px 12px 3px; color: #555; font-size: 9px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; }
+.main-nav { display: flex; min-height: 0; flex: 1; flex-direction: column; gap: 1px; padding-top: 8px; }
+.nav-section { display: flex; min-width: 0; flex-direction: column; gap: 2px; }
+.nav-section:first-child .nav-label { margin-top: 0; }
+.nav-section--system { margin-top: 6px; padding-top: 6px; border-top: 1px solid #232323; }
+.nav-item { position: relative; display: flex; min-height: 36px; align-items: center; gap: 11px; padding: 0 10px; border: 0; border-radius: 10px; background: transparent; color: #858585; cursor: pointer; text-align: left; text-decoration: none; transition: .18s ease; }
 .nav-item svg { width: 18px; height: 18px; flex: 0 0 auto; }
 .nav-item span { font-size: 12px; font-weight: 700; }
-.nav-item:hover { background: #141414; color: #bbb; }
-.nav-item.active { background: #fff; color: #0a0a0a; }
+.nav-item:hover { background: #141414; color: #ddd; }
+.nav-item.active { background: #fff; color: #0a0a0a; box-shadow: 0 10px 24px rgba(0,0,0,.22); transform: none; }
 .nav-item.active svg { color: currentColor; }
 .nav-item.active i { position: absolute; right: -18px; width: 3px; height: 20px; border-radius: 999px; background: #0a0a0a; }
-.drawer-footer { display: flex; flex-direction: column; gap: 12px; margin-top: auto; padding-top: 28px; }
-.support-card { display: flex; flex-direction: column; gap: 4px; padding: 13px 15px; border: 1px solid #282828; border-radius: 8px; }
+.nav-item--button { width: 100%; }
+.nav-item--button:hover { color: #fff; }
+.drawer-footer { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; padding-top: 8px; }
+.support-card { display: none; flex-direction: column; gap: 4px; padding: 13px 15px; border: 1px solid #282828; border-radius: 8px; }
 .support-card span { color: #555; font-size: 8px; letter-spacing: 1px; }
 .support-card strong { color: #ccc; font-size: 10px; }
 .profile-mini { display: flex; align-items: center; gap: 10px; padding: 10px 7px; border-top: 1px solid #202020; }
@@ -58,15 +63,12 @@ svg { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: 
 .topbar-actions { display: flex; align-items: center; gap: 10px; }
 .topbar-primary { min-height: 38px; padding: 0 14px; border: 1px solid #111; border-radius: 8px; background: #111; color: #fff; cursor: pointer; font-size: 9px; font-weight: 900; transition: background .18s ease, border-color .18s ease; }
 .topbar-primary:hover { border-color: var(--accent); background: var(--accent); }
-.branch-pill { display: flex; height: 38px; align-items: center; gap: 7px; padding: 0 12px; border: 1px solid #ddd; border-radius: 20px; background: #fff; color: #666; font-size: 10px; font-weight: 700; }
-.branch-pill i, .live-chip i, .page-footer i { width: 6px; height: 6px; border-radius: 50%; background: var(--positive); box-shadow: 0 0 0 3px rgba(37,143,98,.12); }
+.live-chip i, .page-footer i { width: 6px; height: 6px; border-radius: 50%; background: var(--positive); box-shadow: 0 0 0 3px rgba(37,143,98,.12); }
 .notification { position: relative; display: grid; width: 40px; height: 40px; place-items: center; border: 1px solid #ddd; border-radius: 9px; background: #fff; }
 .notification svg { width: 17px; }.notification span { position: absolute; top: 8px; right: 8px; width: 5px; height: 5px; border-radius: 50%; background: var(--danger); }
 .admin-chip { display: flex; align-items: center; gap: 9px; padding-left: 5px; }
 .admin-chip > span { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 50%; background: #111; color: #fff; font-size: 10px; font-weight: 900; }
 .admin-chip div { display: flex; flex-direction: column; gap: 2px; }.admin-chip strong { font-size: 10px; }.admin-chip small { color: #999; font-size: 8px; }
-.logout-button { display: flex; align-items: center; gap: 8px; }
-.logout-button svg { width: 16px; height: 16px; }
 .workspace { padding-top: 24px; animation: workspaceIn .32s ease both; }
 .primary-button, .secondary-button { min-height: 40px; padding: 0 16px; border-radius: 8px; cursor: pointer; font-size: 10px; font-weight: 900; }
 .primary-button { border: 1px solid #111; background: #111; color: #fff; box-shadow: 0 8px 20px rgba(0,0,0,.11); }
@@ -144,14 +146,12 @@ tbody tr:hover { background: #fbfbfa; }
 
 @media (max-width: 900px) {
   .drawer-toggle { display: none; }
-  .drawer { width: 82px; padding-inline: 12px; }.brand { justify-content: center; padding-inline: 0; }.brand-copy,.gym-card div,.gym-card .status-dot,.nav-label,.nav-item span,.support-card,.profile-mini > span:last-child { display: none; }.gym-card { justify-content: center; padding: 10px; }.gym-card__logo { width: 42px; }.nav-item { justify-content: center; padding: 0; }.nav-item.active i { right: -12px; }.profile-mini { justify-content: center; }.main-content { margin-left: 82px; padding-inline: 22px; }.admin-chip div { display: none; }.report-layout { grid-template-columns: 1fr; }.report-preview { min-height: 400px; }
+  .drawer { width: 82px; padding-inline: 12px; }.brand { justify-content: center; padding-inline: 0; }.brand-copy,.gym-card div,.gym-card .status-dot,.nav-label,.nav-item span,.support-card,.profile-mini > span:last-child { display: none; }.gym-card { justify-content: center; padding: 10px; }.gym-card__logo { width: 42px; }.nav-section--system { border-top: 0; padding-top: 0; }.nav-item { justify-content: center; padding: 0; }.nav-item.active i { right: -12px; }.profile-mini { justify-content: center; }.main-content { margin-left: 82px; padding-inline: 22px; }.admin-chip div { display: none; }.report-layout { grid-template-columns: 1fr; }.report-preview { min-height: 400px; }
   .topbar { width: calc(100% + 44px); margin-inline: -22px; padding-inline: 22px; }
-  .logout-button { width: 40px; padding: 0; }
-  .logout-button span { display: none; }
 }
 
 @media (max-width: 640px) {
-  .drawer { width: 66px; padding-inline: 8px; }.brand-mark { width: 36px; height: 36px; }.gym-card { display: none; }.main-nav { margin-top: 12px; }.main-content { margin-left: 66px; padding-inline: 14px; }.topbar { height: 78px; }.topbar h1 { font-size: 21px; }.branch-pill,.admin-chip { display: none; }.topbar-actions { gap: 6px; }.topbar-primary { padding: 0 10px; }.workspace { padding-top: 18px; }.notice { top: 86px; right: 16px; }.metric-grid,.inventory-summary,.plan-grid,.attendance-layout,.inventory-grid { grid-template-columns: 1fr; }.attendance-layout .flow-card:last-child { grid-column: auto; }.card-toolbar,.inventory-toolbar { align-items: flex-start; flex-direction: column; }.search-field { width: 100%; max-width: none; }.inventory-grid--machines { grid-template-columns: 1fr; }.machine-card { grid-template-columns: 1fr; }.machine-card .item-photo { min-height: 190px; }.report-stats { grid-template-columns: repeat(2,1fr); }.report-head { flex-direction: column; }.report-bars { gap: 8px; padding-inline: 12px; }.report-bars i { width: 22px; }.table-footer { align-items: flex-start; flex-direction: column; }.page-footer { align-items: flex-start; flex-direction: column; }.form-drawer,.detail-drawer { padding-inline: 20px; }.date-fields,.form-row { grid-template-columns: 1fr; }
+  .drawer { width: 66px; padding-inline: 8px; }.brand-mark { width: 36px; height: 36px; }.gym-card { display: none; }.main-nav { margin-top: 12px; }.nav-section--system { border-top: 0; padding-top: 0; }.main-content { margin-left: 66px; padding-inline: 14px; }.topbar { height: 78px; }.topbar h1 { font-size: 21px; }.admin-chip { display: none; }.topbar-actions { gap: 6px; }.topbar-primary { padding: 0 10px; }.workspace { padding-top: 18px; }.notice { top: 86px; right: 16px; }.metric-grid,.inventory-summary,.plan-grid,.attendance-layout,.inventory-grid { grid-template-columns: 1fr; }.attendance-layout .flow-card:last-child { grid-column: auto; }.card-toolbar,.inventory-toolbar { align-items: flex-start; flex-direction: column; }.search-field { width: 100%; max-width: none; }.inventory-grid--machines { grid-template-columns: 1fr; }.machine-card { grid-template-columns: 1fr; }.machine-card .item-photo { min-height: 190px; }.report-stats { grid-template-columns: repeat(2,1fr); }.report-head { flex-direction: column; }.report-bars { gap: 8px; padding-inline: 12px; }.report-bars i { width: 22px; }.table-footer { align-items: flex-start; flex-direction: column; }.page-footer { align-items: flex-start; flex-direction: column; }.form-drawer,.detail-drawer { padding-inline: 20px; }.date-fields,.form-row { grid-template-columns: 1fr; }
   .topbar { width: calc(100% + 28px); margin-inline: -14px; padding-inline: 14px; }
 }
 
@@ -499,7 +499,6 @@ td,
   .topbar h1 { font-size: 24px; }
 }
 
-/* Escala tipográfica Material Design */
 .eyebrow,
 .section-kicker { font-size: 12px; line-height: 16px; }
 .nav-item span { font-size: 14px; line-height: 20px; }
@@ -577,12 +576,12 @@ td { font-size: 14px; line-height: 20px; }
   .topbar h1 { font-size: 25px; line-height: 32px; }
 }
 
-/* Bloqueo definitivo del desbordamiento del menú */
 :host,
 .admin-shell { width: 100%; max-width: 100vw; overflow-x: hidden; }
 .drawer { max-width: 100vw; overflow-x: hidden !important; overscroll-behavior-x: none; }
 .drawer > *:not(.drawer-toggle),
 .main-nav,
+.nav-section,
 .drawer-footer { width: 100%; max-width: 100%; min-width: 0; }
 .brand-copy,
 .gym-card > div,
@@ -593,9 +592,10 @@ td { font-size: 14px; line-height: 20px; }
   .drawer,
   .drawer-collapsed .drawer { overflow-x: hidden !important; }
   .main-nav { width: 100%; min-width: 0; }
+  .nav-section { display: contents; }
+  .nav-section .nav-label { display: none; }
   .nav-item,
   .drawer-collapsed .nav-item { width: auto; min-width: 0; flex: 1 1 0; }
 }
 
-/* Acciones de inventario */
 .list-actions,.card-actions{align-items:center}.list-actions button,.card-actions button{display:inline-flex!important;align-items:center!important;justify-content:center!important;line-height:1;text-align:center;white-space:nowrap}.list-actions .list-detail{min-width:72px;height:34px;padding:0 12px}.list-actions .machine-status-action{min-width:104px;height:34px;padding:0 12px}.stock-control .remove-button,.list-actions .list-delete,.card-actions .danger-action{width:34px!important;min-width:34px!important;height:34px!important;flex:0 0 34px!important;padding:0!important;border-color:rgba(197,69,69,.38)!important;background-color:#fff!important;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c54545' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 6h18'/%3E%3Cpath d='M8 6V4h8v2'/%3E%3Cpath d='M6 6l1 15h10l1-15'/%3E%3Cpath d='M10 11v6'/%3E%3Cpath d='M14 11v6'/%3E%3C/svg%3E")!important;background-position:center!important;background-repeat:no-repeat!important;background-size:18px 18px!important;color:transparent!important;font-size:0!important;text-indent:-999px;overflow:hidden}.stock-control .remove-button{margin-left:auto}.stock-control .remove-button svg,.list-actions .list-delete svg,.card-actions .danger-action svg{display:none!important}.stock-control .remove-button:hover,.list-actions .list-delete:hover,.card-actions .danger-action:hover{border-color:var(--danger)!important;background-color:rgba(197,69,69,.08)!important}.dark-mode .stock-control .remove-button,.dark-mode .list-actions .list-delete,.dark-mode .card-actions .danger-action{background-color:#151b24!important;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ff8a8a' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 6h18'/%3E%3Cpath d='M8 6V4h8v2'/%3E%3Cpath d='M6 6l1 15h10l1-15'/%3E%3Cpath d='M10 11v6'/%3E%3Cpath d='M14 11v6'/%3E%3C/svg%3E")!important}

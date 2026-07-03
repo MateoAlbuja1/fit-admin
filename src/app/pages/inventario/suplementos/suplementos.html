@@ -76,7 +76,10 @@
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 15h10l1-15"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
             </button>
           </div>
-          <button class="item-detail-button" type="button" (click)="showDetail(item)">Ver ficha <span>→</span></button>
+          <div class="card-actions inventory-edit-actions">
+            <button class="secondary-button" type="button" (click)="showDetail(item)">Ver ficha</button>
+            <button class="secondary-button" type="button" (click)="openEdit(item)">Editar ficha</button>
+          </div>
         </div>
       </article>
     } @empty {
@@ -104,6 +107,7 @@
               <button type="button" (click)="changeStock(item, -1)">−</button>
               <button type="button" (click)="changeStock(item, 1)">+</button>
               <button class="list-detail" type="button" (click)="showDetail(item)">Ver ficha</button>
+              <button class="list-detail" type="button" (click)="openEdit(item)">Editar ficha</button>
               <button class="list-delete icon-delete" type="button" (click)="remove(item)" aria-label="Eliminar suplemento" title="Eliminar">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 15h10l1-15"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
               </button>
@@ -141,8 +145,35 @@
       @if (detail.photo) { <img class="detail-photo" [src]="detail.photo" [alt]="detail.title" /> }
       <div class="detail-intro"><span class="badge" [class.badge--warning]="detail.status === 'Stock bajo'">{{ detail.status }}</span><p>{{ detail.subtitle }}</p></div>
       <dl class="detail-fields">@for (field of detail.fields; track field.label) { <div><dt>{{ field.label }}</dt><dd>{{ field.value }}</dd></div> }</dl>
-      <button class="primary-button detail-close" type="button" (click)="detail = null">Cerrar ficha</button>
+      <div class="form-navigation">
+        <button class="secondary-button" type="button" (click)="detail = null">Cerrar ficha</button>
+        @if (detailItem) { <button class="primary-button" type="button" (click)="openEdit(detailItem); detail = null">Editar ficha</button> }
+      </div>
     </aside>
+  </div>
+}
+
+@if (editingItemId) {
+  <div class="form-overlay" (click)="cancelEdit()">
+    <section class="form-drawer" (click)="$event.stopPropagation()">
+      <header><div><span>EDITAR FICHA</span><h2>Suplemento</h2></div><button type="button" (click)="cancelEdit()">×</button></header>
+      <form (ngSubmit)="saveEdit()">
+        <label class="photo-upload">
+          <input type="file" accept="image/*" (change)="handleEditPhoto($event)" />
+          @if (editItem.photo) { <img [src]="editItem.photo" alt="Vista previa" /> }
+          @else { <strong>Actualizar fotografía</strong><span>PNG o JPG · máximo 4 MB</span> }
+        </label>
+        <label><span>Nombre *</span><input [(ngModel)]="editItem.name" name="editName" required /></label>
+        <label><span>Categoría *</span><input [(ngModel)]="editItem.category" name="editCategory" required /></label>
+        <label><span>Descripción</span><textarea [(ngModel)]="editItem.description" name="editDescription" rows="4"></textarea></label>
+        <div class="form-row">
+          <label><span>Stock</span><input type="number" min="0" [(ngModel)]="editItem.stock" name="editStock" /></label>
+          <label><span>Stock mínimo</span><input type="number" min="0" [(ngModel)]="editItem.minStock" name="editMinStock" /></label>
+        </div>
+        <label><span>Precio</span><input type="number" min="0" step="0.01" [(ngModel)]="editItem.price" name="editPrice" /></label>
+        <div class="form-navigation"><button class="secondary-button" type="button" (click)="cancelEdit()">Cancelar</button><button class="primary-button" type="submit">Guardar cambios</button></div>
+      </form>
+    </section>
   </div>
 }
 

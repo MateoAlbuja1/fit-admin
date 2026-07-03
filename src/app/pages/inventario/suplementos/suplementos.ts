@@ -14,6 +14,7 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
   showForm = false;
   formStep = 1;
   detail: DetalleRegistro | null = null;
+  detailItem: Suplemento | null = null;
   suplementoAEliminar: Suplemento | null = null;
   editingItemId: number | null = null;
   stockFilter: FiltroStock = 'Todos';
@@ -115,10 +116,12 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
     this.data.suplementos = this.data.suplementos.filter(current => current.id !== item.id);
     this.suplementoAEliminar = null;
     this.detail = null;
+    this.detailItem = null;
     this.notice = `${item.name} eliminado del inventario.`;
   }
 
   showDetail(item: Suplemento): void {
+    this.detailItem = item;
     this.detail = {
       title: item.name,
       subtitle: item.description,

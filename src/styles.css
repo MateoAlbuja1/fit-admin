@@ -260,6 +260,20 @@ body {
   color: #ff8a8a;
 }
 
+.inventory-edit-actions {
+  margin-top: 13px;
+  padding-top: 13px;
+  border-top: 1px solid #eee;
+}
+
+.inventory-edit-actions .secondary-button {
+  min-height: 36px;
+}
+
+.dark-mode .inventory-edit-actions {
+  border-color: #252d37;
+}
+
 /* Public landing layout fallback: keeps the fixed client menu from covering content. */
 app-landing {
   --landing-sidebar-width: 92px;

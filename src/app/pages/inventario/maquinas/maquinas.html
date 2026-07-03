@@ -46,6 +46,7 @@
           </dl>
           <div class="card-actions">
             <button class="secondary-button" type="button" (click)="showDetail(item)">Ver ficha</button>
+            <button class="secondary-button" type="button" (click)="openEdit(item)">Editar ficha</button>
             <button class="secondary-button" type="button" (click)="toggleStatus(item)">{{ item.status === 'Mantenimiento' ? 'Activar' : 'Mantenimiento' }}</button>
             <button class="secondary-button danger-action icon-delete" type="button" (click)="remove(item)" aria-label="Eliminar máquina" title="Eliminar">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 15h10l1-15"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
@@ -71,6 +72,7 @@
           <strong class="machine-maintenance">{{ item.nextMaintenance }}</strong>
           <div class="list-actions">
             <button class="list-detail" type="button" (click)="showDetail(item)">Ver ficha</button>
+            <button class="list-detail" type="button" (click)="openEdit(item)">Editar ficha</button>
             <button class="machine-status-action" type="button" (click)="toggleStatus(item)">{{ item.status === 'Mantenimiento' ? 'Activar' : 'Mantenimiento' }}</button>
             <button class="list-delete icon-delete" type="button" (click)="remove(item)" aria-label="Eliminar máquina" title="Eliminar">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 15h10l1-15"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
@@ -106,8 +108,34 @@
       <img class="detail-photo" [src]="detail.photo" [alt]="detail.title" />
       <div class="detail-intro"><span class="badge" [class.badge--warning]="detail.status === 'Mantenimiento'" [class.badge--danger]="detail.status === 'Fuera de servicio'">{{ detail.status }}</span><p>{{ detail.subtitle }}</p></div>
       <dl class="detail-fields">@for (field of detail.fields; track field.label) { <div><dt>{{ field.label }}</dt><dd>{{ field.value }}</dd></div> }</dl>
-      <button class="primary-button detail-close" type="button" (click)="detail = null">Cerrar ficha</button>
+      <div class="form-navigation">
+        <button class="secondary-button" type="button" (click)="detail = null">Cerrar ficha</button>
+        @if (detailItem) { <button class="primary-button" type="button" (click)="openEdit(detailItem); detail = null">Editar ficha</button> }
+      </div>
     </aside>
+  </div>
+}
+
+@if (editingItemId) {
+  <div class="form-overlay" (click)="cancelEdit()">
+    <section class="form-drawer" (click)="$event.stopPropagation()">
+      <header><div><span>EDITAR FICHA</span><h2>Máquina</h2></div><button type="button" (click)="cancelEdit()">×</button></header>
+      <form (ngSubmit)="saveEdit()">
+        <label class="photo-upload">
+          <input type="file" accept="image/*" (change)="handleEditPhoto($event)" />
+          @if (editItem.photo) { <img [src]="editItem.photo" alt="Vista previa" /> }
+          @else { <strong>Actualizar fotografía</strong><span>PNG o JPG · máximo 4 MB</span> }
+        </label>
+        <label><span>Nombre *</span><input [(ngModel)]="editItem.name" name="editMachineName" required /></label>
+        <label><span>Tipo *</span><input [(ngModel)]="editItem.type" name="editMachineType" required /></label>
+        <label><span>Ubicación</span><input [(ngModel)]="editItem.location" name="editMachineLocation" /></label>
+        <div class="form-row">
+          <label><span>Estado</span><select [(ngModel)]="editItem.status" name="editMachineStatus"><option>Operativa</option><option>Mantenimiento</option><option>Fuera de servicio</option></select></label>
+          <label><span>Próximo mantenimiento</span><input type="date" [(ngModel)]="editItem.nextMaintenance" name="editMachineMaintenance" /></label>
+        </div>
+        <div class="form-navigation"><button class="secondary-button" type="button" (click)="cancelEdit()">Cancelar</button><button class="primary-button" type="submit">Guardar cambios</button></div>
+      </form>
+    </section>
   </div>
 }
 

@@ -12,8 +12,11 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
   showForm = false;
   formStep = 1;
   detail: DetalleRegistro | null = null;
+  detailItem: Maquina | null = null;
   maquinaAEliminar: Maquina | null = null;
+  editingItemId: number | null = null;
   newItem = { name: '', type: '', location: '', status: 'Operativa' as Maquina['status'], nextMaintenance: '', photo: '' };
+  editItem = { name: '', type: '', location: '', status: 'Operativa' as Maquina['status'], nextMaintenance: '', photo: '' };
 
   constructor(public data: DatosGimnasioService, private actions: AccionPaginaAdminService) {}
 
@@ -63,10 +66,12 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
     this.data.maquinas = this.data.maquinas.filter(current => current.id !== item.id);
     this.maquinaAEliminar = null;
     this.detail = null;
+    this.detailItem = null;
     this.notice = `${item.name} eliminada del inventario.`;
   }
 
   showDetail(item: Maquina): void {
+    this.detailItem = item;
     this.detail = {
       title: item.name,
       subtitle: item.type,
@@ -80,6 +85,40 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
     };
   }
 
+  openEdit(item: Maquina): void {
+    this.editingItemId = item.id;
+    this.editItem = {
+      name: item.name,
+      type: item.type,
+      location: item.location,
+      status: item.status,
+      nextMaintenance: item.nextMaintenance,
+      photo: item.photo
+    };
+  }
+
+  cancelEdit(): void {
+    this.editingItemId = null;
+  }
+
+  saveEdit(): void {
+    const item = this.data.maquinas.find(current => current.id === this.editingItemId);
+    if (!item || !this.editItem.name.trim() || !this.editItem.type.trim()) {
+      this.notice = 'Completa el nombre y tipo de equipo.';
+      return;
+    }
+    Object.assign(item, {
+      name: this.editItem.name.trim(),
+      type: this.editItem.type.trim(),
+      location: this.editItem.location.trim() || 'Sin ubicación',
+      status: this.editItem.status,
+      nextMaintenance: this.editItem.nextMaintenance,
+      photo: this.editItem.photo
+    });
+    this.editingItemId = null;
+    this.notice = 'Ficha de máquina actualizada correctamente.';
+  }
+
   handlePhoto(event: Event): void {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file || file.size > 4 * 1024 * 1024) {
@@ -88,6 +127,17 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
     }
     const reader = new FileReader();
     reader.onload = () => this.newItem.photo = String(reader.result);
+    reader.readAsDataURL(file);
+  }
+
+  handleEditPhoto(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file || file.size > 4 * 1024 * 1024) {
+      this.notice = 'Selecciona una imagen menor a 4 MB.';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => this.editItem.photo = String(reader.result);
     reader.readAsDataURL(file);
   }
 

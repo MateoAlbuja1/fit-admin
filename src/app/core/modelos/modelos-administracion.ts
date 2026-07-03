@@ -5,7 +5,8 @@ export type ModuloAdministrativo =
   | 'pagos'
   | 'suplementos'
   | 'maquinas'
-  | 'reportes';
+  | 'reportes'
+  | 'configuracion';
 
 export interface MetaPagina {
   modulo: ModuloAdministrativo;
