@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
@@ -22,6 +23,9 @@ export class RegisterComponent {
   confirmPassword = '';
   acceptTerms = false;
   message = '';
+  isLoading = false;
+
+  private readonly apiUrl = 'http://localhost:3000';
 
   gymSlides: GymSlide[] = [
     {
@@ -38,7 +42,10 @@ export class RegisterComponent {
     }
   ];
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private http: HttpClient
+  ) {}
 
   goToLogin(): void {
     this.message = '';
@@ -46,16 +53,52 @@ export class RegisterComponent {
   }
 
   handleRegister(): void {
+    this.message = '';
+
+    if (!this.firstName.trim() || !this.lastName.trim() || !this.email.trim() || !this.registerPassword) {
+      this.message = 'Completa los datos obligatorios.';
+      return;
+    }
+
     if (this.registerPassword !== this.confirmPassword) {
-      this.message = 'Las contraseñas no coinciden.';
+      this.message = 'Las contrasenas no coinciden.';
       return;
     }
 
     if (!this.acceptTerms) {
-      this.message = 'Debes aceptar los términos para crear la cuenta.';
+      this.message = 'Debes aceptar los terminos para crear la cuenta.';
       return;
     }
 
-    this.message = 'Registro creado correctamente. Ya puedes iniciar sesión.';
+    this.isLoading = true;
+    this.http.post(`${this.apiUrl}/auth/register`, {
+      username: this.email.trim().toLowerCase(),
+      email: this.email.trim().toLowerCase(),
+      password: this.registerPassword,
+      fullName: `${this.firstName.trim()} ${this.lastName.trim()}`,
+      phone: this.phone.trim()
+    }).subscribe({
+      next: () => {
+        this.message = 'Registro creado correctamente. Ya puedes iniciar sesion con tu correo.';
+        this.firstName = '';
+        this.lastName = '';
+        this.email = '';
+        this.phone = '';
+        this.registerPassword = '';
+        this.confirmPassword = '';
+        this.acceptTerms = false;
+      },
+      error: error => {
+        this.isLoading = false;
+        this.message = error.status === 0
+          ? 'No se pudo conectar con el backend. Levanta Docker y vuelve a intentar.'
+          : error.status === 409
+            ? 'Ese correo ya esta registrado. Inicia sesion con tu correo.'
+            : 'No se pudo crear el registro. Revisa los datos e intenta de nuevo.';
+      },
+      complete: () => {
+        this.isLoading = false;
+      }
+    });
   }
 }

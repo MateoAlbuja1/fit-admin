@@ -1293,6 +1293,10 @@ app-landing-footer {
   color: #fff;
 }
 
+.cart-notice--drawer {
+  margin: 0 0 14px;
+}
+
 .product-detail {
   display: flex;
   flex-wrap: wrap;
@@ -1375,9 +1379,14 @@ app-landing-footer {
 }
 
 .cart-items span,
+.cart-items small,
 .empty-cart {
   color: rgba(255, 255, 255, .64);
   font-size: 13px;
+}
+
+.cart-items small {
+  font-size: 12px;
 }
 
 .quantity-controls {
@@ -1405,6 +1414,12 @@ app-landing-footer {
   background: #fff;
   color: #050605;
   transform: translateY(-1px);
+}
+
+.quantity-controls button:disabled {
+  cursor: not-allowed;
+  opacity: .42;
+  transform: none;
 }
 
 .quantity-controls .material-icons {
@@ -1458,6 +1473,41 @@ app-landing-footer {
 
 .checkout-total strong {
   font-size: 24px;
+}
+
+.cart-checkout label {
+  display: grid;
+  gap: 6px;
+}
+
+.cart-checkout label span {
+  color: rgba(255, 255, 255, .62);
+  font-size: 11px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.cart-checkout input,
+.cart-checkout textarea {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid rgba(255, 255, 255, .14);
+  border-radius: 8px;
+  outline: none;
+  background: rgba(255, 255, 255, .08);
+  color: #fff;
+  font: inherit;
+  padding: 10px 12px;
+}
+
+.cart-checkout textarea {
+  min-height: 72px;
+  resize: vertical;
+}
+
+.cart-checkout input::placeholder,
+.cart-checkout textarea::placeholder {
+  color: rgba(255, 255, 255, .42);
 }
 
 .cart-checkout a,

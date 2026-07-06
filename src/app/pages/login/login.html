@@ -55,13 +55,14 @@
         <p class="box-subtitle">Ingresa a tu cuenta</p>
 
         <form (ngSubmit)="handleSubmit()">
-          <label for="username">Usuario</label>
+          <label for="email">Correo</label>
           <input
-            id="username"
-            type="text"
-            [(ngModel)]="username"
-            name="username"
-            placeholder="Tu usuario"
+            id="email"
+            type="email"
+            [(ngModel)]="email"
+            name="email"
+            autocomplete="email"
+            placeholder="tu@correo.com"
             required
           />
 
@@ -83,7 +84,7 @@
             <a href="#">¿Olvidaste tu contraseña?</a>
           </div>
 
-          <button type="submit">Entrar</button>
+          <button type="submit" [disabled]="isLoading">{{ isLoading ? 'Entrando...' : 'Entrar' }}</button>
         </form>
 
         <div class="switch-auth">

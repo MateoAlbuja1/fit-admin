@@ -1,9 +1,12 @@
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { catchError, forkJoin, of } from 'rxjs';
 import {
   AlertaAdministrativa,
   Cliente,
   Maquina,
   Membresia,
+  PedidoTienda,
   Pago,
   RegistroAsistencia,
   Suplemento
@@ -11,6 +14,214 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class DatosGimnasioService {
+  private readonly apiUrl = 'http://localhost:3000';
+
+  constructor(private http: HttpClient) {
+    if (typeof window !== 'undefined') {
+      this.cargarDesdeBackend();
+    }
+  }
+
+  cargarDesdeBackend(): void {
+    forkJoin({
+      clientes: this.http.get<Cliente[]>(`${this.apiUrl}/clients`).pipe(catchError(() => of(this.clientes))),
+      membresias: this.http.get<Membresia[]>(`${this.apiUrl}/memberships`).pipe(catchError(() => of(this.membresias))),
+      asistencias: this.http.get<RegistroAsistencia[]>(`${this.apiUrl}/attendance`).pipe(catchError(() => of(this.asistencias))),
+      pagos: this.http.get<Pago[]>(`${this.apiUrl}/payments`).pipe(catchError(() => of(this.pagos))),
+      suplementos: this.http.get<Suplemento[]>(`${this.apiUrl}/inventory/supplements`).pipe(catchError(() => of(this.suplementos))),
+      maquinas: this.http.get<Maquina[]>(`${this.apiUrl}/inventory/machines`).pipe(catchError(() => of(this.maquinas))),
+      alertas: this.http.get<AlertaAdministrativa[]>(`${this.apiUrl}/alerts`).pipe(catchError(() => of(this.alertas)))
+    }).subscribe(data => {
+      this.clientes = data.clientes;
+      this.membresias = data.membresias;
+      this.asistencias = data.asistencias;
+      this.pagos = data.pagos;
+      this.suplementos = data.suplementos;
+      this.maquinas = data.maquinas;
+      this.alertasBackend = data.alertas;
+    });
+  }
+
+  refrescar(): void {
+    this.cargarDesdeBackend();
+  }
+
+  crearCliente(payload: Partial<Cliente>) {
+    return this.http.post<Cliente>(`${this.apiUrl}/clients`, payload);
+  }
+
+  actualizarCliente(id: number, payload: Partial<Cliente>) {
+    return this.http.put<Cliente>(`${this.apiUrl}/clients/${id}`, payload);
+  }
+
+  registrarAsistencia(code: string) {
+    return this.http.post<RegistroAsistencia>(`${this.apiUrl}/attendance/check-in`, { code });
+  }
+
+  renovarMembresia(id: number, durationDays = 30) {
+    return this.http.patch<Membresia>(`${this.apiUrl}/memberships/${id}/renew`, { durationDays });
+  }
+
+  actualizarMembresia(id: number, payload: Partial<Membresia>) {
+    return this.http.put<Membresia>(`${this.apiUrl}/memberships/${id}`, payload);
+  }
+
+  crearPago(payload: Partial<Pago>) {
+    return this.http.post<Pago>(`${this.apiUrl}/payments`, payload);
+  }
+
+  actualizarPago(id: number, payload: Partial<Pago>) {
+    return this.http.put<Pago>(`${this.apiUrl}/payments/${id}`, payload);
+  }
+
+  crearSuplemento(payload: Partial<Suplemento>) {
+    return this.http.post<Suplemento>(`${this.apiUrl}/inventory/supplements`, payload);
+  }
+
+  actualizarSuplemento(id: number, payload: Partial<Suplemento>) {
+    return this.http.put<Suplemento>(`${this.apiUrl}/inventory/supplements/${id}`, payload);
+  }
+
+  eliminarSuplemento(id: number) {
+    return this.http.delete<void>(`${this.apiUrl}/inventory/supplements/${id}`);
+  }
+
+  actualizarStockSuplemento(id: number, delta: number) {
+    return this.http.patch<Suplemento>(`${this.apiUrl}/inventory/supplements/${id}/stock`, { delta });
+  }
+
+  crearPedidoTienda(payload: Record<string, unknown>) {
+    return this.http.post<PedidoTienda>(`${this.apiUrl}/public/store-orders`, payload);
+  }
+
+  listarPedidosTienda() {
+    return this.http.get<PedidoTienda[]>(`${this.apiUrl}/inventory/store-orders`);
+  }
+
+  obtenerPedidoTienda(id: number | string) {
+    return this.http.get<PedidoTienda>(`${this.apiUrl}/inventory/store-orders/${id}`);
+  }
+
+  actualizarEstadoPedidoTienda(id: number | string, status: PedidoTienda['status']) {
+    return this.http.patch<PedidoTienda>(`${this.apiUrl}/inventory/store-orders/${id}/status`, { status });
+  }
+
+  crearMaquina(payload: Partial<Maquina>) {
+    return this.http.post<Maquina>(`${this.apiUrl}/inventory/machines`, payload);
+  }
+
+  actualizarMaquina(id: number, payload: Partial<Maquina>) {
+    return this.http.put<Maquina>(`${this.apiUrl}/inventory/machines/${id}`, payload);
+  }
+
+  eliminarMaquina(id: number) {
+    return this.http.delete<void>(`${this.apiUrl}/inventory/machines/${id}`);
+  }
+
+  actualizarEstadoMaquina(id: number, status: Maquina['status']) {
+    return this.http.patch<Maquina>(`${this.apiUrl}/inventory/machines/${id}/status`, { status });
+  }
+
+  obtenerResumenDashboard() {
+    return this.http.get<Record<string, number>>(`${this.apiUrl}/dashboard/summary`);
+  }
+
+  obtenerDashboardVentas() {
+    return this.http.get<Array<Record<string, unknown>>>(`${this.apiUrl}/dashboard/sales`);
+  }
+
+  obtenerDashboardAsistencia() {
+    return this.http.get<Array<Record<string, unknown>>>(`${this.apiUrl}/dashboard/attendance`);
+  }
+
+  obtenerDashboardMembresias() {
+    return this.http.get<Array<Record<string, unknown>>>(`${this.apiUrl}/dashboard/memberships`);
+  }
+
+  listarReportes() {
+    return this.http.get<Array<Record<string, unknown>>>(`${this.apiUrl}/reports`);
+  }
+
+  generarReporte(payload: Record<string, unknown>) {
+    return this.http.post<Record<string, unknown>>(`${this.apiUrl}/reports/generate`, payload);
+  }
+
+  enviarContacto(payload: Record<string, unknown>) {
+    return this.http.post<Record<string, unknown>>(`${this.apiUrl}/public/contact`, payload);
+  }
+
+  enviarSolicitudDemo(payload: Record<string, unknown>) {
+    return this.http.post<Record<string, unknown>>(`${this.apiUrl}/public/demo-request`, payload);
+  }
+
+  obtenerPerfilCliente() {
+    return this.http.get<Cliente>(`${this.apiUrl}/client/profile`, this.authOptions());
+  }
+
+  obtenerMembresiaCliente() {
+    return this.http.get<Membresia | null>(`${this.apiUrl}/client/membership`, this.authOptions());
+  }
+
+  obtenerPagosCliente() {
+    return this.http.get<Pago[]>(`${this.apiUrl}/client/payments`, this.authOptions());
+  }
+
+  obtenerAsistenciaCliente() {
+    return this.http.get<RegistroAsistencia[]>(`${this.apiUrl}/client/attendance`, this.authOptions());
+  }
+
+  obtenerConfiguracionGimnasio() {
+    return this.http.get<Record<string, unknown>>(`${this.apiUrl}/settings/gym`);
+  }
+
+  obtenerConfiguracionPublicaGimnasio() {
+    return this.http.get<Record<string, unknown>>(`${this.apiUrl}/public/gym-settings`);
+  }
+
+  guardarConfiguracionGimnasio(payload: object) {
+    return this.http.put<Record<string, unknown>>(`${this.apiUrl}/settings/gym`, payload);
+  }
+
+  obtenerConfiguracionAdmin() {
+    return this.http.get<Record<string, unknown>>(`${this.apiUrl}/settings/admin`);
+  }
+
+  guardarConfiguracionAdmin(payload: object) {
+    return this.http.put<Record<string, unknown>>(`${this.apiUrl}/settings/admin`, payload);
+  }
+
+  solicitarBackup() {
+    return this.http.post<Record<string, unknown>>(`${this.apiUrl}/settings/backup`, {});
+  }
+
+  cambiarPassword(payload: { currentPassword: string; newPassword: string }) {
+    return this.http.post<Record<string, unknown>>(`${this.apiUrl}/auth/change-password`, payload, this.authOptions());
+  }
+
+  obtenerHistorialLogin() {
+    return this.http.get<Array<Record<string, unknown>>>(`${this.apiUrl}/auth/login-history`, this.authOptions());
+  }
+
+  private authOptions() {
+    const token = this.readToken();
+    return token ? { headers: new HttpHeaders({ Authorization: `Bearer ${token}` }) } : {};
+  }
+
+  private readToken(): string | null {
+    if (typeof localStorage !== 'undefined') {
+      const token = localStorage.getItem('fitadmin-token');
+      if (token) return token;
+    }
+
+    if (typeof sessionStorage !== 'undefined') {
+      return sessionStorage.getItem('fitadmin-token');
+    }
+
+    return null;
+  }
+
+  private alertasBackend: AlertaAdministrativa[] = [];
+
   clientes: Cliente[] = [
     { id: 1042, name: 'Maria Gonzalez', document: '1723456789', phone: '099 452 1830', plan: 'Plan anual', joined: '08 Jun 2026', status: 'Activo' },
     { id: 1041, name: 'Carlos Mendoza', document: '1718294056', phone: '098 116 4205', plan: 'Plan mensual', joined: '04 Jun 2026', status: 'Activo' },
@@ -474,6 +685,10 @@ export class DatosGimnasioService {
   ];
 
   get alertas(): AlertaAdministrativa[] {
+    if (this.alertasBackend.length) {
+      return this.alertasBackend;
+    }
+
     const alertasMembresias: AlertaAdministrativa[] = this.membresias
       .filter(item => item.status !== 'Activa')
       .map(item => ({

@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { catchError, forkJoin, of, switchMap } from 'rxjs';
 import { DatosGimnasioService } from '../../core/servicios/datos-gimnasio.service';
 
 type PeriodoDashboard = 'dia' | 'semana' | 'mes';
@@ -34,6 +35,17 @@ interface DashboardUser {
   subtitle: string;
 }
 
+interface DashboardSummary {
+  clientesActivos?: number;
+  membresiasActivas?: number;
+  ventas?: number;
+  pagosPendientes?: number;
+  asistenciasHoy?: number;
+  stockBajo?: number;
+  maquinasOperativas?: number;
+  alertas?: number;
+}
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -41,7 +53,7 @@ interface DashboardUser {
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit {
   drawerCollapsed = false;
   showAlerts = false;
   alertsRead = false;
@@ -51,6 +63,10 @@ export class DashboardComponent {
   selectedDay = 'Jue';
   lastUpdated = new Date();
   notice = '';
+  dashboardSummary: DashboardSummary | null = null;
+  dashboardSales: Array<Record<string, unknown>> = [];
+  dashboardAttendance: Array<Record<string, unknown>> = [];
+  dashboardMemberships: Array<Record<string, unknown>> = [];
 
   readonly adminUser: DashboardUser = {
     role: 'admin',
@@ -71,14 +87,14 @@ export class DashboardComponent {
   currentUser: DashboardUser = this.adminUser;
 
   readonly memberStats = {
-    weight: '74.5 kg',
-    goalWeight: '72 kg',
-    progress: 68,
-    renewalDate: '04 jul 2026',
-    daysLeft: 3,
-    plan: 'Plan mensual',
-    routine: 'Fuerza + cardio',
-    nextCheck: 'Evaluacion mensual'
+    weight: 'Activo',
+    goalWeight: 'Plan vigente',
+    progress: 0,
+    renewalDate: 'Pendiente',
+    daysLeft: 0,
+    plan: 'Sin plan',
+    routine: 'Rutina pendiente',
+    nextCheck: 'Sin evaluacion'
   };
 
   readonly periodOptions: Array<{ label: string; value: PeriodoDashboard }> = [
@@ -97,9 +113,6 @@ export class DashboardComponent {
     { day: 'Dom', value: 38, peak: '08:00 — 10:00' }
   ];
 
-  private readonly monthlyBaseIncome = 18255;
-  private readonly membershipBase = { Mensual: 236, Trimestral: 145, Anual: 101 };
-
   constructor(
     public data: DatosGimnasioService,
     private router: Router
@@ -113,6 +126,12 @@ export class DashboardComponent {
       return;
     }
     this.selectedDay = this.weekDays[this.weekDays.length - 4]?.day ?? 'Jue';
+  }
+
+  ngOnInit(): void {
+    if (!this.isMember) {
+      this.loadDashboardData();
+    }
   }
 
   get isMember(): boolean {
@@ -134,7 +153,7 @@ export class DashboardComponent {
   get welcomeSubtitle(): string {
     return this.isMember
       ? 'Tu resumen de entrenamiento, progreso y membresia.'
-      : 'Rendimiento operativo de WX GYM Caupicho en tiempo real.';
+      : 'Rendimiento operativo de GX GYM en tiempo real.';
   }
 
   get alerts() {
@@ -152,7 +171,7 @@ export class DashboardComponent {
   }
 
   get monthlyIncome(): number {
-    return this.monthlyBaseIncome + this.paidIncome;
+    return this.dashboardSummary?.ventas ?? this.paidIncome;
   }
 
   get selectedRevenueTotal(): number {
@@ -171,8 +190,7 @@ export class DashboardComponent {
   }
 
   get activeMemberships(): number {
-    const activeFromData = this.data.membresias.filter(item => item.status !== 'Vencida').length;
-    return 483 + activeFromData;
+    return this.dashboardSummary?.membresiasActivas ?? this.data.membresias.filter(item => item.status !== 'Vencida').length;
   }
 
   get membershipCapacity(): number {
@@ -180,7 +198,7 @@ export class DashboardComponent {
   }
 
   get attendanceToday(): number {
-    return 128 + this.data.asistencias.length;
+    return this.dashboardSummary?.asistenciasHoy ?? this.data.asistencias.length;
   }
 
   get supplementRevenue(): number {
@@ -192,24 +210,29 @@ export class DashboardComponent {
 
   get quickStats() {
     return {
-      clientesActivos: this.data.clientes.filter(client => client.status === 'Activo').length,
-      pagosPendientes: this.data.pagos.filter(payment => payment.status === 'Pendiente').length,
-      stockBajo: this.data.suplementos.filter(item => item.stock <= item.minStock).length,
-      maquinasAtencion: this.data.maquinas.filter(item => item.status !== 'Operativa').length
+      clientesActivos: this.dashboardSummary?.clientesActivos ?? this.data.clientes.filter(client => client.status === 'Activo').length,
+      pagosPendientes: this.dashboardSummary?.pagosPendientes ?? this.data.pagos.filter(payment => payment.status === 'Pendiente').length,
+      stockBajo: this.dashboardSummary?.stockBajo ?? this.data.suplementos.filter(item => item.stock <= item.minStock).length,
+      maquinasAtencion: this.dashboardSummary?.maquinasOperativas === undefined
+        ? this.data.maquinas.filter(item => item.status !== 'Operativa').length
+        : Math.max(0, this.data.maquinas.length - this.dashboardSummary.maquinasOperativas)
     };
   }
 
   get membershipDistribution() {
-    const plans = {
-      Mensual: this.membershipBase.Mensual + this.data.membresias.filter(item => item.plan === 'Mensual' && item.status !== 'Vencida').length,
-      Trimestral: this.membershipBase.Trimestral + this.data.membresias.filter(item => item.plan === 'Trimestral' && item.status !== 'Vencida').length,
-      Anual: this.membershipBase.Anual + this.data.membresias.filter(item => item.plan === 'Anual' && item.status !== 'Vencida').length
-    };
+    const plans = this.dashboardMemberships.length
+      ? this.membershipCountsFromBackend()
+      : {
+          Mensual: this.data.membresias.filter(item => item.plan === 'Mensual' && item.status !== 'Vencida').length,
+          Trimestral: this.data.membresias.filter(item => item.plan === 'Trimestral' && item.status !== 'Vencida').length,
+          Anual: this.data.membresias.filter(item => item.plan === 'Anual' && item.status !== 'Vencida').length
+        };
     const total = plans.Mensual + plans.Trimestral + plans.Anual;
+    const divisor = Math.max(total, 1);
     return [
-      { label: 'Plan mensual', value: plans.Mensual, percent: Math.round((plans.Mensual / total) * 100), className: 'dot--black' },
-      { label: 'Plan trimestral', value: plans.Trimestral, percent: Math.round((plans.Trimestral / total) * 100), className: 'dot--gray' },
-      { label: 'Plan anual', value: plans.Anual, percent: Math.round((plans.Anual / total) * 100), className: 'dot--light' }
+      { label: 'Plan mensual', value: plans.Mensual, percent: Math.round((plans.Mensual / divisor) * 100), className: 'dot--black' },
+      { label: 'Plan trimestral', value: plans.Trimestral, percent: Math.round((plans.Trimestral / divisor) * 100), className: 'dot--gray' },
+      { label: 'Plan anual', value: plans.Anual, percent: Math.round((plans.Anual / divisor) * 100), className: 'dot--light' }
     ];
   }
 
@@ -224,6 +247,9 @@ export class DashboardComponent {
   }
 
   get weeklyAttendance(): number {
+    if (this.dashboardAttendance.length) {
+      return this.dashboardAttendance.slice(0, 7).reduce((sum, item) => sum + this.numberValue(item['count']), 0);
+    }
     return this.weekDays.reduce((sum, item) => sum + item.value, 0) + this.data.asistencias.length;
   }
 
@@ -354,12 +380,14 @@ export class DashboardComponent {
     if (typeof localStorage !== 'undefined') {
       localStorage.removeItem('fitadmin-session');
       localStorage.removeItem('fitadmin-auth');
+      localStorage.removeItem('fitadmin-token');
       localStorage.removeItem('fitadmin-admin-session');
     }
 
     if (typeof sessionStorage !== 'undefined') {
       sessionStorage.removeItem('fitadmin-session');
       sessionStorage.removeItem('fitadmin-auth');
+      sessionStorage.removeItem('fitadmin-token');
       sessionStorage.removeItem('fitadmin-admin-session');
     }
 
@@ -386,16 +414,22 @@ export class DashboardComponent {
   }
 
   quickCheckIn(): void {
-    const member = this.data.membresias.find(item => item.status !== 'Vencida')?.member ?? 'Cliente invitado';
-    const now = new Date();
-    this.data.asistencias.unshift({
-      id: Date.now(),
-      member,
-      time: now.toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' }),
-      access: 'Acceso principal',
-      status: 'Ingreso correcto'
+    const client = this.data.clientes.find(item => item.status === 'Activo');
+    if (!client) {
+      this.notice = 'No hay clientes activos para registrar asistencia rapida.';
+      return;
+    }
+
+    this.data.registrarAsistencia(client.document || String(client.id)).subscribe({
+      next: record => {
+        this.data.asistencias.unshift(record);
+        this.loadDashboardData();
+        this.refreshDashboard(`Asistencia registrada para ${record.member}.`);
+      },
+      error: () => {
+        this.notice = 'No se pudo registrar la asistencia rapida en el backend.';
+      }
     });
-    this.refreshDashboard(`Asistencia registrada para ${member}.`);
   }
 
   quickSale(): void {
@@ -405,18 +439,28 @@ export class DashboardComponent {
       return;
     }
 
-    product.stock -= 1;
-    this.data.pagos.unshift({
-      id: Date.now(),
-      member: 'Venta mostrador',
-      concept: product.name,
-      method: 'Efectivo',
-      date: this.todayShort(),
-      amount: product.price,
-      status: 'Pagado'
+    this.data.actualizarStockSuplemento(product.id, -1).pipe(
+      switchMap(updatedProduct => {
+        Object.assign(product, updatedProduct);
+        return this.data.crearPago({
+          member: 'Venta mostrador',
+          concept: product.name,
+          method: 'Efectivo',
+          amount: product.price,
+          status: 'Pagado'
+        });
+      })
+    ).subscribe({
+      next: payment => {
+        this.data.pagos.unshift(payment);
+        this.alertsRead = false;
+        this.loadDashboardData();
+        this.refreshDashboard(`Venta rapida registrada: ${product.name}.`);
+      },
+      error: () => {
+        this.notice = 'No se pudo registrar la venta rapida en el backend.';
+      }
     });
-    this.alertsRead = false;
-    this.refreshDashboard(`Venta rápida registrada: ${product.name}.`);
   }
 
   refreshDashboard(message = 'Dashboard actualizado con los datos más recientes.'): void {
@@ -431,7 +475,39 @@ export class DashboardComponent {
     return new Intl.NumberFormat('es-EC', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
   }
 
+  private loadDashboardData(): void {
+    forkJoin({
+      summary: this.data.obtenerResumenDashboard().pipe(catchError(() => of(null))),
+      sales: this.data.obtenerDashboardVentas().pipe(catchError(() => of([]))),
+      attendance: this.data.obtenerDashboardAsistencia().pipe(catchError(() => of([]))),
+      memberships: this.data.obtenerDashboardMembresias().pipe(catchError(() => of([])))
+    }).subscribe(result => {
+      this.dashboardSummary = result.summary as DashboardSummary | null;
+      this.dashboardSales = result.sales;
+      this.dashboardAttendance = result.attendance;
+      this.dashboardMemberships = result.memberships;
+      this.lastUpdated = new Date();
+    });
+  }
+
+  private membershipCountsFromBackend(): { Mensual: number; Trimestral: number; Anual: number } {
+    const counts = { Mensual: 0, Trimestral: 0, Anual: 0 };
+    this.dashboardMemberships.forEach(item => {
+      const plan = String(item['plan'] || '').toLowerCase();
+      const count = this.numberValue(item['count']);
+      if (plan.includes('mensual')) counts.Mensual += count;
+      if (plan.includes('trimestral')) counts.Trimestral += count;
+      if (plan.includes('anual')) counts.Anual += count;
+    });
+    return counts;
+  }
+
   private revenueSeries() {
+    const backendSeries = this.backendRevenueSeries();
+    if (backendSeries) {
+      return backendSeries;
+    }
+
     if (this.selectedPeriod === 'dia') {
       return {
         labels: ['06h', '09h', '12h', '15h', '18h', '21h'],
@@ -453,6 +529,45 @@ export class DashboardComponent {
     };
   }
 
+  private backendRevenueSeries() {
+    if (!this.dashboardSales.length) {
+      return null;
+    }
+
+    const rows = [...this.dashboardSales]
+      .reverse()
+      .slice(-6)
+      .map(item => ({
+        label: this.shortSeriesLabel(item['label'] ?? item['date']),
+        total: this.numberValue(item['total'])
+      }));
+
+    if (!rows.length) {
+      return null;
+    }
+
+    return {
+      labels: rows.map(item => item.label),
+      current: rows.map(item => item.total),
+      previous: rows.map(item => Math.round(item.total * 0.889))
+    };
+  }
+
+  private numberValue(value: unknown): number {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+
+  private shortSeriesLabel(value: unknown): string {
+    const text = String(value || '');
+    if (!text) return 'Dia';
+    const date = new Date(text);
+    if (!Number.isNaN(date.getTime())) {
+      return date.toLocaleDateString('es-EC', { day: '2-digit', month: 'short' }).replace('.', '');
+    }
+    return text.slice(0, 6);
+  }
+
   private initials(name: string): string {
     return name
       .split(' ')
@@ -460,10 +575,6 @@ export class DashboardComponent {
       .slice(0, 2)
       .map(part => part[0]?.toUpperCase())
       .join('');
-  }
-
-  private todayShort(): string {
-    return new Date().toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' }).replace('.', '');
   }
 
   private loadCurrentUser(): DashboardUser {

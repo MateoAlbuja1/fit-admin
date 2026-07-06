@@ -1,0 +1,85 @@
+@if (notice) { <div class="notice"><span>✓</span>{{ notice }}<button type="button" (click)="notice = ''">×</button></div> }
+
+<section class="metric-grid">
+  <article><span>Pedidos totales</span><strong>{{ pedidos.length }}</strong><small>Solicitudes desde la tienda</small></article>
+  <article><span>Pendientes</span><strong>{{ pendingCount }}</strong><small class="positive">Por gestionar</small></article>
+  <article><span>Entregados</span><strong>{{ pedidos.length - pendingCount }}</strong><small>Completados o cancelados</small></article>
+  <article><span>Venta entregada</span><strong>${{ deliveredTotal.toFixed(2) }}</strong><small>Pedidos cerrados</small></article>
+</section>
+
+<section class="content-card">
+  <div class="card-toolbar">
+    <div><h3>Pedidos de tienda</h3><span>{{ isLoading ? 'Cargando...' : 'Carrito publico y WhatsApp' }}</span></div>
+    <label class="search-field"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4" /></svg><input [(ngModel)]="search" (ngModelChange)="page = 1" placeholder="Buscar pedido" /></label>
+  </div>
+
+  <div class="filter-panel filter-panel--selects">
+    <label class="select-filter">
+      <span>Estado</span>
+      <div class="select-filter__control">
+        <select [(ngModel)]="statusFilter" (ngModelChange)="setStatusFilter(statusFilter)" name="orderStatusFilter" aria-label="Filtrar pedidos por estado">
+          @for (filter of statusFilters; track filter) { <option [ngValue]="filter">{{ filter }}</option> }
+        </select>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>
+      </div>
+    </label>
+
+    @if (statusFilter !== 'Todos') {
+      <button class="clear-filter" type="button" (click)="setStatusFilter('Todos')">Limpiar filtro</button>
+    }
+  </div>
+
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Pedido</th><th>Cliente</th><th>Telefono</th><th>Fecha</th><th>Total</th><th>Estado</th><th>Acciones</th></tr></thead>
+      <tbody>
+        @for (order of paged; track order.id) {
+          <tr>
+            <td><strong>{{ order.code }}</strong></td>
+            <td>{{ order.customerName }}</td>
+            <td>{{ order.customerPhone }}</td>
+            <td>{{ formatDate(order.createdAt) }}</td>
+            <td><strong>${{ order.total.toFixed(2) }}</strong></td>
+            <td><span class="badge" [class.badge--warning]="order.status === 'Nuevo' || order.status === 'Contactado'" [class.badge--danger]="order.status === 'Cancelado'">{{ order.status }}</span></td>
+            <td>
+              <div class="row-actions">
+                <button class="text-button" type="button" (click)="openDetail(order)">Detalle</button>
+                <select [ngModel]="order.status" (ngModelChange)="updateStatus(order, $event)" [name]="'status' + order.id" aria-label="Cambiar estado">
+                  @for (status of nextStatuses; track status) { <option [ngValue]="status">{{ status }}</option> }
+                </select>
+              </div>
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="7"><div class="empty-state"><strong>Sin pedidos</strong><span>No hay pedidos con estos filtros.</span></div></td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="table-footer"><span>Mostrando {{ paged.length }} de {{ filtered.length }} pedidos</span><div><button type="button" (click)="changePage(-1)" [disabled]="page === 1">‹</button><b>Página {{ page }} de {{ pageCount }}</b><button type="button" (click)="changePage(1)" [disabled]="page === pageCount">›</button></div></div>
+</section>
+
+@if (detail) {
+  <div class="detail-overlay" (click)="detail = null">
+    <aside class="detail-drawer" (click)="$event.stopPropagation()">
+      <header><div><span>PEDIDO</span><h2>{{ detail.code }}</h2></div><button type="button" (click)="detail = null">×</button></header>
+      <div class="detail-intro"><span class="badge">{{ detail.status }}</span><p>{{ detail.customerName }} · {{ detail.customerPhone }}</p></div>
+      <dl class="detail-fields">
+        <div><dt>Total</dt><dd>${{ detail.total.toFixed(2) }}</dd></div>
+        <div><dt>Correo</dt><dd>{{ detail.customerEmail || 'No registrado' }}</dd></div>
+        <div><dt>Fecha</dt><dd>{{ formatDate(detail.createdAt) }}</dd></div>
+        <div><dt>Nota</dt><dd>{{ detail.notes || 'Sin nota' }}</dd></div>
+      </dl>
+      <section class="detail-fields">
+        @for (item of detail.items; track item.id) {
+          <div><dt>{{ item.productName }}</dt><dd>{{ item.quantity }} x ${{ item.unitPrice.toFixed(2) }} = ${{ item.lineTotal.toFixed(2) }}</dd></div>
+        }
+      </section>
+      <div class="form-navigation">
+        <a class="primary-button" [href]="whatsappUrl(detail)" target="_blank" rel="noreferrer">Abrir WhatsApp</a>
+        <button class="secondary-button" type="button" (click)="detail = null">Cerrar</button>
+      </div>
+    </aside>
+  </div>
+}

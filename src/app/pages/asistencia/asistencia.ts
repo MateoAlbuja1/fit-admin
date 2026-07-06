@@ -6,6 +6,27 @@ import { DatosGimnasioService } from '../../core/servicios/datos-gimnasio.servic
 export class PaginaAsistenciaComponent {
   code = '';
   notice = '';
+
   constructor(public data: DatosGimnasioService) {}
-  register(): void { if (!this.code.trim()) { this.notice = 'Ingresa la cédula o código del cliente.'; return; } this.data.asistencias.unshift({ id: Date.now(), member: `Cliente ${this.code.trim()}`, time: new Date().toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' }), access: 'Acceso principal', status: 'Ingreso correcto' }); this.code = ''; this.notice = 'Asistencia registrada correctamente.'; }
+
+  register(): void {
+    const code = this.code.trim();
+    if (!code) {
+      this.notice = 'Ingresa la cedula o codigo del cliente.';
+      return;
+    }
+
+    this.data.registrarAsistencia(code).subscribe({
+      next: record => {
+        this.data.asistencias.unshift(record);
+        this.code = '';
+        this.notice = 'Asistencia registrada correctamente.';
+      },
+      error: error => {
+        this.notice = error.status === 409
+          ? 'El cliente no tiene membresia activa.'
+          : 'No se pudo registrar la asistencia en el backend.';
+      }
+    });
+  }
 }

@@ -5,6 +5,7 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import { Subscription } from 'rxjs';
 
 type AuthMode = 'welcome' | 'login';
@@ -20,6 +21,15 @@ interface TrailPoint {
   createdAt: number;
 }
 
+interface AuthResponse {
+  token: string;
+  user: {
+    username: string;
+    fullName: string;
+    role: 'ADMIN' | 'RECEPCION' | 'CLIENTE';
+  };
+}
+
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -30,10 +40,13 @@ interface TrailPoint {
 export class LoginComponent implements OnInit, OnDestroy {
   mode: AuthMode = 'login';
 
-  username = '';
+  email = '';
   password = '';
   remember = true;
   message = '';
+  isLoading = false;
+
+  private readonly apiUrl = 'http://localhost:3000';
 
   private routeSub?: Subscription;
   private lastTrailTime = 0;
@@ -60,7 +73,8 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   constructor(
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private http: HttpClient
   ) {}
 
   ngOnInit(): void {
@@ -238,45 +252,54 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   handleSubmit(): void {
     this.message = '';
-    const username = this.username.trim().toLowerCase();
+    const email = this.email.trim().toLowerCase();
 
-    if (username === 'admin' && this.password === 'admin') {
-      this.saveSession({
-        role: 'admin',
-        username: 'admin',
-        name: 'Mateo Admin',
-        initials: 'MA',
-        subtitle: 'Administrador'
-      });
-      this.router.navigate(['/dashboard']);
+    if (!email || !this.password) {
+      this.message = 'Ingresa tu correo y contrasena.';
       return;
     }
 
-    if (username === 'miembro' && this.password === 'miembro') {
-      this.saveSession({
-        role: 'member',
-        username: 'miembro',
-        name: 'Miembro',
-        initials: 'M',
-        subtitle: 'Miembro activo'
-      });
-      this.router.navigate(['/']);
-      return;
-    }
-
-    this.message = 'Credenciales invalidas. Usa admin / admin o miembro / miembro para ingresar.';
+    this.isLoading = true;
+    this.http.post<AuthResponse>(`${this.apiUrl}/auth/login`, {
+      email,
+      password: this.password
+    }).subscribe({
+      next: response => {
+        const role: UserRole = response.user.role === 'CLIENTE' ? 'member' : 'admin';
+        const name = response.user.fullName || response.user.username;
+        this.saveSession({
+          role,
+          username: response.user.username,
+          name,
+          initials: this.initials(name),
+          subtitle: role === 'admin' ? 'Administrador' : 'Miembro activo'
+        }, response.token);
+        this.router.navigate([role === 'admin' ? '/dashboard' : '/']);
+      },
+      error: error => {
+        this.message = error.status === 0
+          ? 'No se pudo conectar con el backend. Levanta Docker y vuelve a intentar.'
+          : 'Credenciales invalidas.';
+        this.isLoading = false;
+      },
+      complete: () => {
+        this.isLoading = false;
+      }
+    });
   }
 
-  private saveSession(session: { role: UserRole; username: string; name: string; initials: string; subtitle: string }): void {
+  private saveSession(session: { role: UserRole; username: string; name: string; initials: string; subtitle: string }, token: string): void {
     const payload = JSON.stringify(session);
 
     if (typeof localStorage !== 'undefined') {
       if (this.remember) {
         localStorage.setItem('fitadmin-session', payload);
         localStorage.setItem('fitadmin-auth', 'true');
+        localStorage.setItem('fitadmin-token', token);
       } else {
         localStorage.removeItem('fitadmin-session');
         localStorage.removeItem('fitadmin-auth');
+        localStorage.removeItem('fitadmin-token');
       }
 
       if (session.role === 'admin') {
@@ -289,6 +312,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     if (typeof sessionStorage !== 'undefined') {
       sessionStorage.setItem('fitadmin-session', payload);
       sessionStorage.setItem('fitadmin-auth', 'true');
+      sessionStorage.setItem('fitadmin-token', token);
 
       if (session.role === 'admin') {
         sessionStorage.setItem('fitadmin-admin-session', payload);
@@ -296,5 +320,14 @@ export class LoginComponent implements OnInit, OnDestroy {
         sessionStorage.removeItem('fitadmin-admin-session');
       }
     }
+  }
+
+  private initials(name: string): string {
+    return name
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map(part => part[0]?.toUpperCase())
+      .join('') || 'U';
   }
 }

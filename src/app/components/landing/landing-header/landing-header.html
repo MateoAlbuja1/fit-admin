@@ -9,7 +9,7 @@
       type="search"
       name="landingSearch"
       autocomplete="off"
-      placeholder="Buscar en WX GYM"
+      [placeholder]="'Buscar en ' + gymName"
       [ngModel]="searchQuery"
       (ngModelChange)="updateSearch($event)"
     />

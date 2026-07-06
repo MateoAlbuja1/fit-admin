@@ -1,8 +1,10 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 export interface FitnessProduct {
+  id?: number;
   name: string;
   price: string;
+  stock?: number;
   discount?: string;
   rating: string;
   image: string;

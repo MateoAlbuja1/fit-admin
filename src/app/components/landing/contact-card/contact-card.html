@@ -2,31 +2,60 @@
   <div class="contact-copy">
     <span>Contacto</span>
     <h2>Estamos aqui para ayudarte</h2>
-    <p>Visitanos en Quito, Ecuador - Caupicho, o escribenos para separar tu evaluacion fisica.</p>
+    <p>Visitanos en {{ address }}, o escribenos para separar tu evaluacion fisica.</p>
   </div>
 
   <dl>
     <div>
       <dt>Direccion</dt>
-      <dd>Quito, Ecuador - Caupicho</dd>
+      <dd>{{ address }}</dd>
     </div>
     <div>
       <dt>Telefono / WhatsApp</dt>
-      <dd>0980674115</dd>
+      <dd>{{ phone }}</dd>
     </div>
     <div>
       <dt>Email</dt>
-      <dd>fitadmin@gmail.com</dd>
+      <dd>{{ email }}</dd>
     </div>
     <div>
       <dt>Horario de atencion</dt>
-      <dd>Lunes a Viernes 08:00 - 21:00<br />Sabados 09:00 - 15:00</dd>
+      <dd>{{ openingHours }}</dd>
     </div>
   </dl>
 
   <div class="contact-actions">
-    <a href="https://wa.me/593980674115" target="_blank" rel="noreferrer">Abrir WhatsApp</a>
-    <a href="mailto:fitadmin@gmail.com">Enviar correo</a>
-    <a href="https://www.google.com/maps/search/?api=1&query=Quito%20Caupicho" target="_blank" rel="noreferrer">Ver ubicacion</a>
+    <a [href]="whatsappUrl" target="_blank" rel="noreferrer">Abrir WhatsApp</a>
+    <a [href]="'mailto:' + email">Enviar correo</a>
+    <a [href]="mapUrl" target="_blank" rel="noreferrer">Ver ubicacion</a>
   </div>
+
+  <form class="contact-form" #contactForm="ngForm" (ngSubmit)="submit(contactForm)" novalidate>
+    <label>
+      Nombre
+      <input type="text" name="name" [(ngModel)]="formData.name" required placeholder="Tu nombre" />
+    </label>
+    <label>
+      Correo
+      <input type="email" name="email" [(ngModel)]="formData.email" required email placeholder="correo@ejemplo.com" />
+    </label>
+    <label>
+      Telefono
+      <input type="tel" name="phone" [(ngModel)]="formData.phone" required placeholder="0980674115" />
+    </label>
+    <label class="contact-form__full">
+      Mensaje
+      <textarea name="message" [(ngModel)]="formData.message" required rows="4" placeholder="Cuéntanos que necesitas"></textarea>
+    </label>
+
+    @if (submitted && contactForm.invalid) {
+      <p class="form-alert">Completa los campos para enviar el mensaje.</p>
+    }
+
+    @if (message) {
+      <p class="form-success">{{ message }}</p>
+    }
+
+    <button type="submit" [disabled]="isSending">{{ isSending ? 'Enviando...' : 'Enviar mensaje' }}</button>
+  </form>
 </article>

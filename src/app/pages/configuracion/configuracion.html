@@ -3,10 +3,10 @@
 }
 
 <section class="settings-shell">
-  <aside class="settings-sidebar" aria-label="Menú de configuración">
-    <span class="section-kicker">Configuración</span>
+  <aside class="settings-sidebar" aria-label="Menu de configuracion">
+    <span class="section-kicker">Configuracion</span>
     <h2>Centro de ajustes</h2>
-    <p>Selecciona una sección para editar la información del sistema administrativo.</p>
+    <p>Selecciona una seccion para editar la informacion del sistema administrativo.</p>
 
     <nav class="settings-tabs">
       @for (panel of panels; track panel.id) {
@@ -34,15 +34,15 @@
             <label><span>Nombre comercial</span><input [(ngModel)]="gimnasio.nombre" name="gymName" /></label>
             <label><span>Sede / barrio</span><input [(ngModel)]="gimnasio.sede" name="gymBranch" /></label>
             <label><span>Ciudad</span><input [(ngModel)]="gimnasio.ciudad" name="gymCity" /></label>
-            <label><span>Teléfono</span><input [(ngModel)]="gimnasio.telefono" name="gymPhone" /></label>
+            <label><span>Telefono</span><input [(ngModel)]="gimnasio.telefono" name="gymPhone" /></label>
             <label><span>Correo</span><input type="email" [(ngModel)]="gimnasio.email" name="gymEmail" /></label>
-            <label class="settings-form__full"><span>Dirección</span><input [(ngModel)]="gimnasio.direccion" name="gymAddress" /></label>
+            <label class="settings-form__full"><span>Direccion</span><input [(ngModel)]="gimnasio.direccion" name="gymAddress" /></label>
           </div>
 
           <div class="settings-divider"></div>
 
           <header class="settings-subheader">
-            <div><span>OPERACIÓN</span><h3>Horarios de atención</h3></div>
+            <div><span>OPERACION</span><h3>Horarios de atencion</h3></div>
           </header>
 
           <div class="schedule-list">
@@ -75,7 +75,7 @@
 
           <div class="settings-form">
             <label><span>Nombre</span><input [(ngModel)]="cuenta.administrador" name="adminName" /></label>
-            <label><span>Rol</span><select [(ngModel)]="cuenta.rol" name="adminRole"><option>Administrador</option><option>Recepción</option><option>Supervisor</option></select></label>
+            <label><span>Rol</span><select [(ngModel)]="cuenta.rol" name="adminRole"><option>Administrador</option><option>Recepcion</option><option>Supervisor</option></select></label>
             <label><span>Usuario</span><input [(ngModel)]="cuenta.usuario" name="adminUser" /></label>
             <label><span>Correo</span><input type="email" [(ngModel)]="cuenta.correo" name="adminEmail" /></label>
           </div>
@@ -87,7 +87,7 @@
           </header>
 
           <div class="permissions-grid">
-            <article><strong>Dashboard</strong><span>Visualización completa</span></article>
+            <article><strong>Dashboard</strong><span>Visualizacion completa</span></article>
             <article><strong>Inventarios</strong><span>Crear, editar y eliminar</span></article>
             <article><strong>Pagos</strong><span>Registrar y consultar</span></article>
             <article><strong>Reportes</strong><span>Generar informes</span></article>
@@ -103,28 +103,28 @@
           </header>
 
           <div class="toggle-list">
-            <label><span><strong>Doble verificación</strong><small>Solicitar validación adicional para administradores.</small></span><input type="checkbox" [(ngModel)]="seguridad.dobleFactor" name="twoFactor" /></label>
-            <label><span><strong>Bloqueo de sesión</strong><small>Cerrar sesión tras inactividad prolongada.</small></span><input type="checkbox" [(ngModel)]="seguridad.bloqueoSesion" name="sessionLock" /></label>
-            <label><span><strong>Copias automáticas</strong><small>Respaldar datos administrativos cada día.</small></span><input type="checkbox" [(ngModel)]="seguridad.copiasAutomaticas" name="autoBackup" /></label>
-            <label><span><strong>Alertas críticas</strong><small>Avisar sobre vencimientos, stock bajo y mantenimientos.</small></span><input type="checkbox" [(ngModel)]="seguridad.alertasCriticas" name="criticalAlerts" /></label>
+            <label><span><strong>Doble verificacion</strong><small>Solicitar validacion adicional para administradores.</small></span><input type="checkbox" [(ngModel)]="seguridad.dobleFactor" name="twoFactor" /></label>
+            <label><span><strong>Bloqueo de sesion</strong><small>Cerrar sesion tras inactividad prolongada.</small></span><input type="checkbox" [(ngModel)]="seguridad.bloqueoSesion" name="sessionLock" /></label>
+            <label><span><strong>Copias automaticas</strong><small>Respaldar datos administrativos cada dia.</small></span><input type="checkbox" [(ngModel)]="seguridad.copiasAutomaticas" name="autoBackup" /></label>
+            <label><span><strong>Alertas criticas</strong><small>Avisar sobre vencimientos, stock bajo y mantenimientos.</small></span><input type="checkbox" [(ngModel)]="seguridad.alertasCriticas" name="criticalAlerts" /></label>
           </div>
 
           <div class="settings-divider"></div>
 
           <header class="settings-subheader">
-            <div><span>CONTRASEÑA</span><h3>Cambiar contraseña</h3></div>
+            <div><span>CONTRASENA</span><h3>Cambiar contrasena</h3></div>
           </header>
 
           <div class="settings-form">
-            <label><span>Contraseña actual</span><input type="password" [(ngModel)]="password.actual" name="currentPassword" /></label>
-            <label><span>Nueva contraseña</span><input type="password" [(ngModel)]="password.nueva" name="newPassword" /></label>
-            <label><span>Confirmar contraseña</span><input type="password" [(ngModel)]="password.confirmar" name="confirmPassword" /></label>
+            <label><span>Contrasena actual</span><input type="password" [(ngModel)]="password.actual" name="currentPassword" /></label>
+            <label><span>Nueva contrasena</span><input type="password" [(ngModel)]="password.nueva" name="newPassword" /></label>
+            <label><span>Confirmar contrasena</span><input type="password" [(ngModel)]="password.confirmar" name="confirmPassword" /></label>
           </div>
 
           <div class="settings-divider"></div>
 
           <header class="settings-subheader">
-            <div><span>HISTORIAL</span><h3>Inicios de sesión</h3></div>
+            <div><span>HISTORIAL</span><h3>Inicios de sesion</h3></div>
           </header>
 
           <div class="security-table">
@@ -146,6 +146,9 @@
 </section>
 
 <section class="settings-actions">
-  <button class="secondary-button" type="button">Restaurar valores</button>
-  <button class="primary-button" type="button" (click)="saveSettings()">Guardar configuración</button>
+  <button class="secondary-button" type="button" (click)="resetFromBackend()" [disabled]="isSaving">Restaurar valores</button>
+  <button class="secondary-button" type="button" (click)="requestBackup()" [disabled]="isSaving">Generar respaldo</button>
+  <button class="primary-button" type="button" (click)="saveSettings()" [disabled]="isSaving">
+    {{ isSaving ? 'Guardando...' : 'Guardar configuracion' }}
+  </button>
 </section>

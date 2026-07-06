@@ -69,11 +69,19 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
     return ['Todas', ...Array.from(new Set(this.data.suplementos.map(item => item.category)))];
   }
 
-  setStockFilter(filter: FiltroStock): void { this.stockFilter = filter; }
-  setCategoryFilter(filter: string): void { this.categoryFilter = filter; }
+  setStockFilter(filter: FiltroStock): void {
+    this.stockFilter = filter;
+  }
+
+  setCategoryFilter(filter: string): void {
+    this.categoryFilter = filter;
+  }
 
   changeStock(item: Suplemento, amount: number): void {
-    item.stock = Math.max(0, item.stock + amount);
+    this.data.actualizarStockSuplemento(item.id, amount).subscribe({
+      next: updated => Object.assign(item, updated),
+      error: () => this.notice = 'No se pudo actualizar el stock en el backend.'
+    });
   }
 
   remove(item: Suplemento): void {
@@ -85,15 +93,18 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
     this.editItem = { name: item.name, category: item.category, description: item.description, stock: item.stock, minStock: item.minStock, price: item.price, photo: item.photo };
   }
 
-  cancelEdit(): void { this.editingItemId = null; }
+  cancelEdit(): void {
+    this.editingItemId = null;
+  }
 
   saveEdit(): void {
     const item = this.data.suplementos.find(current => current.id === this.editingItemId);
     if (!item || !this.editItem.name.trim() || !this.editItem.category.trim()) {
-      this.notice = 'Completa nombre y categoría.';
+      this.notice = 'Completa nombre y categoria.';
       return;
     }
-    Object.assign(item, {
+
+    this.data.actualizarSuplemento(item.id, {
       name: this.editItem.name.trim(),
       category: this.editItem.category.trim(),
       description: this.editItem.description.trim(),
@@ -101,9 +112,16 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
       minStock: Math.max(0, Number(this.editItem.minStock) || 0),
       price: Math.max(0, Number(this.editItem.price) || 0),
       photo: this.editItem.photo
+    }).subscribe({
+      next: updated => {
+        Object.assign(item, updated);
+        this.editingItemId = null;
+        this.notice = 'Suplemento actualizado correctamente.';
+      },
+      error: () => {
+        this.notice = 'No se pudo actualizar el suplemento en el backend.';
+      }
     });
-    this.editingItemId = null;
-    this.notice = 'Suplemento actualizado correctamente.';
   }
 
   cancelarEliminacion(): void {
@@ -113,11 +131,19 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
   confirmarEliminacion(): void {
     const item = this.suplementoAEliminar;
     if (!item) return;
-    this.data.suplementos = this.data.suplementos.filter(current => current.id !== item.id);
-    this.suplementoAEliminar = null;
-    this.detail = null;
-    this.detailItem = null;
-    this.notice = `${item.name} eliminado del inventario.`;
+
+    this.data.eliminarSuplemento(item.id).subscribe({
+      next: () => {
+        this.data.suplementos = this.data.suplementos.filter(current => current.id !== item.id);
+        this.suplementoAEliminar = null;
+        this.detail = null;
+        this.detailItem = null;
+        this.notice = `${item.name} eliminado del inventario.`;
+      },
+      error: () => {
+        this.notice = 'No se pudo eliminar el suplemento en el backend.';
+      }
+    });
   }
 
   showDetail(item: Suplemento): void {
@@ -128,10 +154,10 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
       status: item.stock <= item.minStock ? 'Stock bajo' : 'Disponible',
       photo: item.photo,
       fields: [
-        { label: 'Categoría', value: item.category },
+        { label: 'Categoria', value: item.category },
         { label: 'Precio', value: `$${item.price.toFixed(2)}` },
         { label: 'Stock actual', value: `${item.stock} unidades` },
-        { label: 'Stock mínimo', value: `${item.minStock} unidades` }
+        { label: 'Stock minimo', value: `${item.minStock} unidades` }
       ]
     };
   }
@@ -160,13 +186,21 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
 
   add(): void {
     if (!this.newItem.name.trim() || !this.newItem.category.trim() || !this.newItem.description.trim()) {
-      this.notice = 'Completa nombre, categoría y descripción.';
+      this.notice = 'Completa nombre, categoria y descripcion.';
       return;
     }
-    this.data.suplementos.unshift({ id: Date.now(), ...this.newItem });
-    this.newItem = { name: '', category: '', description: '', stock: 0, minStock: 5, price: 0, photo: '' };
-    this.showForm = false;
-    this.formStep = 1;
-    this.notice = 'Suplemento agregado correctamente.';
+
+    this.data.crearSuplemento(this.newItem).subscribe({
+      next: created => {
+        this.data.suplementos.unshift(created);
+        this.newItem = { name: '', category: '', description: '', stock: 0, minStock: 5, price: 0, photo: '' };
+        this.showForm = false;
+        this.formStep = 1;
+        this.notice = 'Suplemento agregado correctamente.';
+      },
+      error: () => {
+        this.notice = 'No se pudo crear el suplemento en el backend.';
+      }
+    });
   }
 }

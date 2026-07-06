@@ -1,9 +1,9 @@
 <footer class="landing-footer">
   <div class="footer-grid">
     <section>
-      <span class="footer-mark"><img src="/assets/img/wx-fitness-gym-logo.png" alt="WX Fitness Gym" /></span>
-      <h2>WX Fitness Gym</h2>
-      <p>Entrenamiento, musculacion y bienestar en Quito - Caupicho.</p>
+      <span class="footer-mark"><img src="/assets/img/wx-fitness-gym-logo.png" [alt]="gymName" /></span>
+      <h2>{{ gymName }}</h2>
+      <p>{{ gymSummary }}</p>
     </section>
 
     <section>
@@ -18,10 +18,9 @@
 
     <section>
       <h3>Contacto</h3>
-      <p>Telefono: 0980674115</p>
-      <p>Lunes a Viernes: 08:00 a 21:00</p>
-      <p>Sabados: 09:00 a 15:00</p>
-      <p>Email: fitadmin@gmail.com</p>
+      <p>Telefono: {{ phone }}</p>
+      <p>{{ openingHours }}</p>
+      <p>Email: {{ email }}</p>
     </section>
 
     <section>
@@ -29,11 +28,11 @@
       <a href="https://www.facebook.com/" target="_blank" rel="noreferrer">Facebook</a>
       <a href="https://www.instagram.com/" target="_blank" rel="noreferrer">Instagram</a>
       <a href="https://www.tiktok.com/" target="_blank" rel="noreferrer">TikTok</a>
-      <a href="https://wa.me/593980674115" target="_blank" rel="noreferrer">WhatsApp</a>
+      <a [href]="whatsappUrl" target="_blank" rel="noreferrer">WhatsApp</a>
     </section>
   </div>
 
   <div class="copyright">
-    <span>&copy; 2026 WX Fitness Gym. Todos los derechos reservados.</span>
+    <span>&copy; 2026 {{ gymName }}. Todos los derechos reservados.</span>
   </div>
 </footer>

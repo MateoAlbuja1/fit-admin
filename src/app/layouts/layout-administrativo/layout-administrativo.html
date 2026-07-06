@@ -4,7 +4,7 @@
       <svg viewBox="0 0 24 24"><path [attr.d]="drawerCollapsed ? 'm9 18 6-6-6-6' : 'm15 18-6-6 6-6'" /></svg>
     </button>
     <div class="brand"><span class="brand-mark">FA</span><div class="brand-copy"><strong>FIT ADMIN</strong><span>Gestión de gimnasios</span></div></div>
-    <div class="gym-card"><span class="gym-card__logo"><img src="/assets/img/wx-fitness-gym-logo.png" alt="WX Fitness Gym" /></span><div><strong>WX GYM</strong><span>Quito · Caupicho</span></div><span class="status-dot" title="Gimnasio activo"></span></div>
+    <div class="gym-card"><span class="gym-card__logo"><img src="/assets/img/wx-fitness-gym-logo.png" alt="GX GYM" /></span><div><strong>GX GYM</strong><span>Fitness Gym</span></div><span class="status-dot" title="Gimnasio activo"></span></div>
 
     <nav class="main-nav" aria-label="Navegación administrativa">
       <section class="nav-section">
@@ -28,6 +28,7 @@
       <section class="nav-section">
         <p class="nav-label">Comercial</p>
         <a class="nav-item" routerLink="/pagos" routerLinkActive="active" title="Pagos"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M17 15h1" /></svg><span>Pagos</span><i></i></a>
+        <a class="nav-item" routerLink="/pedidos" routerLinkActive="active" title="Pedidos"><svg viewBox="0 0 24 24"><path d="M6 7h15l-2 9H8L6 7ZM6 7 5 3H2M9 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2ZM18 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" /></svg><span>Pedidos</span><i></i></a>
       </section>
 
       <section class="nav-section">
@@ -42,7 +43,7 @@
       </section>
     </nav>
 
-    <div class="drawer-footer"><div class="support-card"><span>SEDE ACTUAL</span><strong>WX GYM · Caupicho</strong></div><div class="profile-mini"><span class="avatar">MA</span><span><strong>Mateo Admin</strong><small>Administrador</small></span></div></div>
+    <div class="drawer-footer"><div class="support-card"><span>GIMNASIO</span><strong>GX GYM</strong></div><div class="profile-mini"><span class="avatar">MA</span><span><strong>Mateo Admin</strong><small>Administrador</small></span></div></div>
   </aside>
 
   <main class="main-content">
@@ -63,7 +64,7 @@
 
     <div class="workspace">
       <router-outlet />
-      <footer class="page-footer"><div><strong>FIT ADMIN</strong><span>WX GYM · Quito, Caupicho</span></div><span><i></i> Todos los sistemas operativos</span><small>© 2026 · v1.0.0</small></footer>
+      <footer class="page-footer"><div><strong>FIT ADMIN</strong><span>GX GYM</span></div><span><i></i> Todos los sistemas operativos</span><small>© 2026 · v1.0.0</small></footer>
     </div>
   </main>
 </div>

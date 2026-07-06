@@ -4,7 +4,7 @@
   <article><span>Ingresos registrados</span><strong>${{ paidTotal.toFixed(2) }}</strong><small class="positive">Pagos conciliados</small></article>
   <article><span>Pagos este mes</span><strong>{{ data.pagos.length }}</strong><small>Movimientos cargados</small></article>
   <article><span>Por cobrar</span><strong>${{ pendingTotal.toFixed(2) }}</strong><small class="danger-text">Pendientes de revisión</small></article>
-  <article><span>Ticket promedio</span><strong>${{ (paidTotal / (data.pagos.length || 1)).toFixed(2) }}</strong><small>Promedio registrado</small></article>
+  <article><span>Ticket promedio</span><strong>${{ (paidTotal / (paidCount || 1)).toFixed(2) }}</strong><small>Promedio registrado</small></article>
 </section>
 
 <section class="content-card">
@@ -61,7 +61,7 @@
             <td>{{ payment.method }}</td>
             <td>{{ payment.date }}</td>
             <td><strong>${{ payment.amount.toFixed(2) }}</strong></td>
-            <td><span class="badge" [class.badge--warning]="payment.status === 'Pendiente'">{{ payment.status }}</span></td>
+            <td><span class="badge" [class.badge--warning]="payment.status === 'Pendiente'" [class.badge--danger]="payment.status === 'Anulado'">{{ payment.status }}</span></td>
             <td><div class="row-actions"><button class="text-button" type="button" (click)="openEdit(payment)">Editar</button></div></td>
           </tr>
         } @empty {
@@ -83,7 +83,7 @@
         <label><span>Concepto</span><input [(ngModel)]="editPayment.concept" name="editConcept" /></label>
         <label><span>Método</span><select [(ngModel)]="editPayment.method" name="editMethod"><option>Efectivo</option><option>Transferencia</option><option>Tarjeta</option></select></label>
         <label><span>Monto *</span><input type="number" min="0" step="0.01" [(ngModel)]="editPayment.amount" name="editAmount" /></label>
-        <label><span>Estado</span><select [(ngModel)]="editPayment.status" name="editStatus"><option>Pagado</option><option>Pendiente</option></select></label>
+        <label><span>Estado</span><select [(ngModel)]="editPayment.status" name="editStatus"><option>Pagado</option><option>Pendiente</option><option>Anulado</option></select></label>
         <div class="form-navigation"><button class="secondary-button" type="button" (click)="cancelEdit()">Cancelar</button><button class="primary-button" type="submit">Guardar cambios</button></div>
       </form>
     </section>

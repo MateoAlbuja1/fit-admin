@@ -2,6 +2,7 @@
   [searchQuery]="searchTerm"
   [searchResults]="searchResults"
   [cartCount]="cartCount"
+  [gymName]="gymName"
   (searchQueryChange)="updateSearch($event)"
   (navigate)="navigateTo($event)"
   (cartClick)="openCart()"
@@ -11,6 +12,8 @@
   [items]="sidebarItems"
   [activeAnchor]="activeAnchor"
   [memberProfile]="memberSidebarProfile"
+  [gymName]="gymName"
+  [gymSector]="publicGymSettings.sector"
   (navigate)="navigateTo($event)"
   (logoutMember)="logoutMember()"
   (openMemberProfile)="openMemberProfile()"
@@ -42,7 +45,7 @@
       <button class="promo-close" type="button" aria-label="Cerrar promocion" (click)="closePromo()">&times;</button>
       <div class="promo-media" aria-hidden="true">
         <img src="/assets/img/creatine-dragon-pharma.png" alt="" />
-        <span>Disponible en WX GYM</span>
+        <span>Disponible en {{ gymName }}</span>
       </div>
       <div class="promo-content">
         <span class="promo-kicker">Promo fitness</span>
@@ -60,7 +63,7 @@
         </div>
         <div class="promo-actions">
           <button type="button" (click)="acceptPromo()">Comprar creatina</button>
-          <button type="button" (click)="closePromo()">Explorar WX GYM</button>
+          <button type="button" (click)="closePromo()">Explorar {{ gymName }}</button>
         </div>
       </div>
     </article>
@@ -84,7 +87,7 @@
       <article class="member-welcome">
         <span>Perfil de miembro</span>
         <h2>Bienvenido, {{ memberSession.name }}</h2>
-        <p>Tu progreso, peso y membresia en WX Fitness Gym.</p>
+        <p>Tu progreso, peso y membresia en {{ gymName }}.</p>
         <div class="member-profile-actions">
           <button type="button" (click)="navigateTo('planes')">Renovar membresia</button>
           <button type="button" (click)="navigateTo('tienda')">Ver tienda</button>
@@ -139,7 +142,7 @@
   @if (activeAnchor === 'servicios') {
   <section id="servicios" class="landing-section section-panel services-view">
     <div class="section-heading services-heading">
-      <span>Servicios WX</span>
+      <span>Servicios GX</span>
       <h2>Elige como quieres entrenar</h2>
       <p>Selecciona un servicio desde el menu lateral y revisa lo esencial.</p>
     </div>
@@ -214,7 +217,7 @@
     <div class="section-heading section-heading--row">
       <div>
         <span>Tienda fitness</span>
-        <h2>Suplementos WX</h2>
+        <h2>Suplementos GX</h2>
         <p>Elige categoria y arma tu pedido.</p>
       </div>
     </div>
@@ -238,23 +241,23 @@
   @if (activeAnchor === 'contacto') {
   <section id="contacto" class="landing-section section-panel contact-view">
     <section id="inscripcion" class="signup-section">
-      <app-demo-form [selectedPlan]="selectedPlan" />
+      <app-demo-form [selectedPlan]="selectedPlan" [gymName]="gymName" />
 
       <aside class="contact-map-panel">
         <span>Ubicacion</span>
-        <h2>WX Fitness Gym</h2>
-        <p>Caupicho3, 170701 Quito, Ecuador. Visitanos para inscripcion, planes y evaluacion fisica.</p>
+        <h2>{{ gymName }}</h2>
+        <p>{{ gymAddress }}. Visitanos para inscripcion, planes y evaluacion fisica.</p>
         <div class="contact-map-frame">
           <iframe
-            title="Ubicacion de WX Fitness Gym en Caupicho3 Quito"
+            [title]="'Ubicacion de ' + gymName"
             loading="lazy"
             referrerpolicy="no-referrer-when-downgrade"
-            src="https://www.google.com/maps?q=WX%20Fitness%20Gym%20Caupicho3%20170701%20Quito%20Ecuador&output=embed"
+            [src]="safeMapEmbedUrl"
           ></iframe>
         </div>
         <a
           class="map-link"
-          href="https://www.google.com/maps/search/?api=1&query=WX%20Fitness%20Gym%20Caupicho3%20170701%20Quito%20Ecuador"
+          [href]="mapSearchUrl"
           target="_blank"
           rel="noreferrer"
         >
@@ -263,7 +266,15 @@
       </aside>
     </section>
 
-    <app-contact-card />
+    <app-contact-card
+      [gymName]="gymName"
+      [address]="gymAddress"
+      [phone]="gymPhone"
+      [email]="gymEmail"
+      [openingHours]="gymOpeningHours"
+      [whatsappUrl]="plainWhatsappUrl"
+      [mapUrl]="mapSearchUrl"
+    />
   </section>
   }
 
@@ -272,8 +283,8 @@
     <div class="section-heading section-heading--row">
       <div>
         <span>Opiniones</span>
-        <h2>Clientes de WX Fitness Gym</h2>
-        <p>Caupicho3, 170701 Quito, Ecuador.</p>
+        <h2>Clientes de {{ gymName }}</h2>
+        <p>{{ gymAddress }}.</p>
       </div>
       <div class="result-grid">
         @for (result of resultCards; track result.label) {
@@ -311,7 +322,15 @@
   }
 </main>
 
-<app-landing-footer (navigate)="navigateTo($event)" />
+<app-landing-footer
+  [gymName]="gymName"
+  [gymSummary]="gymSummary"
+  [phone]="gymPhone"
+  [email]="gymEmail"
+  [openingHours]="gymOpeningHours"
+  [whatsappUrl]="plainWhatsappUrl"
+  (navigate)="navigateTo($event)"
+/>
 
 @if (cartOpen) {
   <section class="cart-drawer" role="dialog" aria-modal="true" aria-label="Carrito de compras">
@@ -328,6 +347,10 @@
         </button>
       </header>
 
+      @if (cartNotice) {
+        <p class="cart-notice cart-notice--drawer">{{ cartNotice }}</p>
+      }
+
       @if (cartItems.length) {
         <div class="cart-items">
           @for (item of cartItems; track item.product.name) {
@@ -336,12 +359,15 @@
               <div>
                 <strong>{{ item.product.name }}</strong>
                 <span>{{ item.product.price }} / {{ item.product.category }}</span>
+                @if (productStock(item.product) !== null) {
+                  <small>Stock disponible: {{ productStock(item.product) }}</small>
+                }
                 <div class="quantity-controls">
                   <button type="button" aria-label="Restar producto" (click)="decreaseCartItem(item)">
                     <span class="material-icons" aria-hidden="true">remove</span>
                   </button>
                   <b>{{ item.quantity }}</b>
-                  <button type="button" aria-label="Sumar producto" (click)="increaseCartItem(item)">
+                  <button type="button" aria-label="Sumar producto" (click)="increaseCartItem(item)" [disabled]="productStock(item.product) !== null && item.quantity >= productStock(item.product)!">
                     <span class="material-icons" aria-hidden="true">add</span>
                   </button>
                   <button class="remove-item" type="button" aria-label="Quitar producto" (click)="removeCartItem(item)">
@@ -353,14 +379,41 @@
           }
         </div>
 
-        <div class="cart-checkout">
+        <form class="cart-checkout" (ngSubmit)="submitCartOrder()">
           <div class="checkout-total">
             <span>Subtotal</span>
             <strong>{{ formatCurrency(cartSubtotal) }}</strong>
           </div>
-          <a [href]="cartWhatsappUrl" target="_blank" rel="noreferrer">Finalizar compra por WhatsApp</a>
+
+          <label>
+            <span>Nombre</span>
+            <input [(ngModel)]="checkoutForm.customerName" name="orderCustomerName" required placeholder="Tu nombre" />
+          </label>
+
+          <label>
+            <span>Telefono / WhatsApp</span>
+            <input [(ngModel)]="checkoutForm.customerPhone" name="orderCustomerPhone" required placeholder="0980674115" />
+          </label>
+
+          <label>
+            <span>Correo opcional</span>
+            <input type="email" [(ngModel)]="checkoutForm.customerEmail" name="orderCustomerEmail" placeholder="correo@ejemplo.com" />
+          </label>
+
+          <label>
+            <span>Nota opcional</span>
+            <textarea [(ngModel)]="checkoutForm.notes" name="orderNotes" rows="3" placeholder="Ej. Retiro hoy en el gimnasio"></textarea>
+          </label>
+
+          @if (lastOrderWhatsappUrl) {
+            <a [href]="lastOrderWhatsappUrl" target="_blank" rel="noreferrer">Enviar pedido {{ lastOrderCode }} por WhatsApp</a>
+          }
+
+          <button type="submit" [disabled]="isSubmittingOrder">
+            {{ isSubmittingOrder ? 'Guardando pedido...' : 'Guardar pedido y enviar WhatsApp' }}
+          </button>
           <button type="button" (click)="clearCart()">Vaciar carrito</button>
-        </div>
+        </form>
       } @else {
         <div class="empty-cart">
           <span class="material-icons" aria-hidden="true">shopping_cart</span>

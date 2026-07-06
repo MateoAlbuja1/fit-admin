@@ -21,7 +21,7 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
   constructor(public data: DatosGimnasioService, private actions: AccionPaginaAdminService) {}
 
   ngOnInit(): void {
-    this.actions.registrar('+ Nueva máquina', () => {
+    this.actions.registrar('+ Nueva maquina', () => {
       this.formStep = 1;
       this.showForm = true;
     });
@@ -48,8 +48,16 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
   }
 
   toggleStatus(item: Maquina): void {
-    item.status = item.status === 'Mantenimiento' ? 'Operativa' : 'Mantenimiento';
-    this.notice = `${item.name}: estado actualizado.`;
+    const nextStatus: Maquina['status'] = item.status === 'Mantenimiento' ? 'Operativa' : 'Mantenimiento';
+    this.data.actualizarEstadoMaquina(item.id, nextStatus).subscribe({
+      next: updated => {
+        Object.assign(item, updated);
+        this.notice = `${item.name}: estado actualizado.`;
+      },
+      error: () => {
+        this.notice = 'No se pudo actualizar la maquina en el backend.';
+      }
+    });
   }
 
   remove(item: Maquina): void {
@@ -63,11 +71,19 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
   confirmarEliminacion(): void {
     const item = this.maquinaAEliminar;
     if (!item) return;
-    this.data.maquinas = this.data.maquinas.filter(current => current.id !== item.id);
-    this.maquinaAEliminar = null;
-    this.detail = null;
-    this.detailItem = null;
-    this.notice = `${item.name} eliminada del inventario.`;
+
+    this.data.eliminarMaquina(item.id).subscribe({
+      next: () => {
+        this.data.maquinas = this.data.maquinas.filter(current => current.id !== item.id);
+        this.maquinaAEliminar = null;
+        this.detail = null;
+        this.detailItem = null;
+        this.notice = `${item.name} eliminada del inventario.`;
+      },
+      error: () => {
+        this.notice = 'No se pudo eliminar la maquina en el backend.';
+      }
+    });
   }
 
   showDetail(item: Maquina): void {
@@ -79,8 +95,8 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
       photo: item.photo,
       fields: [
         { label: 'Tipo', value: item.type },
-        { label: 'Ubicación', value: item.location },
-        { label: 'Próximo mantenimiento', value: item.nextMaintenance || 'Sin programar' }
+        { label: 'Ubicacion', value: item.location },
+        { label: 'Proximo mantenimiento', value: item.nextMaintenance || 'Sin programar' }
       ]
     };
   }
@@ -107,16 +123,24 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
       this.notice = 'Completa el nombre y tipo de equipo.';
       return;
     }
-    Object.assign(item, {
+
+    this.data.actualizarMaquina(item.id, {
       name: this.editItem.name.trim(),
       type: this.editItem.type.trim(),
-      location: this.editItem.location.trim() || 'Sin ubicación',
+      location: this.editItem.location.trim() || 'Sin ubicacion',
       status: this.editItem.status,
       nextMaintenance: this.editItem.nextMaintenance,
       photo: this.editItem.photo
+    }).subscribe({
+      next: updated => {
+        Object.assign(item, updated);
+        this.editingItemId = null;
+        this.notice = 'Ficha de maquina actualizada correctamente.';
+      },
+      error: () => {
+        this.notice = 'No se pudo actualizar la maquina en el backend.';
+      }
     });
-    this.editingItemId = null;
-    this.notice = 'Ficha de máquina actualizada correctamente.';
   }
 
   handlePhoto(event: Event): void {
@@ -146,10 +170,18 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
       this.notice = 'Completa el nombre y tipo de equipo.';
       return;
     }
-    this.data.maquinas.unshift({ id: Date.now(), ...this.newItem });
-    this.newItem = { name: '', type: '', location: '', status: 'Operativa', nextMaintenance: '', photo: '' };
-    this.showForm = false;
-    this.formStep = 1;
-    this.notice = 'Máquina agregada correctamente.';
+
+    this.data.crearMaquina(this.newItem).subscribe({
+      next: created => {
+        this.data.maquinas.unshift(created);
+        this.newItem = { name: '', type: '', location: '', status: 'Operativa', nextMaintenance: '', photo: '' };
+        this.showForm = false;
+        this.formStep = 1;
+        this.notice = 'Maquina agregada correctamente.';
+      },
+      error: () => {
+        this.notice = 'No se pudo crear la maquina en el backend.';
+      }
+    });
   }
 }

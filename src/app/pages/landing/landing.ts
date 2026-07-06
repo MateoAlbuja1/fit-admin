@@ -1,5 +1,8 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { catchError, forkJoin, of } from 'rxjs';
 import { ContactCardComponent } from '../../components/landing/contact-card/contact-card';
 import { DemoFormComponent } from '../../components/landing/demo-form/demo-form';
 import { LandingCarouselComponent, CarouselSlide } from '../../components/landing/landing-carousel/landing-carousel';
@@ -9,6 +12,7 @@ import { LandingSidebarComponent, SidebarMemberProfile, SidebarSection } from '.
 import { MembershipCardComponent, MembershipPlan } from '../../components/landing/membership-card/membership-card';
 import { ProductCardComponent, FitnessProduct } from '../../components/landing/product-card/product-card';
 import { LandingService } from '../../components/landing/service-card/service-card';
+import { Cliente, Membresia, Pago, RegistroAsistencia } from '../../core/modelos/modelos-administracion';
 import { DatosGimnasioService } from '../../core/servicios/datos-gimnasio.service';
 
 interface SocialProof {
@@ -51,6 +55,16 @@ interface MemberPerformancePoint {
   value: number;
 }
 
+interface PublicGymSettings {
+  name: string;
+  sector: string;
+  city: string;
+  phone: string;
+  email: string;
+  address: string;
+  openingHours: string;
+}
+
 @Component({
   selector: 'app-landing',
   standalone: true,
@@ -62,13 +76,13 @@ interface MemberPerformancePoint {
     LandingHeaderComponent,
     LandingSidebarComponent,
     MembershipCardComponent,
+    FormsModule,
     ProductCardComponent
   ],
   templateUrl: './landing.html',
   styleUrl: './landing.css'
 })
 export class LandingComponent implements OnInit {
-  private readonly whatsappPhone = '593980674115';
   private readonly trackedAnchors = ['inicio', 'servicios', 'planes', 'tienda', 'contacto', 'perfil'];
 
   sidebarOpen = false;
@@ -78,19 +92,41 @@ export class LandingComponent implements OnInit {
   cartNotice = '';
   cartOpen = false;
   cartItems: CartItem[] = [];
+  isSubmittingOrder = false;
+  lastOrderCode = '';
+  lastOrderWhatsappUrl = '';
+  checkoutForm = {
+    customerName: '',
+    customerPhone: '',
+    customerEmail: '',
+    notes: ''
+  };
   selectedPlan = '';
   activeStoreCategory = 'Todos';
   activeServiceName = 'Musculacion';
   memberSession: MemberSession | null = null;
+  publicGymSettings: PublicGymSettings = {
+    name: 'GX GYM',
+    sector: '',
+    city: 'Quito',
+    phone: '0980674115',
+    email: 'fitadmin@gmail.com',
+    address: 'Quito, Ecuador',
+    openingHours: 'Lunes a Viernes 08:00 - 21:00'
+  };
+  clientProfile: Cliente | null = null;
+  clientMembership: Membresia | null = null;
+  clientPayments: Pago[] = [];
+  clientAttendance: RegistroAsistencia[] = [];
 
-  readonly memberStats: MemberStat[] = [
-    { label: 'Peso actual', value: '74.5 kg', detail: 'Meta: 72 kg' },
-    { label: 'Progreso', value: '68%', detail: 'Rutina de fuerza' },
-    { label: 'Asistencia', value: '14/20', detail: 'Sesiones del mes' },
-    { label: 'Renovacion', value: '04 jul', detail: 'Plan mensual activo' }
+  memberStats: MemberStat[] = [
+    { label: 'Plan actual', value: 'Sin plan', detail: 'Pendiente' },
+    { label: 'Progreso', value: '0%', detail: 'Sin registros' },
+    { label: 'Asistencia', value: '0/20', detail: 'Sesiones registradas' },
+    { label: 'Renovacion', value: 'Pendiente', detail: 'Sin membresia activa' }
   ];
 
-  readonly memberPerformance: MemberPerformancePoint[] = [
+  memberPerformance: MemberPerformancePoint[] = [
     { label: 'Sem 1', value: 46 },
     { label: 'Sem 2', value: 54 },
     { label: 'Sem 3', value: 61 },
@@ -101,11 +137,11 @@ export class LandingComponent implements OnInit {
 
   readonly slides: CarouselSlide[] = [
     {
-      eyebrow: 'WX Fitness Gym',
+      eyebrow: 'GX GYM',
       title: 'Construye tu mejor version',
       description: 'Entrena fuerza, cardio y acondicionamiento con enfoque, disciplina y maquinas listas para progresar cada semana.',
       image: '/assets/img/gym-carousel-1.jpg',
-      alt: 'Area principal de entrenamiento de WX GYM'
+      alt: 'Area principal de entrenamiento de GX GYM'
     },
     {
       eyebrow: 'Fuerza y musculacion',
@@ -119,21 +155,21 @@ export class LandingComponent implements OnInit {
       title: 'Concentrate en tu progreso',
       description: 'Un espacio moderno para entrenar sin distracciones, mantener constancia y superar tus marcas.',
       image: '/assets/img/gym-carousel-4.jpg',
-      alt: 'Zona moderna de entrenamiento de WX GYM'
+      alt: 'Zona moderna de entrenamiento de GX GYM'
     },
     {
       eyebrow: 'Cardio y acondicionamiento',
       title: 'Resistencia para rendir mas',
       description: 'Combina cardio, fuerza y acondicionamiento para ganar energia, control y mejor condicion fisica.',
       image: '/assets/img/gym-cycling-zone.jpg',
-      alt: 'Zona de cardio y bicicletas de WX GYM'
+      alt: 'Zona de cardio y bicicletas de GX GYM'
     },
     {
       eyebrow: 'Entrenamiento real',
       title: 'Haz que cada sesion cuente',
       description: 'Rutinas, seguimiento y equipo disponible para convertir la constancia en resultados visibles.',
       image: '/assets/img/gym-carousel-3.jpg',
-      alt: 'Interior moderno de WX GYM'
+      alt: 'Interior moderno de GX GYM'
     }
   ];
 
@@ -625,10 +661,10 @@ export class LandingComponent implements OnInit {
     }
   ];
 
-  readonly resultCards: ResultCard[] = [
+  resultCards: ResultCard[] = [
     { value: '5.0', label: 'resenas', detail: 'Opiniones reales de clientes.' },
-    { value: 'Caupicho3', label: 'ubicacion', detail: 'Sur de Quito.' },
-    { value: 'WX', label: 'fitness gym', detail: 'Rutinas, fuerza y bienestar.' }
+    { value: 'Quito', label: 'ubicacion', detail: 'Ecuador.' },
+    { value: 'GX', label: 'fitness gym', detail: 'Rutinas, fuerza y bienestar.' }
   ];
 
   private readonly searchIndex: SearchResult[] = [
@@ -649,18 +685,26 @@ export class LandingComponent implements OnInit {
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: object,
+    private sanitizer: DomSanitizer,
     private data: DatosGimnasioService
   ) {}
 
   ngOnInit(): void {
     this.showPromo = true;
+    this.loadPublicGymSettings();
     this.loadMemberSession();
   }
 
   get products(): FitnessProduct[] {
+    if (!this.data.suplementos.length) {
+      return this.clientProductCatalogBackup;
+    }
+
     return this.data.suplementos.map(product => ({
+      id: product.id,
       name: product.name,
       price: this.formatCurrency(product.price),
+      stock: product.stock,
       discount: product.discount,
       rating: product.rating ?? '4.7/5',
       image: product.photo,
@@ -721,10 +765,10 @@ export class LandingComponent implements OnInit {
       name: this.memberSession.name,
       initials: this.memberSession.initials,
       subtitle: this.memberSession.subtitle,
-      weight: '74.5 kg',
-      progress: '68%',
-      renewal: '04 jul',
-      plan: 'Mensual'
+      weight: this.clientMembership ? `${this.clientMembership.days} dias` : 'Activo',
+      progress: `${this.memberTrendCurrent}%`,
+      renewal: this.clientMembership ? this.shortDate(this.clientMembership.end) : 'Pendiente',
+      plan: this.clientMembership?.plan ?? this.clientProfile?.plan ?? 'Sin plan'
     };
   }
 
@@ -747,20 +791,61 @@ export class LandingComponent implements OnInit {
     return `0,160 ${this.memberTrendPoints} 300,160`;
   }
 
+  get gymName(): string {
+    return this.publicGymSettings.name;
+  }
+
+  get gymAddress(): string {
+    return this.publicGymSettings.address;
+  }
+
+  get gymPhone(): string {
+    return this.publicGymSettings.phone;
+  }
+
+  get gymEmail(): string {
+    return this.publicGymSettings.email;
+  }
+
+  get gymOpeningHours(): string {
+    return this.publicGymSettings.openingHours;
+  }
+
+  get gymSummary(): string {
+    const location = [this.publicGymSettings.city, this.publicGymSettings.sector].filter(Boolean).join(' - ');
+    return `Entrenamiento, musculacion y bienestar${location ? ` en ${location}` : ''}.`;
+  }
+
+  get mapSearchUrl(): string {
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(this.mapQuery())}`;
+  }
+
+  get mapEmbedUrl(): string {
+    return `https://www.google.com/maps?q=${encodeURIComponent(this.mapQuery())}&output=embed`;
+  }
+
+  get safeMapEmbedUrl(): SafeResourceUrl {
+    return this.sanitizer.bypassSecurityTrustResourceUrl(this.mapEmbedUrl);
+  }
+
+  get plainWhatsappUrl(): string {
+    return `https://wa.me/${this.whatsappNumber()}`;
+  }
+
   get whatsappSignupUrl(): string {
-    return this.buildWhatsappUrl('Hola WX GYM, quiero informacion para inscribirme y reservar mi evaluacion fisica.');
+    return this.buildWhatsappUrl(`Hola ${this.gymName}, quiero informacion para inscribirme y reservar mi evaluacion fisica.`);
   }
 
   get cartWhatsappUrl(): string {
     if (!this.cartItems.length) {
-      return this.buildWhatsappUrl('Hola WX GYM, quiero informacion sobre productos de la tienda fitness.');
+      return this.buildWhatsappUrl(`Hola ${this.gymName}, quiero informacion sobre productos de la tienda fitness.`);
     }
 
     const lines = this.cartItems
       .map(item => `- ${item.quantity} x ${item.product.name} (${item.product.price})`)
       .join('\n');
 
-    return this.buildWhatsappUrl(`Hola WX GYM, quiero comprar estos productos:\n${lines}\nTotal aproximado: ${this.formatCurrency(this.cartSubtotal)}.`);
+    return this.buildWhatsappUrl(`Hola ${this.gymName}, quiero comprar estos productos:\n${lines}\nTotal aproximado: ${this.formatCurrency(this.cartSubtotal)}.`);
   }
 
   updateSearch(query: string): void {
@@ -812,7 +897,7 @@ export class LandingComponent implements OnInit {
     if (!isPlatformBrowser(this.platformId)) return;
 
     window.open(
-      this.buildWhatsappUrl(`Hola WX GYM, me interesa el ${plan.name} (${plan.price}). Quiero inscribirme.`),
+      this.buildWhatsappUrl(`Hola ${this.gymName}, me interesa el ${plan.name} (${plan.price}). Quiero inscribirme.`),
       '_blank',
       'noopener,noreferrer'
     );
@@ -820,17 +905,38 @@ export class LandingComponent implements OnInit {
 
   addToCart(product: FitnessProduct): void {
     const item = this.cartItems.find(cartItem => cartItem.product.name === product.name);
+    const maxStock = this.productStock(product);
     if (item) {
+      if (maxStock !== null && item.quantity >= maxStock) {
+        this.cartOpen = true;
+        this.cartNotice = `Solo hay ${maxStock} unidad(es) disponibles de ${product.name}.`;
+        this.flashNotice();
+        return;
+      }
       item.quantity += 1;
     } else {
+      if (maxStock !== null && maxStock <= 0) {
+        this.cartNotice = `${product.name} no tiene stock disponible.`;
+        this.flashNotice();
+        return;
+      }
       this.cartItems = [...this.cartItems, { product, quantity: 1 }];
     }
     this.cartOpen = true;
+    this.prefillCheckout();
+    this.lastOrderCode = '';
+    this.lastOrderWhatsappUrl = '';
     this.cartNotice = `${product.name} agregado al carrito. Total: ${this.cartCount}.`;
     this.flashNotice();
   }
 
   increaseCartItem(item: CartItem): void {
+    const maxStock = this.productStock(item.product);
+    if (maxStock !== null && item.quantity >= maxStock) {
+      this.cartNotice = `Solo hay ${maxStock} unidad(es) disponibles de ${item.product.name}.`;
+      this.flashNotice();
+      return;
+    }
     item.quantity += 1;
   }
 
@@ -849,6 +955,7 @@ export class LandingComponent implements OnInit {
 
   openCart(): void {
     this.cartOpen = true;
+    this.prefillCheckout();
   }
 
   closeCart(): void {
@@ -857,6 +964,65 @@ export class LandingComponent implements OnInit {
 
   clearCart(): void {
     this.cartItems = [];
+    this.lastOrderCode = '';
+    this.lastOrderWhatsappUrl = '';
+  }
+
+  submitCartOrder(): void {
+    this.cartNotice = '';
+    this.lastOrderCode = '';
+    this.lastOrderWhatsappUrl = '';
+
+    if (!this.cartItems.length) {
+      this.cartNotice = 'Agrega productos antes de confirmar el pedido.';
+      return;
+    }
+    if (!this.checkoutForm.customerName.trim() || !this.checkoutForm.customerPhone.trim()) {
+      this.cartNotice = 'Completa nombre y telefono para guardar el pedido.';
+      return;
+    }
+    const overstockItem = this.cartItems.find(item => {
+      const stock = this.productStock(item.product);
+      return stock !== null && item.quantity > stock;
+    });
+    if (overstockItem) {
+      const stock = this.productStock(overstockItem.product) ?? 0;
+      this.cartNotice = `Ajusta ${overstockItem.product.name}: solo hay ${stock} unidad(es) disponibles.`;
+      return;
+    }
+
+    this.isSubmittingOrder = true;
+    this.data.crearPedidoTienda({
+      customerName: this.checkoutForm.customerName.trim(),
+      customerPhone: this.checkoutForm.customerPhone.trim(),
+      customerEmail: this.checkoutForm.customerEmail.trim(),
+      notes: this.checkoutForm.notes.trim(),
+      channel: 'landing',
+      items: this.cartItems.map(item => ({
+        supplementId: item.product.id,
+        name: item.product.name,
+        quantity: item.quantity
+      }))
+    }).subscribe({
+      next: order => {
+        this.lastOrderCode = order.code;
+        this.lastOrderWhatsappUrl = this.buildOrderWhatsappUrl(order.code);
+        this.cartNotice = `Pedido ${order.code} guardado. Envia el comprobante por WhatsApp para confirmarlo.`;
+        this.cartItems = [];
+        if (isPlatformBrowser(this.platformId)) {
+          window.open(this.lastOrderWhatsappUrl, '_blank', 'noopener,noreferrer');
+        }
+      },
+      error: error => {
+        this.isSubmittingOrder = false;
+        this.cartNotice = error.status === 409
+          ? 'No hay stock suficiente para uno de los productos del carrito.'
+          : 'No se pudo guardar el pedido. Intenta nuevamente.';
+      },
+      complete: () => {
+        this.isSubmittingOrder = false;
+      }
+    });
   }
 
   showCart(): void {
@@ -865,6 +1031,7 @@ export class LandingComponent implements OnInit {
       : 'Tu carrito esta vacio. Agrega productos desde la tienda fitness.';
     this.navigateTo('tienda');
     this.cartOpen = true;
+    this.prefillCheckout();
   }
 
   focusService(service: LandingService): void {
@@ -887,11 +1054,17 @@ export class LandingComponent implements OnInit {
     if (isPlatformBrowser(this.platformId)) {
       localStorage.removeItem('fitadmin-session');
       localStorage.removeItem('fitadmin-auth');
+      localStorage.removeItem('fitadmin-token');
       sessionStorage.removeItem('fitadmin-session');
       sessionStorage.removeItem('fitadmin-auth');
+      sessionStorage.removeItem('fitadmin-token');
     }
 
     this.memberSession = null;
+    this.clientProfile = null;
+    this.clientMembership = null;
+    this.clientPayments = [];
+    this.clientAttendance = [];
     this.activeAnchor = 'inicio';
   }
 
@@ -921,8 +1094,68 @@ export class LandingComponent implements OnInit {
     return Number(price.replace(/[^0-9.]/g, '')) || 0;
   }
 
+  productStock(product: FitnessProduct): number | null {
+    const stock = Number(product.stock);
+    return Number.isFinite(stock) ? Math.max(0, Math.floor(stock)) : null;
+  }
+
   private buildWhatsappUrl(message: string): string {
-    return `https://wa.me/${this.whatsappPhone}?text=${encodeURIComponent(message)}`;
+    return `${this.plainWhatsappUrl}?text=${encodeURIComponent(message)}`;
+  }
+
+  private buildOrderWhatsappUrl(orderCode: string): string {
+    const lines = this.cartItems
+      .map(item => `- ${item.quantity} x ${item.product.name} (${item.product.price})`)
+      .join('\n');
+    return this.buildWhatsappUrl(
+      `Hola ${this.gymName}, ya cree el pedido ${orderCode} desde la tienda:\n${lines}\nTotal aproximado: ${this.formatCurrency(this.cartSubtotal)}.\nNombre: ${this.checkoutForm.customerName}\nTelefono: ${this.checkoutForm.customerPhone}`
+    );
+  }
+
+  private prefillCheckout(): void {
+    if (!this.checkoutForm.customerName && this.memberSession?.name) {
+      this.checkoutForm.customerName = this.memberSession.name;
+    }
+    if (!this.checkoutForm.customerEmail && this.clientProfile && 'email' in this.clientProfile) {
+      this.checkoutForm.customerEmail = String((this.clientProfile as unknown as { email?: string }).email || '');
+    }
+    if (!this.checkoutForm.customerPhone && this.clientProfile?.phone) {
+      this.checkoutForm.customerPhone = this.clientProfile.phone;
+    }
+  }
+
+  private whatsappNumber(): string {
+    const digits = this.publicGymSettings.phone.replace(/\D/g, '');
+    if (digits.startsWith('593')) return digits;
+    if (digits.startsWith('0') && digits.length >= 9) return `593${digits.slice(1)}`;
+    return digits || '593980674115';
+  }
+
+  private mapQuery(): string {
+    return `${this.publicGymSettings.name} ${this.publicGymSettings.address} ${this.publicGymSettings.city}`.trim();
+  }
+
+  private loadPublicGymSettings(): void {
+    this.data.obtenerConfiguracionPublicaGimnasio().pipe(
+      catchError(() => of(null))
+    ).subscribe(settings => {
+      if (!settings) return;
+      this.publicGymSettings = {
+        name: this.text(settings['name'], this.publicGymSettings.name),
+        sector: this.text(settings['sector'], this.publicGymSettings.sector),
+        city: this.text(settings['city'], this.publicGymSettings.city),
+        phone: this.text(settings['phone'], this.publicGymSettings.phone),
+        email: this.text(settings['email'], this.publicGymSettings.email),
+        address: this.text(settings['address'], this.publicGymSettings.address),
+        openingHours: this.text(settings['openingHours'], this.publicGymSettings.openingHours)
+      };
+      const location = [this.publicGymSettings.city, this.publicGymSettings.sector].filter(Boolean).join(' - ') || this.publicGymSettings.city;
+      this.resultCards = [
+        this.resultCards[0],
+        { value: location, label: 'ubicacion', detail: this.publicGymSettings.sector ? this.publicGymSettings.city : 'Ecuador.' },
+        { value: this.publicGymSettings.name.split(' ')[0] || 'GYM', label: 'fitness gym', detail: 'Rutinas, fuerza y bienestar.' }
+      ];
+    });
   }
 
   private loadMemberSession(): void {
@@ -945,13 +1178,83 @@ export class LandingComponent implements OnInit {
             initials: 'M'
           }
         : null;
+      if (this.memberSession) {
+        this.loadMemberProfileData();
+      }
     } catch {
       this.memberSession = null;
     }
   }
 
+  private loadMemberProfileData(): void {
+    forkJoin({
+      profile: this.data.obtenerPerfilCliente().pipe(catchError(() => of(null))),
+      membership: this.data.obtenerMembresiaCliente().pipe(catchError(() => of(null))),
+      payments: this.data.obtenerPagosCliente().pipe(catchError(() => of([]))),
+      attendance: this.data.obtenerAsistenciaCliente().pipe(catchError(() => of([])))
+    }).subscribe(result => {
+      this.clientProfile = result.profile;
+      this.clientMembership = result.membership;
+      this.clientPayments = result.payments;
+      this.clientAttendance = result.attendance;
+
+      if (this.memberSession && result.profile?.name) {
+        this.memberSession = {
+          ...this.memberSession,
+          name: this.cleanMemberName(result.profile.name),
+          initials: this.initials(result.profile.name)
+        };
+      }
+
+      this.updateMemberStats();
+      this.updateMemberPerformance();
+    });
+  }
+
+  private updateMemberStats(): void {
+    const paidTotal = this.clientPayments
+      .filter(payment => payment.status === 'Pagado')
+      .reduce((sum, payment) => sum + payment.amount, 0);
+    const attendanceGoal = Math.max(20, this.clientAttendance.length);
+    const attendanceValue = `${this.clientAttendance.length}/${attendanceGoal}`;
+    const membership = this.clientMembership;
+
+    this.memberStats = [
+      { label: 'Plan actual', value: membership?.plan ?? this.clientProfile?.plan ?? 'Sin plan', detail: membership?.status ?? this.clientProfile?.status ?? 'Pendiente' },
+      { label: 'Asistencia', value: attendanceValue, detail: 'Sesiones registradas' },
+      { label: 'Pagos', value: this.formatCurrency(paidTotal), detail: `${this.clientPayments.length} movimiento(s)` },
+      { label: 'Renovacion', value: membership ? this.shortDate(membership.end) : 'Pendiente', detail: membership ? `${membership.days} dias restantes` : 'Sin membresia activa' }
+    ];
+  }
+
+  private updateMemberPerformance(): void {
+    const base = Math.min(100, Math.round((this.clientAttendance.length / 20) * 100));
+    const current = Math.max(12, base || (this.clientMembership ? 42 : 12));
+    this.memberPerformance = Array.from({ length: 6 }, (_, index) => {
+      const value = Math.max(8, Math.round(current * ((index + 1) / 6)));
+      return { label: `Sem ${index + 1}`, value };
+    });
+  }
+
+  private shortDate(value: string): string {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return value.split(' ').slice(0, 2).join(' ') || value;
+    }
+    return date.toLocaleDateString('es-EC', { day: '2-digit', month: 'short' }).replace('.', '');
+  }
+
+  private initials(name: string): string {
+    return name
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map(part => part[0]?.toUpperCase())
+      .join('') || 'M';
+  }
+
   private cleanMemberName(name: string): string {
-    const cleanedName = name.replace(/\s*WX\b/gi, '').trim();
+    const cleanedName = name.replace(/\s*GX\b/gi, '').trim();
     return cleanedName || 'Miembro';
   }
 
@@ -961,6 +1264,10 @@ export class LandingComponent implements OnInit {
       .replace(/[\u0300-\u036f]/g, '')
       .toLowerCase()
       .trim();
+  }
+
+  private text(value: unknown, fallback: string): string {
+    return typeof value === 'string' && value.trim() ? value.trim() : fallback;
   }
 }
 

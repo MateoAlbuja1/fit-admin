@@ -28,6 +28,8 @@ export class LandingSidebarComponent {
   @Input() items: SidebarSection[] = [];
   @Input() activeAnchor = 'inicio';
   @Input() memberProfile: SidebarMemberProfile | null = null;
+  @Input() gymName = 'GX GYM';
+  @Input() gymSector = '';
 
   @Output() navigate = new EventEmitter<string>();
   @Output() logoutMember = new EventEmitter<void>();

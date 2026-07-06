@@ -1,7 +1,7 @@
 <form class="signup-form" #signupForm="ngForm" (ngSubmit)="submit(signupForm)" novalidate>
   <div class="form-heading">
     <span>Inscripcion</span>
-    <h2>Unete a WX GYM</h2>
+    <h2>Unete a {{ gymName }}</h2>
     <p>Completa tus datos y empieza tu cambio fisico con nosotros.</p>
   </div>
 
@@ -74,5 +74,9 @@
     <p class="form-success">{{ successMessage }}</p>
   }
 
-  <button type="submit">Enviar inscripcion</button>
+  @if (errorMessage) {
+    <p class="form-alert">{{ errorMessage }}</p>
+  }
+
+  <button type="submit" [disabled]="isSending">{{ isSending ? 'Enviando...' : 'Enviar inscripcion' }}</button>
 </form>

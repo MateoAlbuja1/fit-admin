@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { adminGuard } from './core/servicios/admin.guard';
 
 export const routes: Routes = [
   {
@@ -20,11 +21,13 @@ export const routes: Routes = [
   },
   {
     path: 'dashboard',
+    canActivate: [adminGuard],
     loadComponent: () =>
       import('./pages/dashboard/dashboard').then(m => m.DashboardComponent)
   },
   {
     path: '',
+    canActivate: [adminGuard],
     loadComponent: () =>
       import('./layouts/layout-administrativo/layout-administrativo').then(m => m.LayoutAdministrativoComponent),
     children: [
@@ -47,6 +50,11 @@ export const routes: Routes = [
         path: 'pagos',
         loadComponent: () => import('./pages/pagos/pagos').then(m => m.PaginaPagosComponent),
         data: { meta: { modulo: 'pagos', eyebrow: 'Gestión financiera', title: 'Pagos' } }
+      },
+      {
+        path: 'pedidos',
+        loadComponent: () => import('./pages/pedidos/pedidos').then(m => m.PaginaPedidosComponent),
+        data: { meta: { modulo: 'pedidos', eyebrow: 'Tienda fitness', title: 'Pedidos' } }
       },
       {
         path: 'inventario/suplementos',

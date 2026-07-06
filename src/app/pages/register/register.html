@@ -92,7 +92,9 @@
           <span>Acepto términos de membresía y política de datos.</span>
         </label>
 
-        <button class="field--wide" type="submit">Crear cuenta</button>
+        <button class="field--wide" type="submit" [disabled]="isLoading">
+          {{ isLoading ? 'Creando...' : 'Crear cuenta' }}
+        </button>
       </form>
 
       <div class="switch-auth">

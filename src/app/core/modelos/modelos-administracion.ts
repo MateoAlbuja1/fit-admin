@@ -3,6 +3,7 @@ export type ModuloAdministrativo =
   | 'membresias'
   | 'asistencia'
   | 'pagos'
+  | 'pedidos'
   | 'suplementos'
   | 'maquinas'
   | 'reportes'
@@ -49,7 +50,7 @@ export interface Pago {
   method: string;
   date: string;
   amount: number;
-  status: 'Pagado' | 'Pendiente';
+  status: 'Pagado' | 'Pendiente' | 'Anulado';
 }
 
 export interface Suplemento {
@@ -65,6 +66,34 @@ export interface Suplemento {
   rating?: string;
   factsPhoto?: string;
   imageFit?: 'cover' | 'contain';
+}
+
+export interface PedidoTiendaItem {
+  id: number;
+  orderId: number;
+  supplementId: number | null;
+  productName: string;
+  category: string;
+  unitPrice: number;
+  quantity: number;
+  lineTotal: number;
+}
+
+export interface PedidoTienda {
+  id: number;
+  code: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  notes: string;
+  status: 'Nuevo' | 'Contactado' | 'Confirmado' | 'Preparado' | 'Entregado' | 'Cancelado';
+  channel: string;
+  total: number;
+  stockDeductedAt?: string | null;
+  paymentId?: number | null;
+  createdAt: string;
+  updatedAt: string;
+  items: PedidoTiendaItem[];
 }
 
 export interface Maquina {

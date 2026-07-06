@@ -20,6 +20,7 @@ export class LandingHeaderComponent {
   @Input() searchQuery = '';
   @Input() searchResults: SearchResult[] = [];
   @Input() cartCount = 0;
+  @Input() gymName = 'GX GYM';
 
   @Output() searchQueryChange = new EventEmitter<string>();
   @Output() navigate = new EventEmitter<string>();
