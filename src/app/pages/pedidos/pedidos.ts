@@ -14,8 +14,8 @@ export class PaginaPedidosComponent implements OnInit, OnDestroy {
   statusFilter: FiltroPedidoEstado = 'Todos';
   page = 1;
   readonly pageSize = 5;
-  readonly statusFilters: FiltroPedidoEstado[] = ['Todos', 'Nuevo', 'Contactado', 'Confirmado', 'Preparado', 'Entregado', 'Cancelado'];
-  readonly nextStatuses: PedidoTienda['status'][] = ['Nuevo', 'Contactado', 'Confirmado', 'Preparado', 'Entregado', 'Cancelado'];
+  readonly statusFilters: FiltroPedidoEstado[] = ['Todos', 'Nuevo', 'Contactado', 'Confirmado', 'Preparado', 'Pago pendiente', 'Pagado', 'Entregado', 'Cancelado'];
+  readonly nextStatuses: PedidoTienda['status'][] = ['Nuevo', 'Contactado', 'Confirmado', 'Preparado', 'Pago pendiente', 'Pagado', 'Entregado', 'Cancelado'];
   detail: PedidoTienda | null = null;
   isLoading = false;
 
@@ -34,12 +34,12 @@ export class PaginaPedidosComponent implements OnInit, OnDestroy {
   }
 
   get pendingCount(): number {
-    return this.pedidos.filter(item => !['Entregado', 'Cancelado'].includes(item.status)).length;
+    return this.pedidos.filter(item => !['Pagado', 'Entregado', 'Cancelado'].includes(item.status)).length;
   }
 
   get deliveredTotal(): number {
     return this.pedidos
-      .filter(item => item.status === 'Entregado')
+      .filter(item => item.status === 'Pagado' || item.status === 'Entregado')
       .reduce((sum, item) => sum + item.total, 0);
   }
 
@@ -97,7 +97,10 @@ export class PaginaPedidosComponent implements OnInit, OnDestroy {
   updateStatus(order: PedidoTienda, status: PedidoTienda['status']): void {
     if (order.status === status) return;
 
-    this.data.actualizarEstadoPedidoTienda(order.id, status).subscribe({
+    const paymentMethod = status === 'Pagado' || status === 'Entregado'
+      ? order.paymentMethod || 'WhatsApp'
+      : undefined;
+    this.data.actualizarEstadoPedidoTienda(order.id, status, paymentMethod).subscribe({
       next: updated => {
         Object.assign(order, updated);
         if (this.detail?.id === order.id) {

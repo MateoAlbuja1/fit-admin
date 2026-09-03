@@ -1,12 +1,15 @@
 import {
   Component,
+  ChangeDetectorRef,
+  NgZone,
   OnDestroy,
   OnInit
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { Subscription } from 'rxjs';
+import { finalize, Subscription, timeout } from 'rxjs';
+import { apiBaseUrl } from '../../core/config/api.config';
 
 type AuthMode = 'welcome' | 'login';
 type UserRole = 'admin' | 'member';
@@ -46,9 +49,10 @@ export class LoginComponent implements OnInit, OnDestroy {
   message = '';
   isLoading = false;
 
-  private readonly apiUrl = 'http://localhost:3000';
+  private readonly apiUrl = apiBaseUrl();
 
   private routeSub?: Subscription;
+  private loadingFallback?: ReturnType<typeof setTimeout>;
   private lastTrailTime = 0;
   private lastTrailPosition?: { x: number; y: number };
   private trailCanvas?: HTMLCanvasElement;
@@ -74,7 +78,9 @@ export class LoginComponent implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private route: ActivatedRoute,
-    private http: HttpClient
+    private http: HttpClient,
+    private zone: NgZone,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -90,6 +96,7 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.routeSub?.unsubscribe();
+    this.clearLoadingFallback();
     this.clearTrail();
   }
 
@@ -259,33 +266,82 @@ export class LoginComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.isLoading = true;
+    this.startLoadingFallback();
     this.http.post<AuthResponse>(`${this.apiUrl}/auth/login`, {
       email,
       password: this.password
-    }).subscribe({
+    }).pipe(
+      timeout(10000),
+      finalize(() => {
+        this.updateView(() => {
+          this.clearLoadingFallback();
+          this.isLoading = false;
+        });
+      })
+    ).subscribe({
       next: response => {
-        const role: UserRole = response.user.role === 'CLIENTE' ? 'member' : 'admin';
-        const name = response.user.fullName || response.user.username;
-        this.saveSession({
-          role,
-          username: response.user.username,
-          name,
-          initials: this.initials(name),
-          subtitle: role === 'admin' ? 'Administrador' : 'Miembro activo'
-        }, response.token);
-        this.router.navigate([role === 'admin' ? '/dashboard' : '/']);
+        this.updateView(() => {
+          const role: UserRole = response.user.role === 'CLIENTE' ? 'member' : 'admin';
+          const name = response.user.fullName || response.user.username;
+          this.saveSession({
+            role,
+            username: response.user.username,
+            name,
+            initials: this.initials(name),
+            subtitle: role === 'admin' ? 'Administrador' : 'Miembro activo'
+          }, response.token);
+          this.router.navigate([role === 'admin' ? '/dashboard' : '/']);
+        });
       },
       error: error => {
-        this.message = error.status === 0
-          ? 'No se pudo conectar con el backend. Levanta Docker y vuelve a intentar.'
-          : 'Credenciales invalidas.';
-        this.isLoading = false;
-      },
-      complete: () => {
-        this.isLoading = false;
+        this.updateView(() => {
+          this.message = this.loginErrorMessage(error);
+        });
       }
     });
+  }
+
+  private startLoadingFallback(): void {
+    this.clearLoadingFallback();
+    this.isLoading = true;
+
+    this.loadingFallback = setTimeout(() => {
+      this.updateView(() => {
+        if (!this.isLoading) {
+          return;
+        }
+
+        this.isLoading = false;
+        this.message = 'No se recibio respuesta del servidor. Revisa Docker e intenta nuevamente.';
+      });
+    }, 12000);
+  }
+
+  private clearLoadingFallback(): void {
+    if (this.loadingFallback) {
+      clearTimeout(this.loadingFallback);
+      this.loadingFallback = undefined;
+    }
+  }
+
+  private updateView(update: () => void): void {
+    this.zone.run(() => {
+      update();
+      this.cdr.markForCheck();
+    });
+  }
+
+  private loginErrorMessage(error: { status?: number; name?: string }): string {
+    if (error.name === 'TimeoutError') {
+      return 'El backend tardo demasiado en responder. Revisa que Docker este levantado e intenta de nuevo.';
+    }
+    if (error.status === 0) {
+      return 'No se pudo conectar con el backend. Levanta Docker y vuelve a intentar.';
+    }
+    if (error.status === 401) {
+      return 'Correo o contrasena incorrectos.';
+    }
+    return 'No se pudo iniciar sesion. Intenta nuevamente.';
   }
 
   private saveSession(session: { role: UserRole; username: string; name: string; initials: string; subtitle: string }, token: string): void {

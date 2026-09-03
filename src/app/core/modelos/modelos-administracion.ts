@@ -86,9 +86,13 @@ export interface PedidoTienda {
   customerEmail: string;
   customerPhone: string;
   notes: string;
-  status: 'Nuevo' | 'Contactado' | 'Confirmado' | 'Preparado' | 'Entregado' | 'Cancelado';
+  status: 'Nuevo' | 'Contactado' | 'Confirmado' | 'Preparado' | 'Pago pendiente' | 'Pagado' | 'Entregado' | 'Cancelado';
   channel: string;
   total: number;
+  paymentMethod?: string;
+  paypalOrderId?: string;
+  paypalCaptureId?: string;
+  paidAt?: string | null;
   stockDeductedAt?: string | null;
   paymentId?: number | null;
   createdAt: string;

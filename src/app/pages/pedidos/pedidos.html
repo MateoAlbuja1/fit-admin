@@ -31,7 +31,7 @@
 
   <div class="table-scroll">
     <table>
-      <thead><tr><th>Pedido</th><th>Cliente</th><th>Telefono</th><th>Fecha</th><th>Total</th><th>Estado</th><th>Acciones</th></tr></thead>
+      <thead><tr><th>Pedido</th><th>Cliente</th><th>Telefono</th><th>Fecha</th><th>Total</th><th>Metodo</th><th>Estado</th><th>Acciones</th></tr></thead>
       <tbody>
         @for (order of paged; track order.id) {
           <tr>
@@ -40,7 +40,8 @@
             <td>{{ order.customerPhone }}</td>
             <td>{{ formatDate(order.createdAt) }}</td>
             <td><strong>${{ order.total.toFixed(2) }}</strong></td>
-            <td><span class="badge" [class.badge--warning]="order.status === 'Nuevo' || order.status === 'Contactado'" [class.badge--danger]="order.status === 'Cancelado'">{{ order.status }}</span></td>
+            <td>{{ order.paymentMethod || order.channel }}</td>
+            <td><span class="badge" [class.badge--warning]="order.status === 'Nuevo' || order.status === 'Contactado' || order.status === 'Pago pendiente'" [class.badge--danger]="order.status === 'Cancelado'">{{ order.status }}</span></td>
             <td>
               <div class="row-actions">
                 <button class="text-button" type="button" (click)="openDetail(order)">Detalle</button>
@@ -51,7 +52,7 @@
             </td>
           </tr>
         } @empty {
-          <tr><td colspan="7"><div class="empty-state"><strong>Sin pedidos</strong><span>No hay pedidos con estos filtros.</span></div></td></tr>
+          <tr><td colspan="8"><div class="empty-state"><strong>Sin pedidos</strong><span>No hay pedidos con estos filtros.</span></div></td></tr>
         }
       </tbody>
     </table>
@@ -67,6 +68,8 @@
       <div class="detail-intro"><span class="badge">{{ detail.status }}</span><p>{{ detail.customerName }} · {{ detail.customerPhone }}</p></div>
       <dl class="detail-fields">
         <div><dt>Total</dt><dd>${{ detail.total.toFixed(2) }}</dd></div>
+        <div><dt>Metodo de pago</dt><dd>{{ detail.paymentMethod || detail.channel }}</dd></div>
+        <div><dt>Pagado el</dt><dd>{{ detail.paidAt ? formatDate(detail.paidAt) : 'Pendiente' }}</dd></div>
         <div><dt>Correo</dt><dd>{{ detail.customerEmail || 'No registrado' }}</dd></div>
         <div><dt>Fecha</dt><dd>{{ formatDate(detail.createdAt) }}</dd></div>
         <div><dt>Nota</dt><dd>{{ detail.notes || 'Sin nota' }}</dd></div>

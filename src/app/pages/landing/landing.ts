@@ -2,7 +2,8 @@ import { isPlatformBrowser } from '@angular/common';
 import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { catchError, forkJoin, of } from 'rxjs';
+import { Router } from '@angular/router';
+import { catchError, firstValueFrom, forkJoin, of } from 'rxjs';
 import { ContactCardComponent } from '../../components/landing/contact-card/contact-card';
 import { DemoFormComponent } from '../../components/landing/demo-form/demo-form';
 import { LandingCarouselComponent, CarouselSlide } from '../../components/landing/landing-carousel/landing-carousel';
@@ -65,6 +66,35 @@ interface PublicGymSettings {
   openingHours: string;
 }
 
+interface PaypalConfig {
+  enabled: boolean;
+  clientId: string;
+  currency: string;
+  mode: string;
+}
+
+interface PaypalApproveData {
+  orderID: string;
+}
+
+interface PaypalButtons {
+  render(selector: string | HTMLElement): Promise<void> | void;
+}
+
+declare global {
+  interface Window {
+    paypal?: {
+      Buttons(options: {
+        style?: Record<string, string>;
+        createOrder: () => Promise<string>;
+        onApprove: (data: PaypalApproveData) => Promise<void>;
+        onCancel?: () => void;
+        onError?: () => void;
+      }): PaypalButtons;
+    };
+  }
+}
+
 @Component({
   selector: 'app-landing',
   standalone: true,
@@ -93,8 +123,16 @@ export class LandingComponent implements OnInit {
   cartOpen = false;
   cartItems: CartItem[] = [];
   isSubmittingOrder = false;
+  isProcessingPaypal = false;
   lastOrderCode = '';
   lastOrderWhatsappUrl = '';
+  paypalConfig: PaypalConfig = {
+    enabled: false,
+    clientId: '',
+    currency: 'USD',
+    mode: 'sandbox'
+  };
+  private paypalScriptPromise?: Promise<void>;
   checkoutForm = {
     customerName: '',
     customerPhone: '',
@@ -686,12 +724,14 @@ export class LandingComponent implements OnInit {
   constructor(
     @Inject(PLATFORM_ID) private platformId: object,
     private sanitizer: DomSanitizer,
-    private data: DatosGimnasioService
+    private data: DatosGimnasioService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
     this.showPromo = true;
     this.loadPublicGymSettings();
+    this.loadPaypalConfig();
     this.loadMemberSession();
   }
 
@@ -904,6 +944,11 @@ export class LandingComponent implements OnInit {
   }
 
   addToCart(product: FitnessProduct): void {
+    if (!this.isMemberLoggedIn) {
+      this.redirectToRegisterForPurchase();
+      return;
+    }
+
     const item = this.cartItems.find(cartItem => cartItem.product.name === product.name);
     const maxStock = this.productStock(product);
     if (item) {
@@ -924,10 +969,10 @@ export class LandingComponent implements OnInit {
     }
     this.cartOpen = true;
     this.prefillCheckout();
+    this.schedulePaypalButtonRender();
     this.lastOrderCode = '';
     this.lastOrderWhatsappUrl = '';
-    this.cartNotice = `${product.name} agregado al carrito. Total: ${this.cartCount}.`;
-    this.flashNotice();
+    this.cartNotice = '';
   }
 
   increaseCartItem(item: CartItem): void {
@@ -956,6 +1001,7 @@ export class LandingComponent implements OnInit {
   openCart(): void {
     this.cartOpen = true;
     this.prefillCheckout();
+    this.schedulePaypalButtonRender();
   }
 
   closeCart(): void {
@@ -973,37 +1019,12 @@ export class LandingComponent implements OnInit {
     this.lastOrderCode = '';
     this.lastOrderWhatsappUrl = '';
 
-    if (!this.cartItems.length) {
-      this.cartNotice = 'Agrega productos antes de confirmar el pedido.';
-      return;
-    }
-    if (!this.checkoutForm.customerName.trim() || !this.checkoutForm.customerPhone.trim()) {
-      this.cartNotice = 'Completa nombre y telefono para guardar el pedido.';
-      return;
-    }
-    const overstockItem = this.cartItems.find(item => {
-      const stock = this.productStock(item.product);
-      return stock !== null && item.quantity > stock;
-    });
-    if (overstockItem) {
-      const stock = this.productStock(overstockItem.product) ?? 0;
-      this.cartNotice = `Ajusta ${overstockItem.product.name}: solo hay ${stock} unidad(es) disponibles.`;
+    if (!this.validateCartForPayment()) {
       return;
     }
 
     this.isSubmittingOrder = true;
-    this.data.crearPedidoTienda({
-      customerName: this.checkoutForm.customerName.trim(),
-      customerPhone: this.checkoutForm.customerPhone.trim(),
-      customerEmail: this.checkoutForm.customerEmail.trim(),
-      notes: this.checkoutForm.notes.trim(),
-      channel: 'landing',
-      items: this.cartItems.map(item => ({
-        supplementId: item.product.id,
-        name: item.product.name,
-        quantity: item.quantity
-      }))
-    }).subscribe({
+    this.data.crearPedidoTienda(this.buildOrderPayload('WhatsApp')).subscribe({
       next: order => {
         this.lastOrderCode = order.code;
         this.lastOrderWhatsappUrl = this.buildOrderWhatsappUrl(order.code);
@@ -1026,12 +1047,11 @@ export class LandingComponent implements OnInit {
   }
 
   showCart(): void {
-    this.cartNotice = this.cartCount
-      ? `Tienes ${this.cartCount} producto(s) en el carrito fitness.`
-      : 'Tu carrito esta vacio. Agrega productos desde la tienda fitness.';
+    this.cartNotice = this.cartCount ? '' : 'Tu carrito esta vacio. Agrega productos desde la tienda fitness.';
     this.navigateTo('tienda');
     this.cartOpen = true;
     this.prefillCheckout();
+    this.schedulePaypalButtonRender();
   }
 
   focusService(service: LandingService): void {
@@ -1042,6 +1062,165 @@ export class LandingComponent implements OnInit {
   requestService(service: LandingService): void {
     this.activeServiceName = service.name;
     this.navigateTo('contacto');
+  }
+
+  async createPaypalOrder(): Promise<string> {
+    if (!this.validateCartForPayment()) {
+      throw new Error('Invalid checkout');
+    }
+    if (!this.paypalConfig.enabled) {
+      this.cartNotice = 'PayPal aun no esta configurado. Usa WhatsApp o agrega las credenciales Sandbox.';
+      throw new Error('PayPal not configured');
+    }
+
+    this.isProcessingPaypal = true;
+    const result = await firstValueFrom(this.data.crearOrdenPaypal(this.buildOrderPayload('PayPal')));
+    this.lastOrderCode = result.order.code;
+    return result.paypalOrderId;
+  }
+
+  async capturePaypalOrder(paypalOrderId: string): Promise<void> {
+    try {
+      const order = await firstValueFrom(this.data.capturarOrdenPaypal(paypalOrderId));
+      this.lastOrderCode = order.code;
+      this.lastOrderWhatsappUrl = '';
+      this.cartNotice = `Pedido ${order.code} pagado con PayPal. Ya aparece como pagado en el dashboard.`;
+      this.cartItems = [];
+      this.closeCart();
+    } catch {
+      this.cartNotice = 'PayPal no pudo confirmar el pago. Intenta nuevamente o usa WhatsApp.';
+    } finally {
+      this.isProcessingPaypal = false;
+    }
+  }
+
+  private buildOrderPayload(paymentMethod: 'WhatsApp' | 'PayPal'): Record<string, unknown> {
+    return {
+      customerName: this.checkoutForm.customerName.trim(),
+      customerPhone: this.checkoutForm.customerPhone.trim(),
+      customerEmail: this.checkoutForm.customerEmail.trim(),
+      notes: this.checkoutForm.notes.trim(),
+      channel: paymentMethod === 'PayPal' ? 'paypal' : 'whatsapp',
+      paymentMethod,
+      items: this.cartItems.map(item => ({
+        supplementId: item.product.id,
+        name: item.product.name,
+        quantity: item.quantity
+      }))
+    };
+  }
+
+  private validateCartForPayment(): boolean {
+    this.cartNotice = '';
+
+    if (!this.isMemberLoggedIn) {
+      this.redirectToRegisterForPurchase();
+      return false;
+    }
+    if (!this.cartItems.length) {
+      this.cartNotice = 'Agrega productos antes de confirmar el pedido.';
+      return false;
+    }
+    if (!this.checkoutForm.customerName.trim() || !this.checkoutForm.customerPhone.trim()) {
+      this.cartNotice = 'Completa nombre y telefono para guardar el pedido.';
+      return false;
+    }
+
+    const overstockItem = this.cartItems.find(item => {
+      const stock = this.productStock(item.product);
+      return stock !== null && item.quantity > stock;
+    });
+    if (overstockItem) {
+      const stock = this.productStock(overstockItem.product) ?? 0;
+      this.cartNotice = `Ajusta ${overstockItem.product.name}: solo hay ${stock} unidad(es) disponibles.`;
+      return false;
+    }
+
+    return true;
+  }
+
+  private schedulePaypalButtonRender(): void {
+    if (!isPlatformBrowser(this.platformId) || !this.cartItems.length || !this.isMemberLoggedIn) {
+      return;
+    }
+    window.setTimeout(() => {
+      this.renderPaypalButton();
+    }, 0);
+  }
+
+  private async renderPaypalButton(): Promise<void> {
+    if (!this.paypalConfig.enabled || !this.paypalConfig.clientId) {
+      return;
+    }
+
+    const container = document.getElementById('paypal-button-container');
+    if (!container) {
+      return;
+    }
+
+    container.innerHTML = '';
+
+    try {
+      await this.loadPaypalScript();
+      window.paypal?.Buttons({
+        style: {
+          layout: 'vertical',
+          color: 'gold',
+          shape: 'rect',
+          label: 'paypal'
+        },
+        createOrder: () => this.createPaypalOrder(),
+        onApprove: data => this.capturePaypalOrder(data.orderID),
+        onCancel: () => {
+          this.isProcessingPaypal = false;
+          this.cartNotice = 'Pago con PayPal cancelado.';
+        },
+        onError: () => {
+          this.isProcessingPaypal = false;
+          this.cartNotice = 'No se pudo abrir PayPal. Revisa la configuracion e intenta nuevamente.';
+        }
+      }).render(container);
+    } catch {
+      this.cartNotice = 'No se pudo cargar PayPal. Revisa internet o las credenciales Sandbox.';
+    }
+  }
+
+  private loadPaypalScript(): Promise<void> {
+    if (this.paypalScriptPromise) {
+      return this.paypalScriptPromise;
+    }
+
+    this.paypalScriptPromise = new Promise((resolve, reject) => {
+      if (window.paypal) {
+        resolve();
+        return;
+      }
+
+      const script = document.createElement('script');
+      const params = new URLSearchParams({
+        'client-id': this.paypalConfig.clientId,
+        currency: this.paypalConfig.currency || 'USD',
+        intent: 'capture'
+      });
+      script.src = `https://www.paypal.com/sdk/js?${params.toString()}`;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error('PayPal SDK failed to load'));
+      document.head.appendChild(script);
+    });
+
+    return this.paypalScriptPromise;
+  }
+
+  private redirectToRegisterForPurchase(): void {
+    this.cartOpen = false;
+    this.sidebarOpen = false;
+    this.cartNotice = 'Para comprar productos primero crea una cuenta o inicia sesion.';
+    this.router.navigate(['/registro'], {
+      queryParams: {
+        next: 'tienda',
+        reason: 'compra'
+      }
+    });
   }
 
   openMemberProfile(): void {
@@ -1155,6 +1334,23 @@ export class LandingComponent implements OnInit {
         { value: location, label: 'ubicacion', detail: this.publicGymSettings.sector ? this.publicGymSettings.city : 'Ecuador.' },
         { value: this.publicGymSettings.name.split(' ')[0] || 'GYM', label: 'fitness gym', detail: 'Rutinas, fuerza y bienestar.' }
       ];
+    });
+  }
+
+  private loadPaypalConfig(): void {
+    this.data.obtenerConfiguracionPaypal().pipe(
+      catchError(() => of(null))
+    ).subscribe(config => {
+      if (!config) {
+        return;
+      }
+      this.paypalConfig = {
+        enabled: Boolean(config.enabled && config.clientId),
+        clientId: config.clientId || '',
+        currency: config.currency || 'USD',
+        mode: config.mode || 'sandbox'
+      };
+      this.schedulePaypalButtonRender();
     });
   }
 

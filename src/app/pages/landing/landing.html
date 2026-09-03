@@ -359,9 +359,6 @@
               <div>
                 <strong>{{ item.product.name }}</strong>
                 <span>{{ item.product.price }} / {{ item.product.category }}</span>
-                @if (productStock(item.product) !== null) {
-                  <small>Stock disponible: {{ productStock(item.product) }}</small>
-                }
                 <div class="quantity-controls">
                   <button type="button" aria-label="Restar producto" (click)="decreaseCartItem(item)">
                     <span class="material-icons" aria-hidden="true">remove</span>
@@ -409,9 +406,22 @@
             <a [href]="lastOrderWhatsappUrl" target="_blank" rel="noreferrer">Enviar pedido {{ lastOrderCode }} por WhatsApp</a>
           }
 
-          <button type="submit" [disabled]="isSubmittingOrder">
-            {{ isSubmittingOrder ? 'Guardando pedido...' : 'Guardar pedido y enviar WhatsApp' }}
+          <button type="submit" [disabled]="isSubmittingOrder || isProcessingPaypal">
+            {{ isSubmittingOrder ? 'Guardando pedido...' : 'Enviar pedido por WhatsApp' }}
           </button>
+
+          @if (paypalConfig.enabled) {
+            <div class="paypal-checkout">
+              <span>Pagar automaticamente</span>
+              <div id="paypal-button-container"></div>
+              @if (isProcessingPaypal) {
+                <small>Confirmando pago con PayPal...</small>
+              }
+            </div>
+          } @else {
+            <button class="paypal-placeholder" type="button" disabled>PayPal no configurado</button>
+          }
+
           <button type="button" (click)="clearCart()">Vaciar carrito</button>
         </form>
       } @else {

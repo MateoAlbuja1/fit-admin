@@ -11,10 +11,11 @@ import {
   RegistroAsistencia,
   Suplemento
 } from '../modelos/modelos-administracion';
+import { apiBaseUrl } from '../config/api.config';
 
 @Injectable({ providedIn: 'root' })
 export class DatosGimnasioService {
-  private readonly apiUrl = 'http://localhost:3000';
+  private readonly apiUrl = apiBaseUrl();
 
   constructor(private http: HttpClient) {
     if (typeof window !== 'undefined') {
@@ -94,6 +95,18 @@ export class DatosGimnasioService {
     return this.http.post<PedidoTienda>(`${this.apiUrl}/public/store-orders`, payload);
   }
 
+  obtenerConfiguracionPaypal() {
+    return this.http.get<{ enabled: boolean; clientId: string; currency: string; mode: string }>(`${this.apiUrl}/public/paypal/config`);
+  }
+
+  crearOrdenPaypal(payload: Record<string, unknown>) {
+    return this.http.post<{ paypalOrderId: string; order: PedidoTienda }>(`${this.apiUrl}/public/paypal/orders`, payload);
+  }
+
+  capturarOrdenPaypal(paypalOrderId: string) {
+    return this.http.post<PedidoTienda>(`${this.apiUrl}/public/paypal/orders/${paypalOrderId}/capture`, {});
+  }
+
   listarPedidosTienda() {
     return this.http.get<PedidoTienda[]>(`${this.apiUrl}/inventory/store-orders`);
   }
@@ -102,8 +115,8 @@ export class DatosGimnasioService {
     return this.http.get<PedidoTienda>(`${this.apiUrl}/inventory/store-orders/${id}`);
   }
 
-  actualizarEstadoPedidoTienda(id: number | string, status: PedidoTienda['status']) {
-    return this.http.patch<PedidoTienda>(`${this.apiUrl}/inventory/store-orders/${id}/status`, { status });
+  actualizarEstadoPedidoTienda(id: number | string, status: PedidoTienda['status'], paymentMethod?: string) {
+    return this.http.patch<PedidoTienda>(`${this.apiUrl}/inventory/store-orders/${id}/status`, { status, paymentMethod });
   }
 
   crearMaquina(payload: Partial<Maquina>) {

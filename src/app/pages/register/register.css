@@ -27,6 +27,40 @@
   grid-template-columns: minmax(250px, 0.8fr) minmax(500px, 680px) minmax(250px, 0.8fr);
 }
 
+.register-back {
+  position: fixed;
+  top: 22px;
+  left: 22px;
+  z-index: 10;
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 6px;
+  background: rgba(5, 6, 5, 0.62);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(14px);
+  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease, border 0.2s ease;
+}
+
+.register-back span {
+  display: block;
+  font-size: 25px;
+  font-weight: 950;
+  line-height: 1;
+  transform: translateY(-1px);
+}
+
+.register-back:hover {
+  border-color: #fff;
+  background: #fff;
+  color: #050605;
+  transform: translateX(-2px);
+}
+
 .side-visual {
   position: relative;
   min-height: 100vh;
@@ -273,13 +307,28 @@ button[type='submit']:hover {
 }
 
 .message {
-  margin-top: 18px;
+  margin: 0 0 18px;
   border: 1px solid rgba(255, 255, 255, 0.28);
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.09);
   color: #fff;
   padding: 12px 14px;
   line-height: 1.45;
+}
+
+.message--success {
+  border-color: rgba(98, 255, 146, 0.48);
+  background: rgba(98, 255, 146, 0.12);
+}
+
+.message--error {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.message--info {
+  border-color: rgba(255, 255, 255, 0.42);
+  background: rgba(255, 255, 255, 0.14);
 }
 
 @media (max-width: 1100px) {
@@ -295,6 +344,13 @@ button[type='submit']:hover {
 @media (max-width: 820px) {
   .auth-layout--register {
     grid-template-columns: 1fr;
+  }
+
+  .register-back {
+    top: 18px;
+    left: 18px;
+    width: 42px;
+    height: 42px;
   }
 
   .side-visual {

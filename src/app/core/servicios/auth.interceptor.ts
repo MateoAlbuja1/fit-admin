@@ -1,9 +1,12 @@
 import { HttpInterceptorFn } from '@angular/common/http';
+import { isApiUrl } from '../config/api.config';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const token = readToken();
 
-  if (!token || !req.url.startsWith('http://localhost:3000')) {
+  const isApiRequest = isApiUrl(req.url);
+
+  if (!token || !isApiRequest) {
     return next(req);
   }
 

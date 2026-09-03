@@ -1,4 +1,13 @@
 <main class="auth-layout auth-layout--register">
+  <button
+    class="register-back"
+    type="button"
+    aria-label="Volver al login"
+    (click)="goToLogin()"
+  >
+    <span aria-hidden="true">&larr;</span>
+  </button>
+
   <section class="side-visual">
     <div class="image-wrapper">
       @for (slide of gymSlides; track slide.image; let index = $index) {
@@ -13,6 +22,15 @@
   <section class="register-panel">
     <div class="register-box">
       <h2 class="box-title">Registro</h2>
+
+      @if (message) {
+        <p
+          class="message"
+          [class.message--success]="messageType === 'success'"
+          [class.message--error]="messageType === 'error'"
+          [class.message--info]="messageType === 'info'"
+        >{{ message }}</p>
+      }
 
       <form class="register-form" (ngSubmit)="handleRegister()">
         <label class="field" for="firstName">
@@ -102,9 +120,6 @@
         <button type="button" (click)="goToLogin()">Login</button>
       </div>
 
-      @if (message) {
-        <p class="message">{{ message }}</p>
-      }
     </div>
   </section>
 

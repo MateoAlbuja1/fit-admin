@@ -1340,29 +1340,34 @@ app-landing-footer {
 
 .cart-items {
   display: grid;
-  gap: 12px;
+  gap: 10px;
   align-content: start;
   min-width: 0;
+  max-height: 210px;
+  padding-right: 2px;
   overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .cart-items article {
   display: grid;
-  grid-template-columns: 74px 1fr;
-  gap: 12px;
+  grid-template-columns: 90px minmax(0, 1fr);
+  gap: 13px;
+  align-items: center;
   border: 1px solid rgba(255, 255, 255, .1);
   border-radius: 8px;
   background: linear-gradient(180deg, rgba(255, 255, 255, .085), rgba(255, 255, 255, .04));
   min-width: 0;
-  padding: 12px;
+  min-height: 112px;
+  padding: 10px;
 }
 
 .cart-items img {
-  width: 74px;
-  height: 74px;
+  width: 90px;
+  height: 90px;
   border: 1px solid rgba(255, 255, 255, .12);
   border-radius: 8px;
-  object-fit: cover;
+  object-fit: contain;
   background: #fff;
 }
 
@@ -1444,12 +1449,10 @@ app-landing-footer {
 .cart-checkout {
   display: grid;
   gap: 9px;
-  position: sticky;
-  bottom: -22px;
   margin: 0 -22px -22px;
   border-top: 1px solid rgba(255, 255, 255, .12);
   background: linear-gradient(180deg, rgba(16, 18, 23, .92), #090a0d);
-  padding: 14px 22px 22px;
+  padding: 12px 22px 22px;
 }
 
 .checkout-total {
@@ -1501,7 +1504,7 @@ app-landing-footer {
 }
 
 .cart-checkout textarea {
-  min-height: 72px;
+  min-height: 54px;
   resize: vertical;
 }
 
@@ -1524,10 +1527,44 @@ app-landing-footer {
   color: #050605;
 }
 
+.paypal-checkout {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, .14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .06);
+}
+
+.paypal-checkout span,
+.paypal-checkout small {
+  color: rgba(255, 255, 255, .66);
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.paypal-checkout small {
+  line-height: 1.35;
+  text-transform: none;
+}
+
+#paypal-button-container {
+  min-height: 48px;
+}
+
 .cart-checkout button {
   border: 1px solid rgba(255, 255, 255, .18);
   background: transparent;
   color: #fff;
+}
+
+.cart-checkout .paypal-placeholder {
+  min-height: 44px;
+  background: rgba(255, 255, 255, .045);
+  color: rgba(255, 255, 255, .7);
+  cursor: not-allowed;
 }
 
 .empty-cart {
@@ -1720,8 +1757,8 @@ app-landing-footer {
   position: absolute;
   top: 0;
   right: 0;
-  display: grid;
-  grid-template-rows: auto 1fr auto;
+  display: flex;
+  flex-direction: column;
   gap: 16px;
   width: min(100%, 460px);
   max-width: 100vw;
