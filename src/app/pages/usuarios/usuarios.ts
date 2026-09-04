@@ -1,10 +1,10 @@
 import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, inject, NgZone, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { finalize } from 'rxjs';
+import { finalize, timeout } from 'rxjs';
 import { UsuarioRegistrado } from '../../core/modelos/modelos-administracion';
 import { DatosGimnasioService } from '../../core/servicios/datos-gimnasio.service';
 
@@ -27,7 +27,11 @@ export class PaginaUsuariosComponent implements OnInit {
   readonly roleFilters: FiltroRol[] = ['Todos', 'ADMIN', 'RECEPCION', 'CLIENTE'];
   private readonly destroyRef = inject(DestroyRef);
 
-  constructor(private data: DatosGimnasioService) {}
+  constructor(
+    private data: DatosGimnasioService,
+    private zone: NgZone,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.cargarUsuarios();
@@ -41,11 +45,12 @@ export class PaginaUsuariosComponent implements OnInit {
     this.data.obtenerUsuariosRegistrados()
       .pipe(
         takeUntilDestroyed(this.destroyRef),
-        finalize(() => this.loading = false)
+        timeout(10000),
+        finalize(() => this.updateView(() => this.loading = false))
       )
       .subscribe({
-        next: usuarios => this.usuarios = usuarios,
-        error: (error: HttpErrorResponse) => this.procesarError(error)
+        next: usuarios => this.updateView(() => this.usuarios = usuarios),
+        error: error => this.updateView(() => this.procesarError(error))
       });
   }
 
@@ -93,7 +98,17 @@ export class PaginaUsuariosComponent implements OnInit {
       .toUpperCase() || 'US';
   }
 
-  private procesarError(error: HttpErrorResponse): void {
+  private procesarError(error: HttpErrorResponse | Error): void {
+    if (error.name === 'TimeoutError') {
+      this.error = 'El servidor tardó demasiado en responder. Revisa Docker e intenta nuevamente.';
+      return;
+    }
+
+    if (!(error instanceof HttpErrorResponse)) {
+      this.error = 'No se pudo cargar la lista de usuarios. Intenta nuevamente.';
+      return;
+    }
+
     if (error.status === 401) {
       this.sessionExpired = true;
       this.error = 'Tu sesión expiró o el token ya no es válido. Inicia sesión nuevamente.';
@@ -111,5 +126,12 @@ export class PaginaUsuariosComponent implements OnInit {
     }
 
     this.error = 'No se pudo cargar la lista de usuarios. Intenta nuevamente.';
+  }
+
+  private updateView(update: () => void): void {
+    this.zone.run(() => {
+      update();
+      this.cdr.markForCheck();
+    });
   }
 }
