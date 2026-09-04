@@ -1,4 +1,5 @@
 export type ModuloAdministrativo =
+  | 'usuarios'
   | 'clientes'
   | 'membresias'
   | 'asistencia'
@@ -13,6 +14,19 @@ export interface MetaPagina {
   modulo: ModuloAdministrativo;
   eyebrow: string;
   title: string;
+}
+
+export interface UsuarioRegistrado {
+  id: number;
+  username: string;
+  email: string | null;
+  fullName: string;
+  phone: string | null;
+  role: 'ADMIN' | 'RECEPCION' | 'CLIENTE';
+  clientId: number | null;
+  active: boolean;
+  lastLoginAt: string | null;
+  createdAt: string;
 }
 
 export interface Cliente {

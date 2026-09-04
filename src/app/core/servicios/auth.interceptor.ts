@@ -1,8 +1,10 @@
 import { HttpInterceptorFn } from '@angular/common/http';
+import { inject } from '@angular/core';
 import { isApiUrl } from '../config/api.config';
+import { AuthService } from './auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const token = readToken();
+  const token = inject(AuthService).token;
 
   const isApiRequest = isApiUrl(req.url);
 
@@ -16,16 +18,3 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     }
   }));
 };
-
-function readToken(): string | null {
-  if (typeof localStorage !== 'undefined') {
-    const token = localStorage.getItem('fitadmin-token');
-    if (token) return token;
-  }
-
-  if (typeof sessionStorage !== 'undefined') {
-    return sessionStorage.getItem('fitadmin-token');
-  }
-
-  return null;
-}

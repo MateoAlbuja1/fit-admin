@@ -7,12 +7,10 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
 import { finalize, Subscription, timeout } from 'rxjs';
-import { apiBaseUrl } from '../../core/config/api.config';
+import { AuthService } from '../../core/servicios/auth.service';
 
 type AuthMode = 'welcome' | 'login';
-type UserRole = 'admin' | 'member';
 
 interface GymSlide {
   image: string;
@@ -22,15 +20,6 @@ interface TrailPoint {
   x: number;
   y: number;
   createdAt: number;
-}
-
-interface AuthResponse {
-  token: string;
-  user: {
-    username: string;
-    fullName: string;
-    role: 'ADMIN' | 'RECEPCION' | 'CLIENTE';
-  };
 }
 
 @Component({
@@ -48,8 +37,6 @@ export class LoginComponent implements OnInit, OnDestroy {
   remember = true;
   message = '';
   isLoading = false;
-
-  private readonly apiUrl = apiBaseUrl();
 
   private routeSub?: Subscription;
   private loadingFallback?: ReturnType<typeof setTimeout>;
@@ -78,7 +65,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private route: ActivatedRoute,
-    private http: HttpClient,
+    private auth: AuthService,
     private zone: NgZone,
     private cdr: ChangeDetectorRef
   ) {}
@@ -267,10 +254,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     }
 
     this.startLoadingFallback();
-    this.http.post<AuthResponse>(`${this.apiUrl}/auth/login`, {
-      email,
-      password: this.password
-    }).pipe(
+    this.auth.login(email, this.password, this.remember).pipe(
       timeout(10000),
       finalize(() => {
         this.updateView(() => {
@@ -279,18 +263,9 @@ export class LoginComponent implements OnInit, OnDestroy {
         });
       })
     ).subscribe({
-      next: response => {
+      next: session => {
         this.updateView(() => {
-          const role: UserRole = response.user.role === 'CLIENTE' ? 'member' : 'admin';
-          const name = response.user.fullName || response.user.username;
-          this.saveSession({
-            role,
-            username: response.user.username,
-            name,
-            initials: this.initials(name),
-            subtitle: role === 'admin' ? 'Administrador' : 'Miembro activo'
-          }, response.token);
-          this.router.navigate([role === 'admin' ? '/dashboard' : '/']);
+          this.router.navigate([session.role === 'admin' ? '/dashboard' : '/']);
         });
       },
       error: error => {
@@ -344,46 +319,4 @@ export class LoginComponent implements OnInit, OnDestroy {
     return 'No se pudo iniciar sesion. Intenta nuevamente.';
   }
 
-  private saveSession(session: { role: UserRole; username: string; name: string; initials: string; subtitle: string }, token: string): void {
-    const payload = JSON.stringify(session);
-
-    if (typeof localStorage !== 'undefined') {
-      if (this.remember) {
-        localStorage.setItem('fitadmin-session', payload);
-        localStorage.setItem('fitadmin-auth', 'true');
-        localStorage.setItem('fitadmin-token', token);
-      } else {
-        localStorage.removeItem('fitadmin-session');
-        localStorage.removeItem('fitadmin-auth');
-        localStorage.removeItem('fitadmin-token');
-      }
-
-      if (session.role === 'admin') {
-        localStorage.setItem('fitadmin-admin-session', payload);
-      } else {
-        localStorage.removeItem('fitadmin-admin-session');
-      }
-    }
-
-    if (typeof sessionStorage !== 'undefined') {
-      sessionStorage.setItem('fitadmin-session', payload);
-      sessionStorage.setItem('fitadmin-auth', 'true');
-      sessionStorage.setItem('fitadmin-token', token);
-
-      if (session.role === 'admin') {
-        sessionStorage.setItem('fitadmin-admin-session', payload);
-      } else {
-        sessionStorage.removeItem('fitadmin-admin-session');
-      }
-    }
-  }
-
-  private initials(name: string): string {
-    return name
-      .split(' ')
-      .filter(Boolean)
-      .slice(0, 2)
-      .map(part => part[0]?.toUpperCase())
-      .join('') || 'U';
-  }
 }

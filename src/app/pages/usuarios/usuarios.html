@@ -1,0 +1,86 @@
+<section class="metric-grid">
+  <article><span>Usuarios totales</span><strong>{{ usuarios.length }}</strong><small>Cuentas registradas</small></article>
+  <article><span>Usuarios activos</span><strong>{{ usuariosActivos }}</strong><small>Con acceso habilitado</small></article>
+  <article><span>Administradores</span><strong>{{ administradores }}</strong><small>Acceso administrativo</small></article>
+  <article><span>Clientes vinculados</span><strong>{{ clientesVinculados }}</strong><small>Con perfil de cliente</small></article>
+</section>
+
+<section class="content-card">
+  <div class="card-toolbar">
+    <div><h3>Directorio de usuarios</h3><span>Identidad, permisos y fecha de registro</span></div>
+    <label class="search-field">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4" /></svg>
+      <input [(ngModel)]="search" placeholder="Buscar por nombre, usuario o correo" aria-label="Buscar usuarios" />
+    </label>
+  </div>
+
+  <div class="filter-panel filter-panel--selects">
+    <label class="select-filter">
+      <span>Rol</span>
+      <div class="select-filter__control">
+        <select [(ngModel)]="roleFilter" name="userRoleFilter" aria-label="Filtrar usuarios por rol">
+          @for (role of roleFilters; track role) { <option [ngValue]="role">{{ role }}</option> }
+        </select>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>
+      </div>
+    </label>
+  </div>
+
+  <div class="table-scroll">
+    <table aria-label="Listado de usuarios registrados" [attr.aria-busy]="loading">
+      <thead>
+        <tr>
+          <th scope="col">ID</th>
+          <th scope="col">Nombre</th>
+          <th scope="col">Correo</th>
+          <th scope="col">Fecha de registro</th>
+          <th scope="col">Rol</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (loading) {
+          <tr>
+            <td colspan="5">
+              <div class="users-feedback" role="status" aria-live="polite">
+                <span class="users-spinner" aria-hidden="true"></span>
+                <strong>Cargando...</strong>
+                <span>Consultando los usuarios en el servidor</span>
+              </div>
+            </td>
+          </tr>
+        } @else if (error) {
+          <tr>
+            <td colspan="5">
+              <div class="users-feedback users-feedback--error" role="alert">
+                <span class="users-feedback__icon" aria-hidden="true">!</span>
+                <strong>No fue posible cargar los usuarios</strong>
+                <span>{{ error }}</span>
+                <div class="users-feedback__actions">
+                  @if (sessionExpired) {
+                    <a class="users-feedback__login" routerLink="/login">Iniciar sesión</a>
+                  } @else {
+                    <button class="text-button" type="button" (click)="cargarUsuarios()">Reintentar</button>
+                  }
+                </div>
+              </div>
+            </td>
+          </tr>
+        } @else {
+          @for (usuario of usuariosFiltrados; track usuario.id) {
+            <tr>
+              <td class="user-id">#{{ usuario.id }}</td>
+              <td><div class="person-cell"><span>{{ iniciales(usuario.fullName) }}</span><div><strong>{{ usuario.fullName }}</strong><small>&#64;{{ usuario.username }}</small></div></div></td>
+              <td>{{ usuario.email || 'Sin correo registrado' }}</td>
+              <td>{{ usuario.createdAt | date:'dd MMM yyyy, HH:mm' }}</td>
+              <td><span class="badge" [class.badge--warning]="usuario.role === 'RECEPCION'" [class.badge--muted]="usuario.role === 'CLIENTE'">{{ etiquetaRol(usuario.role) }}</span></td>
+            </tr>
+          } @empty {
+            <tr><td colspan="5"><div class="empty-state"><strong>Sin usuarios</strong><span>No hay resultados para los filtros seleccionados.</span></div></td></tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="table-footer"><span>Mostrando {{ usuariosFiltrados.length }} de {{ usuarios.length }} usuarios</span></div>
+</section>

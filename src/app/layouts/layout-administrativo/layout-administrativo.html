@@ -14,6 +14,9 @@
 
       <section class="nav-section">
         <p class="nav-label">Gestión</p>
+        @if ((role$ | async) === 'ADMIN') {
+          <a class="nav-item" routerLink="/usuarios" routerLinkActive="active" title="Usuarios registrados"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm7-7h6M19 1v6" /></svg><span>Usuarios</span><i></i></a>
+        }
         <a class="nav-item" routerLink="/clientes" routerLinkActive="active" title="Clientes"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm13 10v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg><span>Clientes</span><i></i></a>
         <a class="nav-item" routerLink="/membresias" routerLinkActive="active" title="Membresías"><svg viewBox="0 0 24 24"><path d="M20 12v9H4v-9M2 7h20v5H2V7Zm8 0V4a2 2 0 1 0-4 0c0 3 4 3 4 3Zm4 0V4a2 2 0 1 1 4 0c0 3-4 3-4 3ZM12 7v14" /></svg><span>Membresías</span><i></i></a>
       </section>

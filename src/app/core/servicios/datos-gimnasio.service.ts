@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { catchError, forkJoin, of } from 'rxjs';
+import { catchError, forkJoin, Observable, of } from 'rxjs';
 import {
   AlertaAdministrativa,
   Cliente,
@@ -9,7 +9,8 @@ import {
   PedidoTienda,
   Pago,
   RegistroAsistencia,
-  Suplemento
+  Suplemento,
+  UsuarioRegistrado
 } from '../modelos/modelos-administracion';
 import { apiBaseUrl } from '../config/api.config';
 
@@ -213,6 +214,10 @@ export class DatosGimnasioService {
 
   obtenerHistorialLogin() {
     return this.http.get<Array<Record<string, unknown>>>(`${this.apiUrl}/auth/login-history`, this.authOptions());
+  }
+
+  obtenerUsuariosRegistrados(): Observable<UsuarioRegistrado[]> {
+    return this.http.get<UsuarioRegistrado[]>(`${this.apiUrl}/auth/users`, this.authOptions());
   }
 
   private authOptions() {

@@ -1,14 +1,16 @@
+import { AsyncPipe } from '@angular/common';
 import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { filter, Subscription } from 'rxjs';
+import { filter, Observable, Subscription } from 'rxjs';
 import { MetaPagina } from '../../core/modelos/modelos-administracion';
 import { AccionPaginaAdminService } from '../../core/servicios/accion-pagina-admin.service';
+import { ApiUserRole, AuthService } from '../../core/servicios/auth.service';
 import { DatosGimnasioService } from '../../core/servicios/datos-gimnasio.service';
 
 @Component({
   selector: 'app-layout-administrativo',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, RouterOutlet],
+  imports: [AsyncPipe, RouterLink, RouterLinkActive, RouterOutlet],
   templateUrl: './layout-administrativo.html',
   styleUrl: './layout-administrativo.css',
   encapsulation: ViewEncapsulation.None
@@ -18,14 +20,17 @@ export class LayoutAdministrativoComponent implements OnInit, OnDestroy {
   darkMode = true;
   showAlerts = false;
   alertasLeidas = false;
+  readonly role$: Observable<ApiUserRole | null>;
   meta: MetaPagina = { modulo: 'clientes', eyebrow: 'Administración', title: 'Clientes' };
   private navigationSub?: Subscription;
 
   constructor(
     private router: Router,
+    private auth: AuthService,
     public data: DatosGimnasioService,
     public pageActions: AccionPaginaAdminService
   ) {
+    this.role$ = this.auth.role$;
     if (typeof localStorage !== 'undefined') {
       this.darkMode = localStorage.getItem('fitadmin-theme-v2') !== 'light';
     }
@@ -70,18 +75,7 @@ export class LayoutAdministrativoComponent implements OnInit, OnDestroy {
   }
 
   logout(): void {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.removeItem('fitadmin-session');
-      localStorage.removeItem('fitadmin-auth');
-      localStorage.removeItem('fitadmin-admin-session');
-    }
-
-    if (typeof sessionStorage !== 'undefined') {
-      sessionStorage.removeItem('fitadmin-session');
-      sessionStorage.removeItem('fitadmin-auth');
-      sessionStorage.removeItem('fitadmin-admin-session');
-    }
-
+    this.auth.logout();
     this.router.navigate(['/login']);
   }
 

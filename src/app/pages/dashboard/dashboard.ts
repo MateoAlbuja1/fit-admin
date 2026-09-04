@@ -1,7 +1,9 @@
+import { AsyncPipe } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { catchError, forkJoin, of, switchMap } from 'rxjs';
+import { catchError, forkJoin, Observable, of, switchMap } from 'rxjs';
+import { ApiUserRole, AuthService } from '../../core/servicios/auth.service';
 import { DatosGimnasioService } from '../../core/servicios/datos-gimnasio.service';
 
 type PeriodoDashboard = 'dia' | 'semana' | 'mes';
@@ -49,7 +51,7 @@ interface DashboardSummary {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [RouterLink, FormsModule],
+  imports: [AsyncPipe, RouterLink, FormsModule],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })
@@ -67,6 +69,7 @@ export class DashboardComponent implements OnInit {
   dashboardSales: Array<Record<string, unknown>> = [];
   dashboardAttendance: Array<Record<string, unknown>> = [];
   dashboardMemberships: Array<Record<string, unknown>> = [];
+  readonly role$: Observable<ApiUserRole | null>;
 
   readonly adminUser: DashboardUser = {
     role: 'admin',
@@ -115,8 +118,10 @@ export class DashboardComponent implements OnInit {
 
   constructor(
     public data: DatosGimnasioService,
+    private auth: AuthService,
     private router: Router
   ) {
+    this.role$ = this.auth.role$;
     if (typeof localStorage !== 'undefined') {
       this.darkMode = localStorage.getItem('fitadmin-theme-v2') !== 'light';
     }
@@ -377,20 +382,7 @@ export class DashboardComponent implements OnInit {
   }
 
   logout(): void {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.removeItem('fitadmin-session');
-      localStorage.removeItem('fitadmin-auth');
-      localStorage.removeItem('fitadmin-token');
-      localStorage.removeItem('fitadmin-admin-session');
-    }
-
-    if (typeof sessionStorage !== 'undefined') {
-      sessionStorage.removeItem('fitadmin-session');
-      sessionStorage.removeItem('fitadmin-auth');
-      sessionStorage.removeItem('fitadmin-token');
-      sessionStorage.removeItem('fitadmin-admin-session');
-    }
-
+    this.auth.logout();
     this.router.navigate(['/login']);
   }
 
@@ -578,7 +570,7 @@ export class DashboardComponent implements OnInit {
   }
 
   private loadCurrentUser(): DashboardUser {
-    const session = this.readSession();
+    const session = this.auth.currentUser;
 
     if (session?.role === 'member') {
       return {
@@ -601,27 +593,6 @@ export class DashboardComponent implements OnInit {
     }
 
     return this.adminUser;
-  }
-
-  private readSession(): Partial<DashboardUser> | null {
-    const raw = this.readStorage('local') ?? this.readStorage('session');
-    if (!raw) return null;
-
-    try {
-      return JSON.parse(raw) as Partial<DashboardUser>;
-    } catch {
-      return null;
-    }
-  }
-
-  private readStorage(type: 'local' | 'session'): string | null {
-    if (type === 'local' && typeof localStorage !== 'undefined') {
-      return localStorage.getItem('fitadmin-session');
-    }
-    if (type === 'session' && typeof sessionStorage !== 'undefined') {
-      return sessionStorage.getItem('fitadmin-session');
-    }
-    return null;
   }
 
   private safeText(value: unknown, fallback: string): string {

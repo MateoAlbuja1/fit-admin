@@ -1,50 +1,25 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-
-interface StoredSession {
-  role?: 'admin' | 'member';
-}
+import { AuthService } from './auth.service';
 
 export const adminGuard: CanActivateFn = () => {
   const router = inject(Router);
+  const auth = inject(AuthService);
 
-  if (isAdminSession()) {
+  if (auth.token && auth.currentUser?.role === 'admin') {
     return true;
   }
 
   return router.createUrlTree(['/login']);
 };
 
-function isAdminSession(): boolean {
-  const session = readSession();
-  const token = readToken();
-  return Boolean(token && session?.role === 'admin');
-}
+export const adminOnlyGuard: CanActivateFn = () => {
+  const router = inject(Router);
+  const auth = inject(AuthService);
 
-function readSession(): StoredSession | null {
-  const raw = readStorage('fitadmin-session');
-  if (!raw) return null;
-
-  try {
-    return JSON.parse(raw) as StoredSession;
-  } catch {
-    return null;
-  }
-}
-
-function readToken(): string | null {
-  return readStorage('fitadmin-token');
-}
-
-function readStorage(key: string): string | null {
-  if (typeof localStorage !== 'undefined') {
-    const value = localStorage.getItem(key);
-    if (value) return value;
+  if (auth.token && auth.currentUser?.apiRole === 'ADMIN') {
+    return true;
   }
 
-  if (typeof sessionStorage !== 'undefined') {
-    return sessionStorage.getItem(key);
-  }
-
-  return null;
-}
+  return router.createUrlTree(auth.token ? ['/dashboard'] : ['/login']);
+};

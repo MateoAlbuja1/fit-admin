@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { adminGuard } from './core/servicios/admin.guard';
+import { adminGuard, adminOnlyGuard } from './core/servicios/admin.guard';
 
 export const routes: Routes = [
   {
@@ -31,6 +31,12 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./layouts/layout-administrativo/layout-administrativo').then(m => m.LayoutAdministrativoComponent),
     children: [
+      {
+        path: 'usuarios',
+        canActivate: [adminOnlyGuard],
+        loadComponent: () => import('./pages/usuarios/usuarios').then(m => m.PaginaUsuariosComponent),
+        data: { meta: { modulo: 'usuarios', eyebrow: 'Control de acceso', title: 'Usuarios registrados' } }
+      },
       {
         path: 'clientes',
         loadComponent: () => import('./pages/clientes/clientes').then(m => m.PaginaClientesComponent),
