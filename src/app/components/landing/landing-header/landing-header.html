@@ -1,5 +1,5 @@
 <header class="landing-header">
-  <p class="motivational-quote">Sueña sin limites, vive sin miedos.</p>
+  <p class="motivational-quote">NO BUSQUES EXCUSAS. BUSCA RESULTADOS.</p>
 
   <form class="search" role="search" (submit)="submitSearch($event)">
     <span class="search-icon" aria-hidden="true">
@@ -38,6 +38,13 @@
         <b>{{ cartCount }}</b>
       }
     </button>
-    <a class="login-link" routerLink="/login">Iniciar sesion</a>
+    @if (isAuthenticated) {
+      <button class="session-link" type="button" (click)="profileClick.emit()" aria-label="Abrir mi perfil">
+        <span class="material-icons" aria-hidden="true">person</span>
+        <span>Mi perfil</span>
+      </button>
+    } @else {
+      <a class="session-link" routerLink="/login">Iniciar sesión</a>
+    }
   </div>
 </header>

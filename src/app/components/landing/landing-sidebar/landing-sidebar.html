@@ -1,9 +1,10 @@
 <aside class="landing-sidebar" aria-label="Menu lateral publico">
   <header>
-    <span class="brand-logo"><img src="/assets/img/wx-fitness-gym-logo.png" [alt]="gymName" /></span>
+    <span class="brand-logo" aria-hidden="true">
+      <span class="material-icons">fitness_center</span>
+    </span>
     <div>
       <strong>{{ gymName }}</strong>
-      <small>{{ gymSector ? 'Fitness Gym - ' + gymSector : 'Fitness Gym' }}</small>
     </div>
   </header>
 

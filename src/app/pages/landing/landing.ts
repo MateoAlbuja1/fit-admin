@@ -66,6 +66,12 @@ interface PublicGymSettings {
   openingHours: string;
 }
 
+const OFFICIAL_GYM_NAME = 'WX GYM';
+const OFFICIAL_WHATSAPP_LOCAL = '0969953775';
+const OFFICIAL_WHATSAPP_INTERNATIONAL = '593969953775';
+const OFFICIAL_GYM_EMAIL = 'contacto@wxgym.local';
+const DEFAULT_WHATSAPP_MESSAGE = 'Hola WX GYM, deseo información sobre el gimnasio.';
+
 interface PaypalConfig {
   enabled: boolean;
   clientId: string;
@@ -144,11 +150,11 @@ export class LandingComponent implements OnInit {
   activeServiceName = 'Musculacion';
   memberSession: MemberSession | null = null;
   publicGymSettings: PublicGymSettings = {
-    name: 'GX GYM',
+    name: OFFICIAL_GYM_NAME,
     sector: '',
     city: 'Quito',
-    phone: '0980674115',
-    email: 'fitadmin@gmail.com',
+    phone: OFFICIAL_WHATSAPP_LOCAL,
+    email: OFFICIAL_GYM_EMAIL,
     address: 'Quito, Ecuador',
     openingHours: 'Lunes a Viernes 08:00 - 21:00'
   };
@@ -175,11 +181,11 @@ export class LandingComponent implements OnInit {
 
   readonly slides: CarouselSlide[] = [
     {
-      eyebrow: 'GX GYM',
+      eyebrow: OFFICIAL_GYM_NAME,
       title: 'Construye tu mejor version',
       description: 'Entrena fuerza, cardio y acondicionamiento con enfoque, disciplina y maquinas listas para progresar cada semana.',
       image: '/assets/img/gym-carousel-1.jpg',
-      alt: 'Area principal de entrenamiento de GX GYM'
+      alt: 'Area principal de entrenamiento de WX GYM'
     },
     {
       eyebrow: 'Fuerza y musculacion',
@@ -193,21 +199,21 @@ export class LandingComponent implements OnInit {
       title: 'Concentrate en tu progreso',
       description: 'Un espacio moderno para entrenar sin distracciones, mantener constancia y superar tus marcas.',
       image: '/assets/img/gym-carousel-4.jpg',
-      alt: 'Zona moderna de entrenamiento de GX GYM'
+      alt: 'Zona moderna de entrenamiento de WX GYM'
     },
     {
       eyebrow: 'Cardio y acondicionamiento',
       title: 'Resistencia para rendir mas',
       description: 'Combina cardio, fuerza y acondicionamiento para ganar energia, control y mejor condicion fisica.',
       image: '/assets/img/gym-cycling-zone.jpg',
-      alt: 'Zona de cardio y bicicletas de GX GYM'
+      alt: 'Zona de cardio y bicicletas de WX GYM'
     },
     {
       eyebrow: 'Entrenamiento real',
       title: 'Haz que cada sesion cuente',
       description: 'Rutinas, seguimiento y equipo disponible para convertir la constancia en resultados visibles.',
       image: '/assets/img/gym-carousel-3.jpg',
-      alt: 'Interior moderno de GX GYM'
+      alt: 'Interior moderno de WX GYM'
     }
   ];
 
@@ -702,7 +708,7 @@ export class LandingComponent implements OnInit {
   resultCards: ResultCard[] = [
     { value: '5.0', label: 'resenas', detail: 'Opiniones reales de clientes.' },
     { value: 'Quito', label: 'ubicacion', detail: 'Ecuador.' },
-    { value: 'GX', label: 'fitness gym', detail: 'Rutinas, fuerza y bienestar.' }
+    { value: 'WX', label: 'WX GYM', detail: 'Rutinas, fuerza y bienestar.' }
   ];
 
   private readonly searchIndex: SearchResult[] = [
@@ -832,7 +838,7 @@ export class LandingComponent implements OnInit {
   }
 
   get gymName(): string {
-    return this.publicGymSettings.name;
+    return OFFICIAL_GYM_NAME;
   }
 
   get gymAddress(): string {
@@ -840,7 +846,7 @@ export class LandingComponent implements OnInit {
   }
 
   get gymPhone(): string {
-    return this.publicGymSettings.phone;
+    return OFFICIAL_WHATSAPP_LOCAL;
   }
 
   get gymEmail(): string {
@@ -869,11 +875,11 @@ export class LandingComponent implements OnInit {
   }
 
   get plainWhatsappUrl(): string {
-    return `https://wa.me/${this.whatsappNumber()}`;
+    return this.buildWhatsappUrl(DEFAULT_WHATSAPP_MESSAGE);
   }
 
   get whatsappSignupUrl(): string {
-    return this.buildWhatsappUrl(`Hola ${this.gymName}, quiero informacion para inscribirme y reservar mi evaluacion fisica.`);
+    return this.buildWhatsappUrl(DEFAULT_WHATSAPP_MESSAGE);
   }
 
   get cartWhatsappUrl(): string {
@@ -1279,7 +1285,7 @@ export class LandingComponent implements OnInit {
   }
 
   private buildWhatsappUrl(message: string): string {
-    return `${this.plainWhatsappUrl}?text=${encodeURIComponent(message)}`;
+    return `https://wa.me/${OFFICIAL_WHATSAPP_INTERNATIONAL}?text=${encodeURIComponent(message)}`;
   }
 
   private buildOrderWhatsappUrl(orderCode: string): string {
@@ -1304,10 +1310,7 @@ export class LandingComponent implements OnInit {
   }
 
   private whatsappNumber(): string {
-    const digits = this.publicGymSettings.phone.replace(/\D/g, '');
-    if (digits.startsWith('593')) return digits;
-    if (digits.startsWith('0') && digits.length >= 9) return `593${digits.slice(1)}`;
-    return digits || '593980674115';
+    return OFFICIAL_WHATSAPP_INTERNATIONAL;
   }
 
   private mapQuery(): string {
@@ -1320,11 +1323,11 @@ export class LandingComponent implements OnInit {
     ).subscribe(settings => {
       if (!settings) return;
       this.publicGymSettings = {
-        name: this.text(settings['name'], this.publicGymSettings.name),
+        name: OFFICIAL_GYM_NAME,
         sector: this.text(settings['sector'], this.publicGymSettings.sector),
         city: this.text(settings['city'], this.publicGymSettings.city),
-        phone: this.text(settings['phone'], this.publicGymSettings.phone),
-        email: this.text(settings['email'], this.publicGymSettings.email),
+        phone: OFFICIAL_WHATSAPP_LOCAL,
+        email: OFFICIAL_GYM_EMAIL,
         address: this.text(settings['address'], this.publicGymSettings.address),
         openingHours: this.text(settings['openingHours'], this.publicGymSettings.openingHours)
       };
@@ -1332,7 +1335,7 @@ export class LandingComponent implements OnInit {
       this.resultCards = [
         this.resultCards[0],
         { value: location, label: 'ubicacion', detail: this.publicGymSettings.sector ? this.publicGymSettings.city : 'Ecuador.' },
-        { value: this.publicGymSettings.name.split(' ')[0] || 'GYM', label: 'fitness gym', detail: 'Rutinas, fuerza y bienestar.' }
+        { value: 'WX', label: 'WX GYM', detail: 'Rutinas, fuerza y bienestar.' }
       ];
     });
   }

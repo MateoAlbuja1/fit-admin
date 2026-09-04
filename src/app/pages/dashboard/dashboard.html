@@ -1,20 +1,21 @@
-<div class="dashboard-shell" [class.drawer-collapsed]="drawerCollapsed" [class.dark-mode]="darkMode" [class.member-mode]="isMember">
-  <aside class="drawer" aria-label="Menú principal">
+<div class="dashboard-shell" [class.drawer-collapsed]="drawerCollapsed" [class.mobile-nav-open]="mobileNavOpen" [class.dark-mode]="darkMode" [class.member-mode]="isMember">
+  @if (mobileNavOpen) { <button class="drawer-backdrop" type="button" aria-label="Cerrar menú" (click)="closeMobileNav()"></button> }
+  <aside class="drawer" id="dashboard-navigation" aria-label="Menú principal">
     <button class="drawer-toggle" type="button" (click)="toggleDrawer()" [attr.aria-label]="drawerCollapsed ? 'Expandir menú' : 'Contraer menú'">
       <svg viewBox="0 0 24 24"><path [attr.d]="drawerCollapsed ? 'm9 18 6-6-6-6' : 'm15 18-6-6 6-6'" /></svg>
     </button>
 
     <div class="brand">
-      <span class="brand-mark">FA</span>
+      <span class="brand-mark">WX</span>
       <div class="brand-copy">
-        <strong>FIT ADMIN</strong>
-        <span>Gestión de gimnasios</span>
+        <strong>WX GYM</strong>
+        <span>Gestión integral</span>
       </div>
     </div>
 
     <div class="gym-card">
-      <span class="gym-card__logo"><img src="/assets/img/wx-fitness-gym-logo.png" alt="GX GYM" /></span>
-      <div><strong>GX GYM</strong><span>Fitness Gym</span></div>
+      <span class="gym-card__logo"><img src="/assets/img/wx-fitness-gym-logo.png" alt="WX GYM" /></span>
+      <div><strong>WX GYM</strong><span>Entrenamiento y bienestar</span></div>
       <span class="status-dot" title="Gimnasio activo"></span>
     </div>
 
@@ -59,7 +60,7 @@
     </nav>
 
     <div class="drawer-footer">
-      <div class="support-card"><span>GIMNASIO</span><strong>GX GYM</strong></div>
+      <div class="support-card"><span>GIMNASIO</span><strong>WX GYM</strong></div>
       <div class="profile-mini"><span class="avatar">{{ currentUser.initials }}</span><span><strong>{{ currentUser.name }}</strong><small>{{ currentUser.subtitle }}</small></span></div>
     </div>
   </aside>
@@ -70,6 +71,7 @@
     }
 
     <header class="topbar">
+      <button class="mobile-menu-toggle" type="button" aria-controls="dashboard-navigation" [attr.aria-expanded]="mobileNavOpen" [attr.aria-label]="mobileNavOpen ? 'Cerrar menú' : 'Abrir menú'" (click)="toggleMobileNav()"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" /></svg></button>
       <div>
         <span class="eyebrow">{{ topbarEyebrow }}</span>
         <h1>{{ topbarTitle }}</h1>
@@ -127,7 +129,7 @@
     <section class="welcome-row">
       <div>
         <p>Buenos días, Mateo</p>
-        <span>Rendimiento operativo de GX GYM en tiempo real.</span>
+        <span>Rendimiento operativo de WX GYM en tiempo real.</span>
       </div>
       <div class="welcome-meta">
         <span class="last-update">Actualizado {{ lastUpdatedText }}</span>
@@ -277,11 +279,11 @@
     </section>
 
     <footer class="dashboard-footer">
-      <div class="footer-brand"><span class="footer-mark">FA</span><div><strong>FIT ADMIN</strong><small>Administración inteligente para gimnasios</small></div></div>
+      <div class="footer-brand"><span class="footer-mark">WX</span><div><strong>WX GYM</strong><small>Administración inteligente</small></div></div>
       <div class="footer-info">
-        <span class="footer-location"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>GX GYM</span>
+        <span class="footer-location"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>WX GYM</span>
         <span class="system-status"><i></i> Todos los sistemas operativos</span>
-        <span class="footer-version">© 2026 FIT ADMIN · v1.0.0</span>
+        <span class="footer-version">© 2026 WX GYM · v1.0.0</span>
       </div>
     </footer>
   </main>

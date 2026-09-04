@@ -22,10 +22,11 @@
 .motivational-quote {
   margin: 0;
   color: rgba(255, 255, 255, .72);
-  font-size: 15px;
-  font-style: italic;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: .55px;
   line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 .search {
@@ -174,24 +175,28 @@ svg {
   font-weight: 950;
 }
 
-.login-link {
+.session-link {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 7px;
   min-height: 42px;
+  border: 1px solid #fff;
   border-radius: 8px;
+  background: #fff;
+  color: #050605;
   padding: 0 18px;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, .26);
+  cursor: pointer;
+  font-family: inherit;
   font-size: 13px;
   font-weight: 950;
   text-decoration: none;
   white-space: nowrap;
 }
 
-.login-link {
-  border: 1px solid #fff;
-  background: #fff;
-  color: #050605;
-  box-shadow: 0 14px 34px rgba(0, 0, 0, .26);
+.session-link .material-icons {
+  font-size: 19px;
 }
 
 @media (max-width: 860px) {
@@ -220,7 +225,7 @@ svg {
     justify-content: stretch;
   }
 
-  .login-link {
+  .session-link {
     padding: 0 14px;
   }
 
@@ -232,5 +237,31 @@ svg {
 @media (max-width: 720px) {
   :host {
     margin-left: 0;
+  }
+}
+
+@media (max-width: 420px) {
+  .landing-header {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .motivational-quote {
+    grid-column: 1;
+    font-size: 11px;
+    letter-spacing: .3px;
+  }
+
+  .search,
+  .header-actions {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .header-actions {
+    justify-content: flex-end;
+  }
+
+  .session-link {
+    padding: 0 11px;
   }
 }

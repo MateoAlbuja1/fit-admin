@@ -31,11 +31,11 @@
           </header>
 
           <div class="settings-form">
-            <label><span>Nombre comercial</span><input [(ngModel)]="gimnasio.nombre" name="gymName" /></label>
+            <label><span>Nombre comercial</span><input [(ngModel)]="gimnasio.nombre" name="gymName" readonly aria-readonly="true" /></label>
             <label><span>Sede / barrio</span><input [(ngModel)]="gimnasio.sede" name="gymBranch" /></label>
             <label><span>Ciudad</span><input [(ngModel)]="gimnasio.ciudad" name="gymCity" /></label>
-            <label><span>Telefono</span><input [(ngModel)]="gimnasio.telefono" name="gymPhone" /></label>
-            <label><span>Correo</span><input type="email" [(ngModel)]="gimnasio.email" name="gymEmail" /></label>
+            <label><span>Telefono / WhatsApp</span><input [(ngModel)]="gimnasio.telefono" name="gymPhone" readonly aria-readonly="true" /></label>
+            <label><span>Correo</span><input type="email" [(ngModel)]="gimnasio.email" name="gymEmail" readonly aria-readonly="true" /></label>
             <label class="settings-form__full"><span>Direccion</span><input [(ngModel)]="gimnasio.direccion" name="gymAddress" /></label>
           </div>
 

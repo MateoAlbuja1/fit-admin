@@ -40,15 +40,12 @@ header {
   border: 1px solid rgba(255, 255, 255, .16);
   border-radius: 15px;
   background: #050505;
-  padding: 6px;
   box-shadow: 0 14px 28px rgba(0, 0, 0, .35);
 }
 
-.brand-logo img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+.brand-logo .material-icons {
+  color: #fff;
+  font-size: 30px;
 }
 
 header div {
@@ -64,17 +61,6 @@ header strong {
   font-weight: 950;
   letter-spacing: .5px;
   line-height: .95;
-  text-overflow: ellipsis;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-header small {
-  overflow: hidden;
-  color: rgba(255, 255, 255, .54);
-  font-size: 10px;
-  font-weight: 900;
-  letter-spacing: 1.1px;
   text-overflow: ellipsis;
   text-transform: uppercase;
   white-space: nowrap;
@@ -360,9 +346,9 @@ nav > .nav-group > button.is-expanded .dropdown-cue {
   }
 
   .brand-logo {
-    width: 76px;
+    width: 48px;
     height: 48px;
-    min-width: 76px;
+    min-width: 48px;
   }
 
   header div,

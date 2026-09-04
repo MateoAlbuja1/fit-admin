@@ -617,3 +617,141 @@ svg { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: 
   .nav-item,
   .drawer-collapsed .nav-item { width: auto; min-width: 0; flex: 1 1 0; }
 }
+
+/* Responsive drawer and compact dashboard layout */
+.mobile-menu-toggle,
+.drawer-backdrop { display: none; }
+
+@media (max-width: 768px) {
+  .dashboard-shell .drawer,
+  .dashboard-shell.drawer-collapsed .drawer {
+    z-index: 120;
+    inset: 0 auto 0 0;
+    display: flex;
+    width: min(86vw, 320px);
+    max-width: 320px;
+    height: 100vh;
+    height: 100dvh;
+    padding: 18px 14px;
+    overflow-x: hidden !important;
+    overflow-y: auto;
+    border-top: 0;
+    border-right: 1px solid #242424;
+    transform: translateX(-105%);
+    visibility: hidden;
+    transition: transform .24s ease, visibility .24s;
+  }
+  .dashboard-shell.mobile-nav-open .drawer { visibility: visible; transform: translateX(0); }
+  .dashboard-shell .drawer-backdrop {
+    position: fixed;
+    z-index: 115;
+    inset: 0;
+    display: block;
+    border: 0;
+    background: rgba(0, 0, 0, .58);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .24s ease;
+  }
+  .dashboard-shell.mobile-nav-open .drawer-backdrop { opacity: 1; pointer-events: auto; }
+
+  .dashboard-shell .brand,
+  .dashboard-shell .gym-card,
+  .dashboard-shell .drawer-footer { display: flex; }
+  .dashboard-shell .brand { justify-content: flex-start; padding-inline: 8px; }
+  .dashboard-shell .brand-copy,
+  .dashboard-shell .gym-card > div,
+  .dashboard-shell .gym-card .status-dot,
+  .dashboard-shell .nav-label,
+  .dashboard-shell .nav-item span,
+  .dashboard-shell .profile-mini > span:nth-child(2) { display: flex; }
+  .dashboard-shell .brand-copy,
+  .dashboard-shell .gym-card > div,
+  .dashboard-shell .profile-mini > span:nth-child(2) { flex-direction: column; }
+  .dashboard-shell .main-nav {
+    width: 100%;
+    min-width: 0;
+    flex: 1 0 auto;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 2px;
+    margin-top: 0;
+    padding-top: 8px;
+  }
+  .dashboard-shell .nav-section { display: flex; width: 100%; flex-direction: column; }
+  .dashboard-shell .nav-section--system { border-top: 1px solid #232323; }
+  .dashboard-shell .nav-item,
+  .dashboard-shell.drawer-collapsed .nav-item {
+    width: 100%;
+    min-height: 44px;
+    flex: 0 0 auto;
+    justify-content: flex-start;
+    gap: 11px;
+    padding: 0 12px;
+  }
+  .dashboard-shell .nav-item.active i,
+  .dashboard-shell.drawer-collapsed .nav-item.active i {
+    right: 0;
+    bottom: auto;
+    width: 3px;
+    height: 22px;
+  }
+  .dashboard-shell .main-content,
+  .dashboard-shell.drawer-collapsed .main-content {
+    margin-left: 0;
+    padding: 0 clamp(12px, 4vw, 22px) 34px;
+  }
+  .dashboard-shell .topbar {
+    width: calc(100% + (clamp(12px, 4vw, 22px) * 2));
+    min-height: 76px;
+    height: auto;
+    gap: 10px;
+    margin-inline: calc(clamp(12px, 4vw, 22px) * -1);
+    padding: 10px clamp(12px, 4vw, 22px);
+  }
+  .mobile-menu-toggle {
+    display: grid;
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    place-items: center;
+    border: 1px solid #d8d8d5;
+    border-radius: 10px;
+    background: #fff;
+    cursor: pointer;
+  }
+  .mobile-menu-toggle svg { width: 21px; height: 21px; }
+  .topbar > div:first-of-type { min-width: 0; flex: 1; }
+  .topbar h1 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .topbar-actions { flex: 0 0 auto; }
+  .icon-button,
+  .mobile-menu-toggle { min-width: 44px; min-height: 44px; }
+  .quick-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dashboard-footer { padding-bottom: 74px; }
+  .dark-mode .mobile-menu-toggle {
+    border-color: #2b3543;
+    background: #151d28;
+    color: #fff;
+  }
+}
+
+@media (max-width: 520px) {
+  .topbar .eyebrow { display: none; }
+  .dashboard-shell .topbar h1 { margin-top: 0; font-size: 21px; }
+  .search-shell { display: none; }
+  .date-chip { display: none; }
+  .welcome-row,
+  .dashboard-footer { align-items: flex-start; flex-direction: column; }
+  .welcome-meta { align-items: flex-start; }
+  .quick-actions { grid-template-columns: 1fr; }
+  .stats-grid { grid-template-columns: 1fr; }
+  .main-grid { grid-template-columns: 1fr; }
+  .products-table { overflow-x: auto; }
+  .table-head,
+  .product-row { min-width: 480px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-shell .drawer,
+  .dashboard-shell .drawer-backdrop { transition: none; }
+}

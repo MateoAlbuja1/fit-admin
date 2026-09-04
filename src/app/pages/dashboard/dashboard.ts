@@ -57,6 +57,7 @@ interface DashboardSummary {
 })
 export class DashboardComponent implements OnInit {
   drawerCollapsed = false;
+  mobileNavOpen = false;
   showAlerts = false;
   alertsRead = false;
   darkMode = true;
@@ -158,7 +159,7 @@ export class DashboardComponent implements OnInit {
   get welcomeSubtitle(): string {
     return this.isMember
       ? 'Tu resumen de entrenamiento, progreso y membresia.'
-      : 'Rendimiento operativo de GX GYM en tiempo real.';
+      : 'Rendimiento operativo de WX GYM en tiempo real.';
   }
 
   get alerts() {
@@ -362,6 +363,14 @@ export class DashboardComponent implements OnInit {
     this.drawerCollapsed = !this.drawerCollapsed;
   }
 
+  toggleMobileNav(): void {
+    this.mobileNavOpen = !this.mobileNavOpen;
+  }
+
+  closeMobileNav(): void {
+    this.mobileNavOpen = false;
+  }
+
   toggleAlerts(): void {
     this.showAlerts = !this.showAlerts;
   }
@@ -396,6 +405,7 @@ export class DashboardComponent implements OnInit {
   }
 
   goTo(route: string): void {
+    this.closeMobileNav();
     this.router.navigateByUrl(route);
   }
 

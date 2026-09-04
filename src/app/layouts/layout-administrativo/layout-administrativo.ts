@@ -17,6 +17,7 @@ import { DatosGimnasioService } from '../../core/servicios/datos-gimnasio.servic
 })
 export class LayoutAdministrativoComponent implements OnInit, OnDestroy {
   drawerCollapsed = false;
+  mobileNavOpen = false;
   darkMode = true;
   showAlerts = false;
   alertasLeidas = false;
@@ -42,6 +43,7 @@ export class LayoutAdministrativoComponent implements OnInit, OnDestroy {
       .pipe(filter(event => event instanceof NavigationEnd))
       .subscribe(() => {
         this.showAlerts = false;
+        this.mobileNavOpen = false;
         this.updateMeta();
       });
   }
@@ -57,6 +59,14 @@ export class LayoutAdministrativoComponent implements OnInit, OnDestroy {
 
   toggleDrawer(): void {
     this.drawerCollapsed = !this.drawerCollapsed;
+  }
+
+  toggleMobileNav(): void {
+    this.mobileNavOpen = !this.mobileNavOpen;
+  }
+
+  closeMobileNav(): void {
+    this.mobileNavOpen = false;
   }
 
   toggleTheme(): void {
