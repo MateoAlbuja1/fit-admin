@@ -21,7 +21,7 @@
   (openMemberProfile)="openMemberProfile()"
 />
 
-<nav class="mobile-bottom-nav" aria-label="Menu publico movil">
+<nav class="mobile-bottom-nav" aria-label="Menú público móvil">
   @for (item of sidebarItems; track item.anchor) {
     <button
       type="button"
@@ -136,31 +136,36 @@
   }
 
   @if (activeAnchor === 'servicios') {
-  <section id="servicios" class="landing-section section-panel services-view">
-    <div class="section-heading services-heading">
-      <span>Servicios GX</span>
-      <h2>Elige como quieres entrenar</h2>
-      <p>Selecciona un servicio desde el menu lateral y revisa lo esencial.</p>
-    </div>
+  <section
+    id="servicios"
+    class="landing-section section-panel services-view"
+  >
+    <h2 class="service-view-title" aria-live="polite">{{ selectedService.name }}</h2>
 
     <div class="services-workbench">
       <article class="service-experience">
         <div class="service-visual-zone">
           <figure>
-            <img [src]="selectedService.image" [alt]="selectedService.name" />
+            <img
+              [src]="selectedService.image"
+              [alt]="selectedService.name"
+              [class.service-photo--cardio]="selectedService.name === 'Cardio'"
+            />
             <figcaption>{{ selectedService.badge }}</figcaption>
           </figure>
-
-          <div class="session-summary">
-            <span>Sesion recomendada</span>
-            <strong>{{ selectedService.duration }}</strong>
-            <small>{{ selectedService.intensity }}</small>
-          </div>
         </div>
 
         <div class="service-program">
-          <span>{{ selectedService.focus }}</span>
-          <h3>{{ selectedService.name }}</h3>
+          <header class="service-program-header">
+            <span class="service-focus">{{ selectedService.focus }}</span>
+
+            <div class="session-summary">
+              <span>Sesión recomendada</span>
+              <strong>{{ selectedService.duration }}</strong>
+              <small>{{ selectedService.intensity }}</small>
+            </div>
+          </header>
+
           <p>{{ selectedService.description }}</p>
 
           <section class="training-goal-panel">
@@ -183,7 +188,9 @@
           </section>
 
           <div class="service-detail-actions">
-            <button type="button" (click)="requestService(selectedService)">Reservar evaluacion</button>
+            <button type="button" (click)="requestService(selectedService)">
+              {{ selectedService.primaryActionLabel || 'Reservar evaluación' }}
+            </button>
             <button type="button" (click)="navigateTo('planes')">Ver planes</button>
           </div>
         </div>

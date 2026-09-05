@@ -147,7 +147,7 @@ export class LandingComponent implements OnInit {
   };
   selectedPlan = '';
   activeStoreCategory = 'Todos';
-  activeServiceName = 'Musculacion';
+  activeServiceName = 'Musculación';
   memberSession: MemberSession | null = null;
   publicGymSettings: PublicGymSettings = {
     name: OFFICIAL_GYM_NAME,
@@ -236,11 +236,11 @@ export class LandingComponent implements OnInit {
       anchor: 'servicios',
       icon: 'fitness_center',
       children: [
-        { label: 'Musculacion', anchor: 'servicios:Musculacion' },
+        { label: 'Musculación', anchor: 'servicios:Musculación' },
         { label: 'Cardio', anchor: 'servicios:Cardio' },
         { label: 'Personalizado', anchor: 'servicios:Entrenamiento personalizado', badge: 'PRO', badgeTone: 'hot' },
         { label: 'Clases grupales', anchor: 'servicios:Clases grupales' },
-        { label: 'Evaluacion fisica', anchor: 'servicios:Evaluacion fisica' },
+        { label: 'Evaluación física', anchor: 'servicios:Evaluación física' },
         { label: 'Principiantes', anchor: 'servicios:Rutinas para principiantes' }
       ]
     },
@@ -250,88 +250,89 @@ export class LandingComponent implements OnInit {
 
   readonly services: LandingService[] = [
     {
-      name: 'Musculacion',
-      description: 'Entrena fuerza con maquinas, poleas y peso libre, siguiendo una progresion clara.',
-      image: '/assets/img/gym-carousel-1.jpg',
+      name: 'Musculación',
+      description: 'Entrena fuerza con máquinas, poleas y peso libre, siguiendo una progresión clara.',
+      image: '/assets/img/musculacion-wx-gym.png',
       badge: 'Fuerza',
       focus: 'Hipertrofia',
       duration: 'Rutina guiada',
       bestFor: 'Ganar masa',
       intensity: 'Media / alta',
-      trainingGoal: 'Fuerza, volumen y tecnica.',
-      sessionFlow: ['Calentamiento guiado.', 'Trabajo por grupo muscular.', 'Progresion de cargas.'],
-      tools: ['Peso libre', 'Poleas', 'Maquinas', 'Bancas'],
-      includes: ['Pesas libres y maquinas.', 'Rutina por grupos musculares.', 'Correccion basica de tecnica.', 'Progresion semanal.']
+      trainingGoal: 'Fuerza, volumen y técnica. Ganancia de hipertrofia, pérdida de grasa y recomposición corporal.',
+      sessionFlow: ['Calentamiento guiado.', 'Trabajo por grupo muscular.', 'Progresión de cargas.'],
+      tools: ['Peso libre', 'Poleas', 'Máquinas', 'Bancas'],
+      includes: ['Pesas libres y máquinas.', 'Rutina por grupos musculares.', 'Corrección básica de técnica.', 'Progresión semanal.']
     },
     {
       name: 'Cardio',
-      description: 'Mejora tu resistencia, energia y condicion fisica con sesiones bien medidas.',
-      image: '/assets/img/gym-carousel-5.jpg',
+      description: 'Mejora tu resistencia, energía y condición física con sesiones bien medidas.',
+      image: '/assets/img/cardio-wx-gym.jpg',
       badge: 'Resistencia',
-      focus: 'Quema calorica',
+      focus: 'Quema calórica',
       duration: '20 - 45 min',
       bestFor: 'Bajar grasa',
       intensity: 'Variable',
-      trainingGoal: 'Resistencia y condicion fisica.',
-      sessionFlow: ['Entrada progresiva.', 'Intervalos por nivel.', 'Vuelta a la calma.'],
+      trainingGoal: 'Resistencia y condición física.',
+      sessionFlow: ['Calentamiento guiado.', 'Trabajo por intervalo.', 'Progresión de ritmo.'],
       tools: ['Caminadora', 'Bicicleta', 'Circuitos', 'Peso corporal'],
       includes: ['Trabajo por intensidad.', 'Rutinas de resistencia.', 'Acondicionamiento progresivo.', 'Control de ritmo.']
     },
     {
       name: 'Entrenamiento personalizado',
-      description: 'Acompanamiento directo segun tu objetivo, nivel y disponibilidad semanal.',
-      image: '/assets/img/gym-cycling-zone.jpg',
+      description: 'Acompañamiento directo según tu objetivo, nivel y disponibilidad semanal.',
+      image: '/assets/img/entrenamiento-personalizado-wx-gym.png',
       badge: 'Coaching',
       focus: 'Plan a medida',
       duration: 'Seguimiento',
       bestFor: 'Objetivo claro',
       intensity: 'Personalizada',
       trainingGoal: 'Rutina ajustada a tu objetivo.',
-      sessionFlow: ['Revision inicial.', 'Ejercicios adecuados.', 'Ajuste de cargas.'],
-      tools: ['Evaluacion', 'Rutina', 'Seguimiento', 'Tecnica'],
-      includes: ['Evaluacion inicial.', 'Rutina personalizada.', 'Ajustes segun progreso.', 'Acompanamiento tecnico.']
+      sessionFlow: ['Revisión inicial.', 'Ejercicios adecuados.', 'Ajuste de cargas.'],
+      tools: ['Evaluación', 'Rutina', 'Seguimiento', 'Técnica'],
+      includes: ['Evaluación inicial.', 'Rutina personalizada.', 'Ajustes según progreso.', 'Acompañamiento técnico.']
     },
     {
       name: 'Clases grupales',
-      description: 'Entrena con energia de grupo, dinamicas intensas y ambiente motivador.',
-      image: '/assets/img/gym-carousel-4.jpg',
+      description: 'Entrena con energía de grupo, dinámicas intensas y ambiente motivador.',
+      image: '/assets/img/clases-grupales-wx-gym.png',
       badge: 'Equipo',
-      focus: 'Motivacion',
-      duration: 'Sesiones grupales',
+      focus: 'Motivación',
+      duration: '45 - 60 min',
       bestFor: 'Constancia',
-      intensity: 'Media / dinamica',
-      trainingGoal: 'Energia, ritmo y constancia.',
-      sessionFlow: ['Calentamiento grupal.', 'Circuito por estaciones.', 'Cierre activo.'],
+      intensity: 'Intensidad media / alta',
+      trainingGoal: 'Energía, ritmo y constancia.',
+      sessionFlow: ['Calentamiento grupal.', 'Circuito por estaciones.', 'Cierre activo y estiramiento.'],
       tools: ['Circuitos', 'Mancuernas', 'Bandas', 'Peso corporal'],
-      includes: ['Entrenamiento en equipo.', 'Circuitos dinamicos.', 'Ambiente motivador.', 'Trabajo de cuerpo completo.']
+      includes: ['Entrenamiento en equipo.', 'Circuitos dinámicos.', 'Ambiente motivador.', 'Trabajo de cuerpo completo.'],
+      primaryActionLabel: 'Reservar clase'
     },
     {
-      name: 'Evaluacion fisica',
+      name: 'Evaluación física',
       description: 'Conoce tu punto de partida y recibe una ruta inicial para entrenar con sentido.',
-      image: '/assets/img/gym-carousel-2.jpg',
-      badge: 'Diagnostico',
+      image: '/assets/img/evaluacion-fisica-wx-gym.png',
+      badge: 'Diagnóstico',
       focus: 'Punto inicial',
       duration: 'Primera visita',
       bestFor: 'Empezar bien',
-      intensity: 'Diagnostica',
-      trainingGoal: 'Saber por donde empezar.',
-      sessionFlow: ['Revision de objetivo.', 'Movilidad y condicion.', 'Rutina inicial.'],
-      tools: ['Medicion', 'Movilidad', 'Tecnica', 'Plan inicial'],
-      includes: ['Revision de objetivo.', 'Nivel de condicion fisica.', 'Recomendacion de rutina.', 'Orientacion de plan.']
+      intensity: 'Diagnóstica',
+      trainingGoal: 'Saber por dónde empezar.',
+      sessionFlow: ['Revisión de objetivo.', 'Movilidad y condición.', 'Rutina inicial.'],
+      tools: ['Medición', 'Movilidad', 'Técnica', 'Plan inicial'],
+      includes: ['Revisión de objetivo.', 'Nivel de condición física.', 'Recomendación de rutina.', 'Orientación de plan.']
     },
     {
       name: 'Rutinas para principiantes',
       description: 'Empieza seguro, sin improvisar, con ejercicios simples y progresivos.',
-      image: '/assets/img/gym-carousel-3.jpg',
+      image: '/assets/img/rutinas-principiantes-wx-gym.png',
       badge: 'Inicio',
-      focus: 'Base tecnica',
+      focus: 'Base técnica',
       duration: 'Paso a paso',
       bestFor: 'Primer mes',
       intensity: 'Progresiva',
       trainingGoal: 'Base segura para empezar.',
-      sessionFlow: ['Ejercicios base.', 'Practica guiada.', 'Rutina simple.'],
-      tools: ['Maquinas guiadas', 'Mancuernas', 'Bandas', 'Rutina base'],
-      includes: ['Ejercicios faciles de seguir.', 'Adaptacion progresiva.', 'Tecnica basica.', 'Confianza para entrenar solo.']
+      sessionFlow: ['Ejercicios base.', 'Práctica guiada.', 'Rutina simple.'],
+      tools: ['Máquinas guiadas', 'Mancuernas', 'Bandas', 'Rutina base'],
+      includes: ['Ejercicios fáciles de seguir.', 'Adaptación progresiva.', 'Técnica básica.', 'Confianza para entrenar solo.']
     }
   ];
 
@@ -859,7 +860,7 @@ export class LandingComponent implements OnInit {
 
   get gymSummary(): string {
     const location = [this.publicGymSettings.city, this.publicGymSettings.sector].filter(Boolean).join(' - ');
-    return `Entrenamiento, musculacion y bienestar${location ? ` en ${location}` : ''}.`;
+    return `Entrenamiento, musculación y bienestar${location ? ` en ${location}` : ''}.`;
   }
 
   get mapSearchUrl(): string {

@@ -13,6 +13,7 @@ export interface LandingService {
   sessionFlow: string[];
   tools: string[];
   includes: string[];
+  primaryActionLabel?: string;
 }
 
 @Component({
