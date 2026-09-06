@@ -4,9 +4,16 @@ import { ChangeDetectorRef, Component, EventEmitter, Inject, Input, OnChanges, O
 export interface CarouselSlide {
   eyebrow: string;
   title: string;
+  titleAccent: string;
   description: string;
   image: string;
   alt: string;
+}
+
+interface CarouselTitleParts {
+  before: string;
+  accent: string;
+  after: string;
 }
 
 @Component({
@@ -49,6 +56,26 @@ export class LandingCarouselComponent implements OnInit, OnChanges, OnDestroy {
 
   get activeSlide(): CarouselSlide | undefined {
     return this.slides[this.activeIndex] ?? this.slides[0];
+  }
+
+  get activeTitleParts(): CarouselTitleParts | undefined {
+    const slide = this.activeSlide;
+    if (!slide) return undefined;
+
+    const accentIndex = slide.title
+      .toLocaleLowerCase('es')
+      .indexOf(slide.titleAccent.toLocaleLowerCase('es'));
+
+    if (accentIndex < 0) {
+      return { before: slide.title, accent: '', after: '' };
+    }
+
+    const accentEnd = accentIndex + slide.titleAccent.length;
+    return {
+      before: slide.title.slice(0, accentIndex).trim(),
+      accent: slide.title.slice(accentIndex, accentEnd),
+      after: slide.title.slice(accentEnd).trim()
+    };
   }
 
   previous(): void {

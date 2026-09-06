@@ -11,7 +11,7 @@
   min-height: 100vh;
   background: #f5f5f3;
   color: var(--ink);
-  font-family: 'Barlow Condensed', 'Arial Narrow', Arial, Helvetica, sans-serif;
+  font-family: var(--wx-font-body);
 }
 
 * { box-sizing: border-box; }
@@ -39,17 +39,10 @@ svg { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: 
 .drawer-toggle svg { width: 13px; }
 
 .brand { display: flex; align-items: center; gap: 12px; padding: 0 8px 14px; }
-.brand-mark { display: grid; width: 40px; height: 40px; place-items: center; border: 1px solid #fff; border-radius: 9px; background: #fff; color: #090909; font-size: 13px; font-weight: 900; letter-spacing: .04em; }
 .brand-copy { display: flex; flex-direction: column; gap: 4px; }
 .brand-copy strong { font-size: 16px; letter-spacing: 1.4px; }
 .brand-copy span { color: #777; font-size: 10px; letter-spacing: .7px; text-transform: uppercase; }
 
-.gym-card { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border: 1px solid #292929; border-radius: 11px; background: linear-gradient(135deg, #181818, #121212); box-shadow: inset 0 1px 0 rgba(255,255,255,.04); }
-.gym-card__logo { display: grid; width: 58px; height: 36px; flex: 0 0 auto; place-items: center; overflow: hidden; border: 1px solid #333; border-radius: 7px; background: #000; }
-.gym-card__logo img { width: 100%; height: 100%; object-fit: contain; }
-.gym-card div { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 3px; }
-.gym-card strong { font-size: 11px; letter-spacing: .7px; }
-.gym-card div span { overflow: hidden; color: #777; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
 .status-dot { width: 7px; height: 7px; flex: 0 0 auto; border-radius: 50%; background: var(--positive); box-shadow: 0 0 0 4px rgba(37,143,98,.14); }
 .nav-label { margin: 8px 12px 3px; color: #555; font-size: 9px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; }
 .main-nav { display: flex; min-height: 0; flex: 1; flex-direction: column; gap: 1px; padding-top: 8px; }
@@ -294,15 +287,11 @@ svg { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: 
 .drawer-collapsed .drawer { width: 82px; padding-inline: 12px; }
 .drawer-collapsed .brand { justify-content: center; padding-inline: 0; }
 .drawer-collapsed .brand-copy,
-.drawer-collapsed .gym-card div,
-.drawer-collapsed .gym-card .status-dot,
 .drawer-collapsed .nav-label,
 .drawer-collapsed .nav-item span,
 .drawer-collapsed .support-card,
 .drawer-collapsed .profile-mini > span:nth-child(2),
 .drawer-collapsed .profile-mini > svg { display: none; }
-.drawer-collapsed .gym-card { justify-content: center; padding: 10px; }
-.drawer-collapsed .gym-card__logo { width: 42px; }
 .drawer-collapsed .nav-section--system { border-top: 0; padding-top: 0; }
 .drawer-collapsed .nav-item { justify-content: center; padding: 0; }
 .drawer-collapsed .nav-item.active i { right: -12px; }
@@ -321,8 +310,7 @@ svg { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: 
   .drawer-toggle { display: none; }
   .drawer { width: 82px; padding-inline: 12px; }
   .brand { justify-content: center; padding-inline: 0; }
-  .brand-copy, .gym-card div, .gym-card .status-dot, .nav-label, .nav-item span, .support-card, .profile-mini > span:nth-child(2), .profile-mini > svg { display: none; }
-  .gym-card { justify-content: center; padding: 10px; }
+  .brand-copy, .nav-label, .nav-item span, .support-card, .profile-mini > span:nth-child(2), .profile-mini > svg { display: none; }
   .nav-section--system { border-top: 0; padding-top: 0; }
   .nav-item { justify-content: center; padding: 0; }
   .nav-item.active i { right: -12px; }
@@ -337,8 +325,6 @@ svg { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: 
 
 @media (max-width: 640px) {
   .drawer { width: 66px; padding-inline: 8px; }
-  .brand-mark { width: 36px; height: 36px; }
-  .gym-card { display: none; }
   .main-nav { margin-top: 14px; }
   .nav-section--system { border-top: 0; padding-top: 0; }
   .main-content { margin-left: 66px; padding: 0 14px 30px; }
@@ -391,7 +377,6 @@ svg { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: 
   .drawer-collapsed .drawer { inset: auto 0 0; width: 100%; height: 72px; padding: 8px 10px; overflow-x: auto; overflow-y: hidden; border-top: 1px solid #242424; border-right: 0; scrollbar-width: none; }
   .drawer::-webkit-scrollbar { display: none; }
   .brand,
-  .gym-card,
   .nav-label,
   .drawer-footer,
   .drawer-toggle { display: none; }
@@ -526,7 +511,7 @@ svg { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: 
 
 .dashboard-shell,
 .dashboard-shell button,
-.dashboard-shell input { font-family: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif; }
+.dashboard-shell input { font-family: var(--wx-font-body); }
 .topbar h1 { font-size: 33px; font-weight: 900; letter-spacing: -.8px; }
 .stat-card > strong,
 .revenue-summary strong,
@@ -544,7 +529,6 @@ svg { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: 
 .eyebrow,
 .panel-kicker { font-size: 12px; line-height: 16px; }
 .nav-item span { font-size: 14px; line-height: 20px; }
-.gym-card strong { font-size: 14px; }.gym-card div span { font-size: 12px; line-height: 16px; }
 .support-card,
 .support-card strong { font-size: 12px; line-height: 16px; }
 .profile-mini strong { font-size: 14px; }.profile-mini small { font-size: 12px; }
@@ -604,7 +588,6 @@ svg { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: 
 .nav-section,
 .drawer-footer { width: 100%; max-width: 100%; min-width: 0; }
 .brand-copy,
-.gym-card > div,
 .nav-item { min-width: 0; }
 .nav-item { width: 100%; max-width: 100%; }
 
@@ -656,17 +639,13 @@ svg { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: 
   .dashboard-shell.mobile-nav-open .drawer-backdrop { opacity: 1; pointer-events: auto; }
 
   .dashboard-shell .brand,
-  .dashboard-shell .gym-card,
   .dashboard-shell .drawer-footer { display: flex; }
   .dashboard-shell .brand { justify-content: flex-start; padding-inline: 8px; }
   .dashboard-shell .brand-copy,
-  .dashboard-shell .gym-card > div,
-  .dashboard-shell .gym-card .status-dot,
   .dashboard-shell .nav-label,
   .dashboard-shell .nav-item span,
   .dashboard-shell .profile-mini > span:nth-child(2) { display: flex; }
   .dashboard-shell .brand-copy,
-  .dashboard-shell .gym-card > div,
   .dashboard-shell .profile-mini > span:nth-child(2) { flex-direction: column; }
   .dashboard-shell .main-nav {
     width: 100%;
@@ -754,4 +733,72 @@ svg { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: 
 @media (prefers-reduced-motion: reduce) {
   .dashboard-shell .drawer,
   .dashboard-shell .drawer-backdrop { transition: none; }
+}
+
+/* Sidebar estable: marca única, enlaces desplazables y perfil siempre visible. */
+.dashboard-shell .drawer {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden !important;
+}
+
+.dashboard-shell .brand {
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+.dashboard-shell .brand-logo {
+  display: grid;
+  width: 58px;
+  height: 42px;
+  flex: 0 0 auto;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid #303030;
+  border-radius: 9px;
+  background: #000;
+}
+
+.dashboard-shell .brand-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.dashboard-shell .main-nav {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-color: #404040 transparent;
+  scrollbar-width: thin;
+}
+
+.dashboard-shell .main-nav::-webkit-scrollbar { width: 5px; }
+.dashboard-shell .main-nav::-webkit-scrollbar-thumb { border-radius: 999px; background: #404040; }
+
+.dashboard-shell .drawer-footer {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  margin-top: auto;
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+  background: #080808;
+}
+
+.dashboard-shell.drawer-collapsed .brand-logo { width: 46px; }
+
+@media (max-width: 768px) {
+  .dashboard-shell .drawer,
+  .dashboard-shell.drawer-collapsed .drawer { overflow-y: hidden !important; }
+
+  .dashboard-shell .main-nav {
+    min-height: 0;
+    flex: 1 1 auto;
+    overflow-y: auto;
+  }
+
+  .dashboard-shell .brand-logo { width: 58px; }
 }

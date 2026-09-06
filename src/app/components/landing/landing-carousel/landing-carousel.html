@@ -10,10 +10,16 @@
   @if (activeSlide; as slide) {
     <div class="hero-content">
       <p class="eyebrow">{{ slide.eyebrow }}</p>
-      <h1>{{ slide.title }}</h1>
+      @if (activeTitleParts; as title) {
+        <h1 class="hero-title ui-title" [attr.aria-label]="slide.title">
+          @if (title.before) { <span>{{ title.before }}</span> }
+          @if (title.accent) { <span class="title-accent">{{ title.accent }}</span> }
+          @if (title.after) { <span>{{ title.after }}</span> }
+        </h1>
+      }
       <p class="hero-copy">{{ slide.description }}</p>
       <div class="hero-actions">
-        <button class="primary-action" type="button" (click)="signup.emit()">Inscribete ahora</button>
+        <button class="primary-action" type="button" (click)="signup.emit()">Inscríbete ahora</button>
         <button class="secondary-action" type="button" (click)="viewPlans.emit()">Ver planes</button>
       </div>
     </div>

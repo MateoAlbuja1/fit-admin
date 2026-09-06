@@ -45,7 +45,7 @@
       </div>
       <div class="promo-content">
         <span class="promo-kicker">Promo fitness</span>
-        <h2 id="promo-title">Creatina Dragon Pharma en oferta.</h2>
+        <h2 id="promo-title" class="ui-title"><span class="title-accent">Creatina</span> Dragon Pharma en <span class="title-accent">oferta</span>.</h2>
         <p id="promo-copy">300 g, 60 servicios y compra directa por WhatsApp.</p>
         <div class="promo-offer">
           <span>Ahora</span>
@@ -79,60 +79,159 @@
 
   @if (activeAnchor === 'perfil' && isMemberLoggedIn && memberSession) {
   <section id="perfil" class="landing-section section-panel member-profile-view">
-    <div class="member-profile-hero">
-      <article class="member-welcome">
-        <span>Perfil de miembro</span>
-        <h2>Bienvenido, {{ memberSession.name }}</h2>
-        <p>Tu progreso, peso y membresia en {{ gymName }}.</p>
-        <div class="member-profile-actions">
-          <button type="button" (click)="navigateTo('planes')">Renovar membresia</button>
-          <button type="button" (click)="navigateTo('tienda')">Ver tienda</button>
-        </div>
-      </article>
+    <header class="member-profile-heading">
+      <span>Mi perfil</span>
+      <h1 class="ui-title">Bienvenido, <strong class="title-accent">{{ memberDisplayName }}</strong></h1>
+      <p>Tu progreso, peso y membresía en {{ gymName }}.</p>
+    </header>
 
-      <article class="member-chart-card">
+    <div class="member-profile-dashboard">
+      <article class="member-module member-weight-card">
         <header>
           <div>
-            <span>Tendencia</span>
-            <strong>Progreso de 6 semanas</strong>
+            <span>Bienestar personal</span>
+            <h2>Registra tu peso</h2>
           </div>
-          <b>{{ memberTrendCurrent }}%</b>
+          <span class="member-card-icon" aria-hidden="true">KG</span>
         </header>
-        <div class="member-trend-chart" aria-label="Grafico de tendencia de rendimiento">
-          <svg viewBox="0 0 300 160" preserveAspectRatio="none" role="img" aria-label="Tendencia de progreso del miembro">
-            <defs>
-              <linearGradient id="memberTrendFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="rgba(255,255,255,.35)" />
-                <stop offset="100%" stop-color="rgba(255,255,255,0)" />
-              </linearGradient>
-            </defs>
-            <path class="trend-grid-line" d="M0 42H300M0 84H300M0 126H300" />
-            <polygon class="trend-area" [attr.points]="memberTrendAreaPoints" />
-            <polyline class="trend-line" [attr.points]="memberTrendPoints" />
-            @for (point of memberPerformance; track point.label; let index = $index) {
-              <circle class="trend-dot" [attr.cx]="trendPointX(index)" [attr.cy]="trendPointY(point.value)" r="4" />
-            }
-          </svg>
-          <div class="member-trend-labels" aria-hidden="true">
-            @for (point of memberPerformance; track point.label) {
-              <span>{{ point.label }}</span>
-            }
-          </div>
-          <small>+{{ memberTrendDelta }} puntos desde el inicio del plan</small>
-        </div>
-      </article>
-    </div>
 
-    <div class="member-stat-grid">
-      @for (stat of memberStats; track stat.label) {
-        <article>
-          <span>{{ stat.label }}</span>
-          <strong>{{ stat.value }}</strong>
-          <small>{{ stat.detail }}</small>
+        <form class="member-weight-form" #weightForm="ngForm" (ngSubmit)="saveMemberWellness()" novalidate>
+          <label>
+            <span>Peso actual (kg)</span>
+            <input
+              type="number"
+              name="memberWeight"
+              [(ngModel)]="weightInput"
+              min="30"
+              max="300"
+              step="0.1"
+              inputmode="decimal"
+              placeholder="Ej. 75.5"
+              required
+            />
+          </label>
+
+          <label>
+            <span>Objetivo</span>
+            <select name="nutritionGoal" [(ngModel)]="selectedNutritionGoal" required>
+              <option value="muscle">Ganar masa muscular</option>
+              <option value="fat-loss">Perder grasa</option>
+            </select>
+          </label>
+
+          <button type="submit" [disabled]="weightForm.invalid">Guardar y calcular</button>
+        </form>
+      </article>
+
+      <article class="member-module member-goal-card">
+        <header>
+          <div>
+            <h2 class="ui-title"><span class="title-accent">Estado</span> y medidas</h2>
+            <p>Resumen de composición y meta personal.</p>
+          </div>
+        </header>
+
+        <section class="member-goal-progress" aria-label="Progreso de la meta personal">
+          <div>
+            <span>Meta objetivo</span>
+            <strong>65%</strong>
+          </div>
+          <div
+            class="member-goal-track"
+            role="progressbar"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-valuenow="65"
+            aria-label="65% del objetivo alcanzado"
+          >
+            <span></span>
+          </div>
+          <small>65% del objetivo alcanzado</small>
+        </section>
+
+        <button class="update-measures-button" type="button" aria-haspopup="dialog" (click)="openBodyMeasurementsModal()">
+          Actualizar medidas
+        </button>
+      </article>
+
+      @if (showNutritionGuidance) {
+        <article class="member-module member-hydration-card" aria-live="polite">
+          <span>Consumo de agua recomendado</span>
+          <strong>{{ recommendedWaterLiters }} L <small>/ día</small></strong>
+          <small>{{ formatWeight(savedWeight ?? 0) }} kg × 0.035 L</small>
+        </article>
+
+        <article class="member-module member-tips-card" aria-live="polite">
+          <header>
+            <span>Nutrición según tu objetivo</span>
+            <h3>3 tips alimenticios</h3>
+          </header>
+          <ol>
+            @for (tip of nutritionTips; track tip) {
+              <li>{{ tip }}</li>
+            }
+          </ol>
         </article>
       }
+
+      <article class="member-module member-measure-tile">
+        <span>IMC actual</span>
+        <strong>24.2</strong>
+        <small class="measure-status-normal">Normal</small>
+      </article>
+      <article class="member-module member-measure-tile">
+        <span>Grasa estimada</span>
+        <strong>18%</strong>
+        <small>Composición actual</small>
+      </article>
+      <article class="member-module member-measure-tile">
+        <span>Meta de peso</span>
+        <strong>78.0 kg</strong>
+        <small>Faltan 3.0 kg</small>
+      </article>
     </div>
   </section>
+
+  @if (showBodyMeasurementsModal) {
+    <div class="measurements-modal" role="presentation" (click)="closeBodyMeasurementsModal()">
+      <section
+        class="measurements-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="measurements-title"
+        (click)="$event.stopPropagation()"
+      >
+        <header>
+          <div>
+            <span>Medidas corporales</span>
+            <h2 id="measurements-title">Actualizar medidas</h2>
+            <p>Ingresa los valores actuales en centímetros.</p>
+          </div>
+          <button type="button" aria-label="Cerrar ventana de medidas" (click)="closeBodyMeasurementsModal()">×</button>
+        </header>
+
+        <form #measurementsForm="ngForm" (ngSubmit)="saveBodyMeasurements()" novalidate>
+          <label>
+            <span>Cintura (cm)</span>
+            <input type="number" name="waist" [(ngModel)]="measurementDraft.waist" min="15" max="250" step="0.1" placeholder="Ej. 82.0" required />
+          </label>
+          <label>
+            <span>Brazo (cm)</span>
+            <input type="number" name="arm" [(ngModel)]="measurementDraft.arm" min="15" max="250" step="0.1" placeholder="Ej. 36.5" required />
+          </label>
+          <label>
+            <span>Pecho (cm)</span>
+            <input type="number" name="chest" [(ngModel)]="measurementDraft.chest" min="15" max="250" step="0.1" placeholder="Ej. 102.0" required />
+          </label>
+
+          <footer>
+            <button type="button" (click)="closeBodyMeasurementsModal()">Cancelar</button>
+            <button type="submit" [disabled]="measurementsForm.invalid">Guardar medidas</button>
+          </footer>
+        </form>
+      </section>
+    </div>
+  }
   }
 
   @if (activeAnchor === 'servicios') {
@@ -140,7 +239,7 @@
     id="servicios"
     class="landing-section section-panel services-view"
   >
-    <h2 class="service-view-title" aria-live="polite">{{ selectedService.name }}</h2>
+    <h2 class="service-view-title ui-title" aria-live="polite">{{ selectedService.name }} <span class="title-accent">WX GYM</span></h2>
 
     <div class="services-workbench">
       <article class="service-experience">
@@ -200,11 +299,11 @@
   }
 
   @if (activeAnchor === 'planes') {
-  <section id="planes" class="landing-section section-panel section-alt">
+  <section id="planes" class="landing-section section-panel section-alt plans-section">
     <div class="section-heading">
-      <span>Planes de membresia</span>
-      <h2>Elige tu ritmo y empieza hoy</h2>
-      <p>Opciones accesibles para entrenar por dia, mes o ciclos de progreso mas largos.</p>
+      <span>Planes de membresía</span>
+      <h2 class="ui-title">Elige tu ritmo y <span class="title-accent">empieza</span> hoy</h2>
+      <p>Opciones accesibles para entrenar por día, mes o ciclos de progreso más largos.</p>
     </div>
 
     <div class="plan-grid">
@@ -220,8 +319,8 @@
     <div class="section-heading section-heading--row">
       <div>
         <span>Tienda fitness</span>
-        <h2>Suplementos GX</h2>
-        <p>Elige categoria y arma tu pedido.</p>
+        <h2 class="ui-title">Suplementos <span class="title-accent">WX GYM</span></h2>
+        <p>Elige categoría y arma tu pedido.</p>
       </div>
     </div>
 
@@ -247,12 +346,12 @@
       <app-demo-form [selectedPlan]="selectedPlan" [gymName]="gymName" />
 
       <aside class="contact-map-panel">
-        <span>Ubicacion</span>
+        <span>Ubicación</span>
         <h2>{{ gymName }}</h2>
-        <p>{{ gymAddress }}. Visitanos para inscripcion, planes y evaluacion fisica.</p>
+        <p>{{ gymAddress }}. Visítanos para inscripción, planes y evaluación física.</p>
         <div class="contact-map-frame">
           <iframe
-            [title]="'Ubicacion de ' + gymName"
+            [title]="'Ubicación de ' + gymName"
             loading="lazy"
             referrerpolicy="no-referrer-when-downgrade"
             [src]="safeMapEmbedUrl"

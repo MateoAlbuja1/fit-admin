@@ -18,7 +18,7 @@
     radial-gradient(circle at 34px 42px, rgba(255, 255, 255, .12), transparent 32px),
     linear-gradient(180deg, #090909 0%, #0d0d0d 58%, #050505 100%);
   color: #fff;
-  font-family: "Arial Narrow", "Roboto Condensed", Arial, sans-serif;
+  font-family: var(--wx-font-body);
   padding: 18px 18px 16px;
   box-shadow: 20px 0 48px rgba(0, 0, 0, .38);
 }

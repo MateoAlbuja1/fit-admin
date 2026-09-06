@@ -331,10 +331,10 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
     return [
       { dia: 'Lunes', apertura: '06:00', cierre: '22:00', activo: true },
       { dia: 'Martes', apertura: '06:00', cierre: '22:00', activo: true },
-      { dia: 'Miercoles', apertura: '06:00', cierre: '22:00', activo: true },
+      { dia: 'Miércoles', apertura: '06:00', cierre: '22:00', activo: true },
       { dia: 'Jueves', apertura: '06:00', cierre: '22:00', activo: true },
       { dia: 'Viernes', apertura: '06:00', cierre: '22:00', activo: true },
-      { dia: 'Sabado', apertura: '08:00', cierre: '16:00', activo: true },
+      { dia: 'Sábado', apertura: '08:00', cierre: '16:00', activo: true },
       { dia: 'Domingo', apertura: '08:00', cierre: '13:00', activo: false }
     ];
   }

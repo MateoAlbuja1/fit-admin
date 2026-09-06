@@ -1,17 +1,17 @@
 <article class="contact-card">
   <div class="contact-copy">
     <span>Contacto</span>
-    <h2>Estamos aqui para ayudarte</h2>
-    <p>Visitanos en {{ address }}, o escribenos para separar tu evaluacion fisica.</p>
+    <h2 class="ui-title">Estamos aquí para <span class="title-accent">ayudarte</span></h2>
+    <p>Visítanos en {{ address }} o escríbenos para reservar tu evaluación física.</p>
   </div>
 
   <dl>
     <div>
-      <dt>Direccion</dt>
+      <dt>Dirección</dt>
       <dd>{{ address }}</dd>
     </div>
     <div>
-      <dt>Telefono / WhatsApp</dt>
+      <dt>Teléfono / WhatsApp</dt>
       <dd>{{ phone }}</dd>
     </div>
     <div>
@@ -19,7 +19,7 @@
       <dd>{{ email }}</dd>
     </div>
     <div>
-      <dt>Horario de atencion</dt>
+      <dt>Horario de atención</dt>
       <dd>{{ openingHours }}</dd>
     </div>
   </dl>
@@ -27,7 +27,7 @@
   <div class="contact-actions">
     <a [href]="whatsappUrl" target="_blank" rel="noreferrer">Abrir WhatsApp</a>
     <a [href]="'mailto:' + email">Enviar correo</a>
-    <a [href]="mapUrl" target="_blank" rel="noreferrer">Ver ubicacion</a>
+    <a [href]="mapUrl" target="_blank" rel="noreferrer">Ver ubicación</a>
   </div>
 
   <form class="contact-form" #contactForm="ngForm" (ngSubmit)="submit(contactForm)" novalidate>
@@ -40,12 +40,12 @@
       <input type="email" name="email" [(ngModel)]="formData.email" required email placeholder="correo@ejemplo.com" />
     </label>
     <label>
-      Telefono
+      Teléfono
       <input type="tel" name="phone" [(ngModel)]="formData.phone" required placeholder="0969953775" />
     </label>
     <label class="contact-form__full">
       Mensaje
-      <textarea name="message" [(ngModel)]="formData.message" required rows="4" placeholder="Cuéntanos que necesitas"></textarea>
+      <textarea name="message" [(ngModel)]="formData.message" required rows="3" placeholder="Cuéntanos qué necesitas"></textarea>
     </label>
 
     @if (submitted && contactForm.invalid) {

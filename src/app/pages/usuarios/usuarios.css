@@ -61,6 +61,29 @@
   transform: translateY(-50%);
 }
 
+:host-context(.dark-mode) .select-filter__control select {
+  border-color: #334155;
+  background-color: #1e293b;
+  color: #fff;
+  color-scheme: dark;
+}
+
+:host-context(.dark-mode) .select-filter__control select option {
+  background-color: #f8fafc;
+  background-color: Canvas;
+  color: #0f172a;
+  color: CanvasText;
+  forced-color-adjust: auto;
+}
+
+:host-context(.dark-mode) .select-filter__control select option:checked,
+:host-context(.dark-mode) .select-filter__control select option:hover {
+  background-color: #93c5fd;
+  background-color: Highlight;
+  color: #0f172a;
+  color: HighlightText;
+}
+
 .users-feedback {
   display: flex;
   min-height: 190px;

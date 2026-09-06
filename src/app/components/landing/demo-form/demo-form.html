@@ -1,8 +1,8 @@
 <form class="signup-form" #signupForm="ngForm" (ngSubmit)="submit(signupForm)" novalidate>
   <div class="form-heading">
-    <span>Inscripcion</span>
-    <h2>Unete a {{ gymName }}</h2>
-    <p>Completa tus datos y empieza tu cambio fisico con nosotros.</p>
+    <span>Inscripción</span>
+    <h2 class="ui-title">Únete a <span class="title-accent">{{ gymName }}</span></h2>
+    <p>Completa tus datos y empieza tu cambio físico con nosotros.</p>
   </div>
 
   <div class="field-grid">
@@ -17,12 +17,12 @@
     </label>
 
     <label>
-      Numero telefonico
+      Número telefónico
       <input type="tel" name="phone" [(ngModel)]="formData.phone" required placeholder="0969953775" />
     </label>
 
     <label>
-      Correo electronico
+      Correo electrónico
       <input type="email" name="email" [(ngModel)]="formData.email" required email placeholder="correo@ejemplo.com" />
     </label>
 
@@ -58,16 +58,16 @@
 
     <label class="field-wide">
       Mensaje adicional
-      <textarea name="message" [(ngModel)]="formData.message" required rows="4" placeholder="Cuentanos tu meta principal"></textarea>
+      <textarea name="message" [(ngModel)]="formData.message" required rows="3" placeholder="Cuéntanos tu meta principal"></textarea>
     </label>
   </div>
 
   @if (submitted && signupForm.invalid) {
-    <p class="form-alert">Completa todos los campos para enviar tu inscripcion.</p>
+    <p class="form-alert">Completa todos los campos para enviar tu inscripción.</p>
   }
 
   @if (submitted && formData.age !== null && formData.age < 12) {
-    <p class="form-alert">La edad minima para registrarse es 12 anos.</p>
+    <p class="form-alert">La edad mínima para registrarse es 12 años.</p>
   }
 
   @if (successMessage) {
@@ -78,5 +78,5 @@
     <p class="form-alert">{{ errorMessage }}</p>
   }
 
-  <button type="submit" [disabled]="isSending">{{ isSending ? 'Enviando...' : 'Enviar inscripcion' }}</button>
+  <button type="submit" [disabled]="isSending">{{ isSending ? 'Enviando...' : 'Enviar inscripción' }}</button>
 </form>

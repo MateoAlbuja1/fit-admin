@@ -33,12 +33,12 @@ export class DemoFormComponent implements OnChanges {
   readonly goalOptions = [
     'Bajar de peso',
     'Ganar masa muscular',
-    'Mejorar condicion fisica',
+    'Mejorar condición física',
     'Entrenamiento funcional',
     'Salud y bienestar',
     'Otro'
   ];
-  readonly scheduleOptions = ['Manana', 'Mediodia', 'Tarde', 'Noche', 'Fin de semana'];
+  readonly scheduleOptions = ['Mañana', 'Mediodía', 'Tarde', 'Noche', 'Fin de semana'];
 
   formData: RegistrationForm = this.emptyForm();
 
@@ -67,13 +67,13 @@ export class DemoFormComponent implements OnChanges {
       message: this.buildMessage()
     }).subscribe({
       next: () => {
-        this.successMessage = 'Inscripcion enviada correctamente. Pronto nos pondremos en contacto contigo.';
+        this.successMessage = 'Inscripción enviada correctamente. Pronto nos pondremos en contacto contigo.';
         this.submitted = false;
         this.formData = this.emptyForm();
         form.resetForm(this.formData);
       },
       error: () => {
-        this.errorMessage = 'No se pudo enviar la inscripcion. Intenta nuevamente.';
+        this.errorMessage = 'No se pudo enviar la inscripción. Intenta nuevamente.';
       },
       complete: () => {
         this.isSending = false;

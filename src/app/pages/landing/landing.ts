@@ -45,16 +45,18 @@ interface MemberSession {
   subtitle: string;
 }
 
-interface MemberStat {
-  label: string;
-  value: string;
-  detail: string;
-}
-
 interface MemberPerformancePoint {
   label: string;
   value: number;
 }
+
+interface BodyMeasurements {
+  waist: number | null;
+  arm: number | null;
+  chest: number | null;
+}
+
+type NutritionGoal = 'muscle' | 'fat-loss';
 
 interface PublicGymSettings {
   name: string;
@@ -156,61 +158,79 @@ export class LandingComponent implements OnInit {
     phone: OFFICIAL_WHATSAPP_LOCAL,
     email: OFFICIAL_GYM_EMAIL,
     address: 'Quito, Ecuador',
-    openingHours: 'Lunes a Viernes 08:00 - 21:00'
+    openingHours: 'Lunes a Viernes 08:00 - 21:00 · Sábado 08:00 - 16:00'
   };
   clientProfile: Cliente | null = null;
   clientMembership: Membresia | null = null;
   clientPayments: Pago[] = [];
   clientAttendance: RegistroAsistencia[] = [];
-
-  memberStats: MemberStat[] = [
-    { label: 'Plan actual', value: 'Sin plan', detail: 'Pendiente' },
-    { label: 'Progreso', value: '0%', detail: 'Sin registros' },
-    { label: 'Asistencia', value: '0/20', detail: 'Sesiones registradas' },
-    { label: 'Renovacion', value: 'Pendiente', detail: 'Sin membresia activa' }
-  ];
+  weightInput: number | null = null;
+  savedWeight: number | null = null;
+  selectedNutritionGoal: NutritionGoal = 'muscle';
+  showNutritionGuidance = false;
+  showBodyMeasurementsModal = false;
+  bodyMeasurements: BodyMeasurements = { waist: null, arm: null, chest: null };
+  measurementDraft: BodyMeasurements = { waist: null, arm: null, chest: null };
 
   memberPerformance: MemberPerformancePoint[] = [
-    { label: 'Sem 1', value: 46 },
-    { label: 'Sem 2', value: 54 },
-    { label: 'Sem 3', value: 61 },
-    { label: 'Sem 4', value: 66 },
-    { label: 'Sem 5', value: 74 },
-    { label: 'Sem 6', value: 82 }
+    { label: 'Reg 1', value: 79.4 },
+    { label: 'Reg 2', value: 79.1 },
+    { label: 'Reg 3', value: 78.8 },
+    { label: 'Reg 4', value: 78.5 },
+    { label: 'Reg 5', value: 78.1 },
+    { label: 'Hoy', value: 77.8 }
   ];
+
+  private readonly nutritionTipsByGoal: Record<NutritionGoal, string[]> = {
+    muscle: [
+      'Incluye una fuente de proteína completa en cada comida principal.',
+      'Añade carbohidratos de calidad alrededor de tus entrenamientos.',
+      'Mantén un superávit moderado y distribuye tus comidas durante el día.'
+    ],
+    'fat-loss': [
+      'Prioriza proteína magra y vegetales para mejorar la saciedad.',
+      'Elige porciones controladas de carbohidratos integrales.',
+      'Planifica tus comidas y limita bebidas azucaradas y ultraprocesados.'
+    ]
+  };
 
   readonly slides: CarouselSlide[] = [
     {
       eyebrow: OFFICIAL_GYM_NAME,
-      title: 'Construye tu mejor version',
-      description: 'Entrena fuerza, cardio y acondicionamiento con enfoque, disciplina y maquinas listas para progresar cada semana.',
+      title: 'Construye tu mejor versión',
+      titleAccent: 'versión',
+      description: 'Entrena fuerza, cardio y acondicionamiento con enfoque, disciplina y máquinas listas para progresar cada semana.',
       image: '/assets/img/gym-carousel-1.jpg',
-      alt: 'Area principal de entrenamiento de WX GYM'
+      alt: 'Área principal de entrenamiento de WX GYM'
     },
     {
-      eyebrow: 'Fuerza y musculacion',
-      title: 'Sube el nivel de tu rutina',
-      description: 'Pesas, poleas, bancas y maquinas para entrenar con tecnica, intensidad y objetivos claros.',
+      eyebrow: 'Fuerza y musculación',
+      title: 'Entrena con disciplina y constancia',
+      titleAccent: 'Entrena',
+      description: 'Supera tus límites diarios con equipamiento de primer nivel y un ambiente motivador.',
       image: '/assets/img/gym-carousel-2.jpg',
-      alt: 'Zona de musculacion con maquinas y pesos'
+      alt: 'Zona de musculación con máquinas y pesos'
     },
     {
       eyebrow: 'Ambiente fitness',
-      title: 'Concentrate en tu progreso',
-      description: 'Un espacio moderno para entrenar sin distracciones, mantener constancia y superar tus marcas.',
+      title: 'Alcanza tu máximo potencial',
+      titleAccent: 'potencial',
+      description: 'Planes personalizados y seguimiento para lograr los resultados que buscas.',
       image: '/assets/img/gym-carousel-4.jpg',
       alt: 'Zona moderna de entrenamiento de WX GYM'
     },
     {
       eyebrow: 'Cardio y acondicionamiento',
-      title: 'Resistencia para rendir mas',
-      description: 'Combina cardio, fuerza y acondicionamiento para ganar energia, control y mejor condicion fisica.',
+      title: 'Fortalece tu resistencia',
+      titleAccent: 'resistencia',
+      description: 'Combina cardio, fuerza y acondicionamiento para ganar energía, control y una mejor condición física.',
       image: '/assets/img/gym-cycling-zone.jpg',
       alt: 'Zona de cardio y bicicletas de WX GYM'
     },
     {
       eyebrow: 'Entrenamiento real',
-      title: 'Haz que cada sesion cuente',
+      title: 'Haz que cada sesión cuente',
+      titleAccent: 'sesión',
       description: 'Rutinas, seguimiento y equipo disponible para convertir la constancia en resultados visibles.',
       image: '/assets/img/gym-carousel-3.jpg',
       alt: 'Interior moderno de WX GYM'
@@ -338,30 +358,30 @@ export class LandingComponent implements OnInit {
 
   readonly plans: MembershipPlan[] = [
     {
-      name: 'Plan Mensual',
+      name: 'PLAN ESSENTIAL',
       price: '$25.00',
-      duration: '30 dias de acceso completo.',
+      duration: '30 días de acceso completo.',
       description: 'Para empezar sin vueltas: fuerza, cardio y rutina inicial.',
-      benefits: ['Rutina basica incluida.', 'Acceso a musculacion y cardio.', 'Soporte de recepcion para empezar.'],
+      benefits: ['Rutina básica incluida.', 'Acceso a musculación y cardio.', 'Soporte de recepción para empezar.'],
       bestFor: 'Ideal para comenzar esta semana',
       formValue: 'Plan mensual'
     },
     {
-      name: 'Plan Trimestral',
+      name: 'PLAN PRO',
       price: '$65.00',
-      duration: '90 dias para crear constancia.',
-      description: 'La mejor relacion entre precio, seguimiento y progreso.',
-      benefits: ['Evaluacion fisica incluida.', 'Rutina personalizada.', 'Seguimiento de avances.'],
-      bestFor: 'Mas elegido para resultados visibles',
+      duration: '90 días para crear constancia.',
+      description: 'La mejor relación entre precio, seguimiento y progreso.',
+      benefits: ['Evaluación física incluida.', 'Rutina personalizada.', 'Seguimiento de avances.'],
+      bestFor: 'Más elegido para resultados visibles',
       featured: true,
       formValue: 'Plan trimestral'
     },
     {
-      name: 'Plan Anual',
+      name: 'PLAN ELITE',
       price: '$220.00',
       duration: '12 meses de entrenamiento.',
-      description: 'Para entrenar todo el ano con prioridad y beneficios.',
-      benefits: ['Evaluaciones periodicas.', 'Asesoria preferencial.', 'Descuento frente al pago mensual.', 'Prioridad en promociones.'],
+      description: 'Para entrenar todo el año con prioridad y beneficios.',
+      benefits: ['Evaluaciones periódicas.', 'Asesoría preferencial.', 'Descuento frente al pago mensual.', 'Prioridad en promociones.'],
       bestFor: 'Para compromiso total',
       formValue: 'Plan anual'
     }
@@ -812,11 +832,15 @@ export class LandingComponent implements OnInit {
       name: this.memberSession.name,
       initials: this.memberSession.initials,
       subtitle: this.memberSession.subtitle,
-      weight: this.clientMembership ? `${this.clientMembership.days} dias` : 'Activo',
-      progress: `${this.memberTrendCurrent}%`,
-      renewal: this.clientMembership ? this.shortDate(this.clientMembership.end) : 'Pendiente',
-      plan: this.clientMembership?.plan ?? this.clientProfile?.plan ?? 'Sin plan'
+      weight: `${this.formatWeight(this.savedWeight ?? this.memberTrendCurrent)} kg`,
+      progress: '12/20',
+      renewal: '09 oct 2026',
+      plan: 'PLAN ELITE'
     };
+  }
+
+  get memberDisplayName(): string {
+    return (this.memberSession?.name ?? 'Miembro').toLocaleUpperCase('es-EC');
   }
 
   get memberTrendCurrent(): number {
@@ -825,7 +849,24 @@ export class LandingComponent implements OnInit {
 
   get memberTrendDelta(): number {
     const firstValue = this.memberPerformance[0]?.value ?? 0;
-    return this.memberTrendCurrent - firstValue;
+    return Number((this.memberTrendCurrent - firstValue).toFixed(1));
+  }
+
+  get memberTrendSummary(): string {
+    if (this.memberPerformance.length < 2) {
+      return 'Primer registro de peso guardado';
+    }
+
+    const prefix = this.memberTrendDelta > 0 ? '+' : '';
+    return `${prefix}${this.formatWeight(this.memberTrendDelta)} kg desde el primer registro`;
+  }
+
+  get nutritionTips(): string[] {
+    return this.nutritionTipsByGoal[this.selectedNutritionGoal];
+  }
+
+  get recommendedWaterLiters(): string {
+    return ((this.savedWeight ?? 0) * 0.035).toFixed(2);
   }
 
   get memberTrendPoints(): string {
@@ -1251,6 +1292,7 @@ export class LandingComponent implements OnInit {
     this.clientMembership = null;
     this.clientPayments = [];
     this.clientAttendance = [];
+    this.showBodyMeasurementsModal = false;
     this.activeAnchor = 'inicio';
   }
 
@@ -1266,14 +1308,73 @@ export class LandingComponent implements OnInit {
     return `$${value.toFixed(2)}`;
   }
 
+  formatWeight(value: number): string {
+    return value.toFixed(1);
+  }
+
+  saveMemberWellness(): void {
+    const weight = Number(this.weightInput);
+    if (!Number.isFinite(weight) || weight < 30 || weight > 300) {
+      return;
+    }
+
+    const normalizedWeight = Math.round(weight * 10) / 10;
+    const values = [...this.memberPerformance.map(point => point.value), normalizedWeight].slice(-6);
+    this.memberPerformance = this.buildWeightHistory(values);
+    this.savedWeight = normalizedWeight;
+    this.weightInput = normalizedWeight;
+    this.showNutritionGuidance = true;
+
+    if (isPlatformBrowser(this.platformId) && this.memberSession) {
+      localStorage.setItem(this.memberWellnessStorageKey(), JSON.stringify({
+        weight: normalizedWeight,
+        goal: this.selectedNutritionGoal,
+        history: values
+      }));
+    }
+  }
+
+  openBodyMeasurementsModal(): void {
+    this.measurementDraft = { ...this.bodyMeasurements };
+    this.showBodyMeasurementsModal = true;
+  }
+
+  closeBodyMeasurementsModal(): void {
+    this.showBodyMeasurementsModal = false;
+  }
+
+  saveBodyMeasurements(): void {
+    const waist = Number(this.measurementDraft.waist);
+    const arm = Number(this.measurementDraft.arm);
+    const chest = Number(this.measurementDraft.chest);
+    const measurements = [waist, arm, chest];
+
+    if (measurements.some(value => !Number.isFinite(value) || value < 15 || value > 250)) {
+      return;
+    }
+
+    this.bodyMeasurements = { waist, arm, chest };
+    this.measurementDraft = { ...this.bodyMeasurements };
+
+    if (isPlatformBrowser(this.platformId) && this.memberSession) {
+      localStorage.setItem(this.memberMeasurementsStorageKey(), JSON.stringify(this.bodyMeasurements));
+    }
+
+    this.closeBodyMeasurementsModal();
+  }
+
   trendPointX(index: number): number {
     const maxIndex = Math.max(this.memberPerformance.length - 1, 1);
     return Math.round((index / maxIndex) * 300);
   }
 
   trendPointY(value: number): number {
-    const boundedValue = Math.max(0, Math.min(value, 100));
-    return Math.round(148 - (boundedValue / 100) * 124);
+    const values = this.memberPerformance.map(point => point.value);
+    const minimum = Math.min(...values) - 0.5;
+    const maximum = Math.max(...values) + 0.5;
+    const range = Math.max(maximum - minimum, 1);
+    const boundedValue = Math.max(minimum, Math.min(value, maximum));
+    return Math.round(148 - ((boundedValue - minimum) / range) * 124);
   }
 
   private priceToNumber(price: string): number {
@@ -1330,7 +1431,7 @@ export class LandingComponent implements OnInit {
         phone: OFFICIAL_WHATSAPP_LOCAL,
         email: OFFICIAL_GYM_EMAIL,
         address: this.text(settings['address'], this.publicGymSettings.address),
-        openingHours: this.text(settings['openingHours'], this.publicGymSettings.openingHours)
+        openingHours: this.formatOpeningHours(this.text(settings['openingHours'], this.publicGymSettings.openingHours))
       };
       const location = [this.publicGymSettings.city, this.publicGymSettings.sector].filter(Boolean).join(' - ') || this.publicGymSettings.city;
       this.resultCards = [
@@ -1379,6 +1480,8 @@ export class LandingComponent implements OnInit {
           }
         : null;
       if (this.memberSession) {
+        this.loadMemberWellness();
+        this.loadBodyMeasurements();
         this.loadMemberProfileData();
       }
     } catch {
@@ -1405,35 +1508,75 @@ export class LandingComponent implements OnInit {
           initials: this.initials(result.profile.name)
         };
       }
-
-      this.updateMemberStats();
-      this.updateMemberPerformance();
     });
   }
 
-  private updateMemberStats(): void {
-    const paidTotal = this.clientPayments
-      .filter(payment => payment.status === 'Pagado')
-      .reduce((sum, payment) => sum + payment.amount, 0);
-    const attendanceGoal = Math.max(20, this.clientAttendance.length);
-    const attendanceValue = `${this.clientAttendance.length}/${attendanceGoal}`;
-    const membership = this.clientMembership;
-
-    this.memberStats = [
-      { label: 'Plan actual', value: membership?.plan ?? this.clientProfile?.plan ?? 'Sin plan', detail: membership?.status ?? this.clientProfile?.status ?? 'Pendiente' },
-      { label: 'Asistencia', value: attendanceValue, detail: 'Sesiones registradas' },
-      { label: 'Pagos', value: this.formatCurrency(paidTotal), detail: `${this.clientPayments.length} movimiento(s)` },
-      { label: 'Renovacion', value: membership ? this.shortDate(membership.end) : 'Pendiente', detail: membership ? `${membership.days} dias restantes` : 'Sin membresia activa' }
-    ];
+  private buildWeightHistory(values: number[]): MemberPerformancePoint[] {
+    return values.map((value, index) => ({
+      label: index === values.length - 1 ? 'Hoy' : `Reg ${index + 1}`,
+      value
+    }));
   }
 
-  private updateMemberPerformance(): void {
-    const base = Math.min(100, Math.round((this.clientAttendance.length / 20) * 100));
-    const current = Math.max(12, base || (this.clientMembership ? 42 : 12));
-    this.memberPerformance = Array.from({ length: 6 }, (_, index) => {
-      const value = Math.max(8, Math.round(current * ((index + 1) / 6)));
-      return { label: `Sem ${index + 1}`, value };
-    });
+  private loadMemberWellness(): void {
+    if (!isPlatformBrowser(this.platformId) || !this.memberSession) {
+      return;
+    }
+
+    try {
+      const stored = localStorage.getItem(this.memberWellnessStorageKey());
+      if (!stored) return;
+      const wellness = JSON.parse(stored) as { weight?: unknown; goal?: unknown; history?: unknown };
+      const weight = Number(wellness.weight);
+      const history = Array.isArray(wellness.history)
+        ? wellness.history.map(Number).filter(value => Number.isFinite(value) && value >= 30 && value <= 300).slice(-6)
+        : [];
+
+      if (Number.isFinite(weight) && weight >= 30 && weight <= 300) {
+        this.weightInput = weight;
+        this.savedWeight = weight;
+        this.showNutritionGuidance = true;
+      }
+      if (wellness.goal === 'muscle' || wellness.goal === 'fat-loss') {
+        this.selectedNutritionGoal = wellness.goal;
+      }
+      if (history.length) {
+        this.memberPerformance = this.buildWeightHistory(history);
+      }
+    } catch {
+      // Conserva los valores iniciales si el almacenamiento local no es válido.
+    }
+  }
+
+  private memberWellnessStorageKey(): string {
+    return `wxgym-member-wellness-${this.normalize(this.memberSession?.username ?? 'member')}`;
+  }
+
+  private loadBodyMeasurements(): void {
+    if (!isPlatformBrowser(this.platformId) || !this.memberSession) {
+      return;
+    }
+
+    try {
+      const stored = localStorage.getItem(this.memberMeasurementsStorageKey());
+      if (!stored) return;
+      const parsed = JSON.parse(stored) as Partial<BodyMeasurements>;
+      const waist = Number(parsed.waist);
+      const arm = Number(parsed.arm);
+      const chest = Number(parsed.chest);
+      const measurements = [waist, arm, chest];
+
+      if (measurements.every(value => Number.isFinite(value) && value >= 15 && value <= 250)) {
+        this.bodyMeasurements = { waist, arm, chest };
+        this.measurementDraft = { ...this.bodyMeasurements };
+      }
+    } catch {
+      // Conserva el formulario vacío si el almacenamiento local no es válido.
+    }
+  }
+
+  private memberMeasurementsStorageKey(): string {
+    return `wxgym-member-measurements-${this.normalize(this.memberSession?.username ?? 'member')}`;
   }
 
   private shortDate(value: string): string {
@@ -1468,6 +1611,12 @@ export class LandingComponent implements OnInit {
 
   private text(value: unknown, fallback: string): string {
     return typeof value === 'string' && value.trim() ? value.trim() : fallback;
+  }
+
+  private formatOpeningHours(value: string): string {
+    return value
+      .replace(/\bMiercoles\b/gi, 'Miércoles')
+      .replace(/\bSabado\b/gi, 'Sábado');
   }
 }
 

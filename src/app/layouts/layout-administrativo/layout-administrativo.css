@@ -10,7 +10,7 @@
   min-height: 100vh;
   background: #f5f5f3;
   color: var(--ink);
-  font-family: 'Barlow Condensed', 'Arial Narrow', Arial, Helvetica, sans-serif;
+  font-family: var(--wx-font-body);
 }
 
 * { box-sizing: border-box; }
@@ -22,16 +22,9 @@ svg { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: 
 .drawer { position: fixed; z-index: 20; inset: 0 auto 0 0; display: flex; width: 276px; flex-direction: column; padding: 18px 14px 14px; overflow: hidden; border-right: 1px solid #202020; background: linear-gradient(180deg,#080808,#0d0d0d 60%,#080808); color: #fff; transition: width .24s ease; }
 .drawer-toggle { position: absolute; z-index: 3; top: 31px; right: -13px; display: grid; width: 27px; height: 27px; place-items: center; border: 1px solid #d8d8d8; border-radius: 50%; background: #fff; color: #222; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,.15); }.drawer-toggle svg { width: 13px; }
 .brand { display: flex; align-items: center; gap: 12px; padding: 0 8px 14px; }
-.brand-mark { display: grid; width: 40px; height: 40px; place-items: center; border: 1px solid #fff; border-radius: 9px; background: #fff; color: #090909; font-size: 13px; font-weight: 900; letter-spacing: .04em; }
 .brand-copy { display: flex; flex-direction: column; gap: 4px; }
 .brand-copy strong { font-size: 16px; letter-spacing: 1.4px; }
 .brand-copy span { color: #777; font-size: 10px; letter-spacing: .7px; text-transform: uppercase; }
-.gym-card { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border: 1px solid #292929; border-radius: 11px; background: linear-gradient(135deg,#181818,#121212); }
-.gym-card__logo { display: grid; width: 58px; height: 36px; flex: 0 0 auto; place-items: center; overflow: hidden; border: 1px solid #333; border-radius: 7px; background: #000; }
-.gym-card__logo img { width: 100%; height: 100%; object-fit: contain; }
-.gym-card > div { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 3px; }
-.gym-card strong { font-size: 11px; letter-spacing: .7px; }
-.gym-card div span { overflow: hidden; color: #777; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
 .status-dot { width: 7px; height: 7px; flex: 0 0 auto; border-radius: 50%; background: var(--positive); box-shadow: 0 0 0 4px rgba(37,143,98,.14); }
 .nav-label { margin: 8px 12px 3px; color: #555; font-size: 9px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; }
 .main-nav { display: flex; min-height: 0; flex: 1; flex-direction: column; gap: 1px; padding-top: 8px; }
@@ -130,7 +123,7 @@ tbody tr:hover { background: #fbfbfa; }
 .form-progress { display: flex; align-items: center; margin: -5px 0 24px; }.form-progress button { display: flex; align-items: center; gap: 7px; border: 0; background: transparent; color: #aaa; cursor: pointer; font-size: 8px; font-weight: 800; }.form-progress button b { display: grid; width: 24px; height: 24px; place-items: center; border: 1px solid #ddd; border-radius: 50%; background: #fff; }.form-progress button.active { color: #222; }.form-progress button.active b { border-color: var(--accent); background: var(--accent); color: #fff; }.form-progress > i { height: 1px; flex: 1; margin: 0 8px; background: #ddd; }.form-navigation { display: grid; grid-template-columns: 1fr 1.6fr; gap: 9px; margin-top: 8px; }.form-navigation button { width: 100%; }
 .detail-photo { width: 100%; height: 250px; object-fit: cover; border-radius: 11px; }.detail-avatar { display: grid; width: 100%; height: 190px; place-items: center; border-radius: 11px; background: linear-gradient(145deg,#171717,#050505); color: #fff; font-size: 42px; font-weight: 900; }.detail-intro { padding: 18px 0 13px; }.detail-intro p { margin: 11px 0 0; color: #777; font-size: 10px; line-height: 1.55; }.detail-fields { margin: 0 0 22px; }.detail-fields div { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 13px 0; border-top: 1px solid #eee; }.detail-fields dt { color: #999; font-size: 9px; }.detail-fields dd { margin: 0; color: #222; font-size: 10px; font-weight: 800; text-align: right; }.detail-close { width: 100%; }
 
-.drawer-collapsed .drawer { width: 82px; padding-inline: 12px; }.drawer-collapsed .brand { justify-content: center; padding-inline: 0; }.drawer-collapsed .brand-copy,.drawer-collapsed .gym-card div,.drawer-collapsed .gym-card .status-dot,.drawer-collapsed .nav-label,.drawer-collapsed .nav-item span,.drawer-collapsed .support-card,.drawer-collapsed .profile-mini > span:last-child { display: none; }.drawer-collapsed .gym-card { justify-content: center; padding: 10px; }.drawer-collapsed .gym-card__logo { width: 42px; }.drawer-collapsed .nav-item { justify-content: center; padding: 0; }.drawer-collapsed .nav-item.active i { right: -12px; }.drawer-collapsed .profile-mini { justify-content: center; }.drawer-collapsed .main-content { margin-left: 82px; }
+.drawer-collapsed .drawer { width: 82px; padding-inline: 12px; }.drawer-collapsed .brand { justify-content: center; padding-inline: 0; }.drawer-collapsed .brand-copy,.drawer-collapsed .nav-label,.drawer-collapsed .nav-item span,.drawer-collapsed .support-card,.drawer-collapsed .profile-mini > span:last-child { display: none; }.drawer-collapsed .nav-item { justify-content: center; padding: 0; }.drawer-collapsed .nav-item.active i { right: -12px; }.drawer-collapsed .profile-mini { justify-content: center; }.drawer-collapsed .main-content { margin-left: 82px; }
 
 @keyframes workspaceIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes toastIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
@@ -146,7 +139,7 @@ tbody tr:hover { background: #fbfbfa; }
 
 @media (max-width: 900px) {
   .drawer-toggle { display: none; }
-  .drawer { width: 82px; padding-inline: 12px; }.brand { justify-content: center; padding-inline: 0; }.brand-copy,.gym-card div,.gym-card .status-dot,.nav-label,.nav-item span,.support-card,.profile-mini > span:last-child { display: none; }.gym-card { justify-content: center; padding: 10px; }.gym-card__logo { width: 42px; }.nav-section--system { border-top: 0; padding-top: 0; }.nav-item { justify-content: center; padding: 0; }.nav-item.active i { right: -12px; }.profile-mini { justify-content: center; }.main-content { margin-left: 82px; padding-inline: 22px; }.admin-chip div { display: none; }.report-layout { grid-template-columns: 1fr; }.report-preview { min-height: 400px; }
+  .drawer { width: 82px; padding-inline: 12px; }.brand { justify-content: center; padding-inline: 0; }.brand-copy,.nav-label,.nav-item span,.support-card,.profile-mini > span:last-child { display: none; }.nav-section--system { border-top: 0; padding-top: 0; }.nav-item { justify-content: center; padding: 0; }.nav-item.active i { right: -12px; }.profile-mini { justify-content: center; }.main-content { margin-left: 82px; padding-inline: 22px; }.admin-chip div { display: none; }.report-layout { grid-template-columns: 1fr; }.report-preview { min-height: 400px; }
   .topbar { width: calc(100% + 44px); margin-inline: -22px; padding-inline: 22px; }
 }
 
@@ -452,7 +445,7 @@ tbody tr:focus-within .row-actions { opacity: 1; transform: none; }
 .admin-shell button,
 .admin-shell input,
 .admin-shell select,
-.admin-shell textarea { font-family: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif; }
+.admin-shell textarea { font-family: var(--wx-font-body); }
 .topbar h1 { font-size: 32px; font-weight: 900; letter-spacing: -.8px; }
 .metric-grid strong,
 .inventory-summary strong,
@@ -471,7 +464,6 @@ td,
 .eyebrow,
 .section-kicker { font-size: 12px; line-height: 16px; }
 .nav-item span { font-size: 14px; line-height: 20px; }
-.gym-card strong { font-size: 14px; }.gym-card div span { font-size: 12px; line-height: 16px; }
 .support-card span { font-size: 11px; }.support-card strong { font-size: 13px; }
 .profile-mini strong { font-size: 14px; }.profile-mini small { font-size: 12px; }
 .topbar h1 { line-height: 40px; }
@@ -553,7 +545,6 @@ td { font-size: 14px; line-height: 20px; }
 .nav-section,
 .drawer-footer { width: 100%; max-width: 100%; min-width: 0; }
 .brand-copy,
-.gym-card > div,
 .nav-item { min-width: 0; }
 .nav-item { width: 100%; max-width: 100%; }
 
@@ -619,17 +610,13 @@ a { touch-action: manipulation; }
   }
 
   .admin-shell .brand,
-  .admin-shell .gym-card,
   .admin-shell .drawer-footer { display: flex; }
   .admin-shell .brand { justify-content: flex-start; padding-inline: 8px; }
   .admin-shell .brand-copy,
-  .admin-shell .gym-card > div,
-  .admin-shell .gym-card .status-dot,
   .admin-shell .nav-label,
   .admin-shell .nav-item span,
   .admin-shell .profile-mini > span:last-child { display: flex; }
   .admin-shell .brand-copy,
-  .admin-shell .gym-card > div,
   .admin-shell .profile-mini > span:last-child { flex-direction: column; }
   .admin-shell .main-nav {
     width: 100%;
@@ -781,6 +768,74 @@ a { touch-action: manipulation; }
 @media (prefers-reduced-motion: reduce) {
   .admin-shell .drawer,
   .admin-shell .drawer-backdrop { transition: none; }
+}
+
+/* Sidebar estable: marca única, enlaces desplazables y perfil siempre visible. */
+.admin-shell .drawer {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden !important;
+}
+
+.admin-shell .brand {
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+.admin-shell .brand-logo {
+  display: grid;
+  width: 58px;
+  height: 42px;
+  flex: 0 0 auto;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid #303030;
+  border-radius: 9px;
+  background: #000;
+}
+
+.admin-shell .brand-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.admin-shell .main-nav {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-color: #404040 transparent;
+  scrollbar-width: thin;
+}
+
+.admin-shell .main-nav::-webkit-scrollbar { width: 5px; }
+.admin-shell .main-nav::-webkit-scrollbar-thumb { border-radius: 999px; background: #404040; }
+
+.admin-shell .drawer-footer {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  margin-top: auto;
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+  background: #080808;
+}
+
+.admin-shell.drawer-collapsed .brand-logo { width: 46px; }
+
+@media (max-width: 768px) {
+  .admin-shell .drawer,
+  .admin-shell.drawer-collapsed .drawer { overflow-y: hidden !important; }
+
+  .admin-shell .main-nav {
+    min-height: 0;
+    flex: 1 1 auto;
+    overflow-y: auto;
+  }
+
+  .admin-shell .brand-logo { width: 58px; }
 }
 
 @media (max-width: 480px) {

@@ -1,18 +1,97 @@
 /* You can add global styles to this file, and also import other style files */
 
+:root {
+  --wx-font-title: 'Oswald', sans-serif;
+  --wx-font-body: 'Crete Round', Georgia, serif;
+  --wx-font-reading: 'PT Serif', Georgia, serif;
+  --wx-font-highlight: 'Anton', 'Oswald', sans-serif;
+  --wx-title-color: #fff;
+  --wx-title-accent: #e53e3e;
+}
+
 html,
 body {
   margin: 0;
   max-width: 100%;
   overflow-x: hidden;
   scroll-behavior: smooth;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--wx-font-body);
+  font-weight: 400;
+  font-synthesis: none;
 }
 
 *,
 *::before,
 *::after {
   box-sizing: border-box;
+}
+
+button,
+input,
+select,
+textarea,
+option,
+table,
+th,
+td {
+  font-family: var(--wx-font-body) !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+[role='heading'] {
+  font-family: var(--wx-font-title) !important;
+  font-weight: 700 !important;
+}
+
+/* Patrón global para títulos principales sobre superficies oscuras. */
+h1.ui-title,
+h2.ui-title {
+  color: var(--wx-title-color);
+}
+
+h1.ui-title .title-accent,
+h2.ui-title .title-accent {
+  color: var(--wx-title-accent);
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+}
+
+.box-subtitle,
+[class*='subtitle'],
+.hero-copy,
+.section-heading > p,
+.service-program > p,
+.service-showcase-copy > p,
+.promo-content > p,
+.detail-intro > p,
+.checkin-card > p,
+.contact-copy > p,
+blockquote,
+q {
+  font-family: var(--wx-font-reading) !important;
+  font-weight: 400;
+}
+
+.promo-offer strong,
+.metric-grid article > strong,
+.inventory-summary article > strong,
+.stat-card > strong,
+.flow-card > strong,
+.membership-card > strong,
+.product-card .meta strong,
+.result-grid article > strong,
+.member-stat-grid strong,
+.checkout-total strong,
+.report-stats strong,
+.list-price {
+  font-family: var(--wx-font-highlight) !important;
+  font-weight: 400 !important;
 }
 
 .confirm-overlay {
@@ -434,7 +513,7 @@ app-landing .promo-content h2 {
 }
 
 app-landing .promo-content p {
-  color: rgba(255, 255, 255, .72);
+  color: rgba(255, 255, 255, .88);
   font-size: 16px;
   line-height: 1.6;
 }
