@@ -133,8 +133,14 @@ export interface DetalleRegistro {
 }
 
 export interface AlertaAdministrativa {
+  id?: string;
   type: 'warning' | 'danger' | 'stock';
+  category?: string;
   title: string;
   detail: string;
   route: string;
+  read?: boolean;
+  active?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }

@@ -167,7 +167,7 @@ export class DashboardComponent implements OnInit {
   }
 
   get unreadAlertCount(): number {
-    return this.alertsRead ? 0 : this.alerts.length;
+    return this.alertsRead ? 0 : this.alerts.filter(alert => !alert.read).length;
   }
 
   get paidIncome(): number {
@@ -373,6 +373,16 @@ export class DashboardComponent implements OnInit {
 
   toggleAlerts(): void {
     this.showAlerts = !this.showAlerts;
+    if (this.showAlerts) {
+      this.data.refrescarAlertas().subscribe({
+        next: alertas => {
+          this.alertsRead = !alertas.some(alert => !alert.read);
+        },
+        error: () => {
+          this.notice = 'No se pudieron sincronizar las alertas.';
+        }
+      });
+    }
   }
 
   toggleTheme(): void {
@@ -387,7 +397,23 @@ export class DashboardComponent implements OnInit {
   }
 
   markAlertsRead(): void {
-    this.alertsRead = true;
+    const unreadIds = this.alerts
+      .filter(alert => alert.id && !alert.read)
+      .map(alert => alert.id as string);
+
+    if (!unreadIds.length) {
+      this.alertsRead = true;
+      return;
+    }
+
+    this.data.marcarAlertasLeidas(unreadIds).subscribe({
+      next: () => {
+        this.alertsRead = true;
+      },
+      error: () => {
+        this.notice = 'No se pudieron marcar las alertas como revisadas.';
+      }
+    });
   }
 
   logout(): void {

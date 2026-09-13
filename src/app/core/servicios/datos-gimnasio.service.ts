@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { catchError, forkJoin, Observable, of } from 'rxjs';
+import { catchError, forkJoin, Observable, of, tap } from 'rxjs';
 import {
   AlertaAdministrativa,
   Cliente,
@@ -154,6 +154,30 @@ export class DatosGimnasioService {
 
   obtenerDashboardMembresias() {
     return this.http.get<Array<Record<string, unknown>>>(`${this.apiUrl}/dashboard/memberships`);
+  }
+
+  refrescarAlertas(): Observable<AlertaAdministrativa[]> {
+    return this.http.get<AlertaAdministrativa[]>(`${this.apiUrl}/alerts`).pipe(
+      tap(alertas => {
+        this.alertasBackend = alertas;
+      })
+    );
+  }
+
+  marcarAlertasLeidas(ids: string[]): Observable<AlertaAdministrativa[]> {
+    const uniqueIds = [...new Set(ids.filter(Boolean))];
+    if (!uniqueIds.length) {
+      return of([]);
+    }
+
+    return forkJoin(
+      uniqueIds.map(id => this.http.patch<AlertaAdministrativa>(`${this.apiUrl}/alerts/${id}/read`, {}))
+    ).pipe(
+      tap(updatedAlerts => {
+        const updatedById = new Map(updatedAlerts.map(alert => [alert.id, alert]));
+        this.alertasBackend = this.alertasBackend.map(alert => updatedById.get(alert.id) ?? alert);
+      })
+    );
   }
 
   listarReportes() {
