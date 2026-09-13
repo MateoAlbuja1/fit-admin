@@ -132,8 +132,8 @@
     </section>
 
     <section class="quick-actions" aria-label="Acciones rápidas">
-      <button type="button" (click)="quickCheckIn()"><span>+</span><strong>Registrar asistencia</strong><small>Suma un ingreso al día</small></button>
-      <button type="button" (click)="quickSale()"><span>$</span><strong>Venta rápida</strong><small>Descuenta stock y registra pago</small></button>
+      <button type="button" (click)="goTo('/asistencia')"><span>+</span><strong>Registrar asistencia</strong><small>Ir al control de asistencia</small></button>
+      <button type="button" (click)="goTo('/pedidos?accion=nuevo')"><span>$</span><strong>Venta rápida</strong><small>Crear pedido presencial</small></button>
       <button type="button" (click)="goTo('/pagos')"><span>↗</span><strong>Nuevo pago</strong><small>Ir al módulo de pagos</small></button>
       <button type="button" (click)="goTo('/reportes')"><span>▣</span><strong>Generar reporte</strong><small>Administrativo y financiero</small></button>
     </section>

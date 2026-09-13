@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { PedidoTienda, Suplemento } from '../../core/modelos/modelos-administracion';
 import { AccionPaginaAdminService } from '../../core/servicios/accion-pagina-admin.service';
 import { DatosGimnasioService } from '../../core/servicios/datos-gimnasio.service';
@@ -28,12 +29,16 @@ export class PaginaPedidosComponent implements OnInit, OnDestroy {
 
   constructor(
     public data: DatosGimnasioService,
-    private actions: AccionPaginaAdminService
+    private actions: AccionPaginaAdminService,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
     this.actions.registrar('Nuevo pedido', () => this.openManualOrder());
     this.loadOrders();
+    if (this.route.snapshot.queryParamMap.get('accion') === 'nuevo') {
+      this.openManualOrder();
+    }
   }
 
   ngOnDestroy(): void {
