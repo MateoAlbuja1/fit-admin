@@ -67,11 +67,11 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
   ];
 
   gimnasio = {
-    nombre: 'WX GYM',
+    nombre: 'GX GYM',
     sede: '',
     ciudad: 'Quito',
     telefono: '0969953775',
-    email: 'contacto@wxgym.local',
+    email: 'contacto@gxgym.local',
     direccion: 'Quito, Ecuador'
   };
 
@@ -79,7 +79,7 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
     administrador: 'Mateo Admin',
     rol: 'Administrador',
     usuario: 'admin',
-    correo: 'admin@wxgym.local'
+    correo: 'admin@gxgym.local'
   };
 
   seguridad = {
@@ -227,11 +227,11 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
 
   private buildGymPayload(): GymSettingsPayload {
     return {
-      name: 'WX GYM',
+      name: 'GX GYM',
       sector: this.gimnasio.sede.trim(),
       city: this.gimnasio.ciudad.trim(),
       phone: '0969953775',
-      email: 'contacto@wxgym.local',
+      email: 'contacto@gxgym.local',
       address: this.gimnasio.direccion.trim(),
       openingHours: this.schedulesSummary(),
       schedules: this.horarios,
@@ -258,11 +258,11 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
 
   private applyGymSettings(settings: GymSettingsPayload = {}): void {
     this.gimnasio = {
-      nombre: 'WX GYM',
+      nombre: 'GX GYM',
       sede: this.text(settings.sector, this.gimnasio.sede),
       ciudad: this.text(settings.city, this.gimnasio.ciudad),
       telefono: '0969953775',
-      email: 'contacto@wxgym.local',
+      email: 'contacto@gxgym.local',
       direccion: this.text(settings.address, this.gimnasio.direccion)
     };
 

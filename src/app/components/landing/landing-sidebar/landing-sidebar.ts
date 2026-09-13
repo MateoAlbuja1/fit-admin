@@ -28,7 +28,7 @@ export class LandingSidebarComponent {
   @Input() items: SidebarSection[] = [];
   @Input() activeAnchor = 'inicio';
   @Input() memberProfile: SidebarMemberProfile | null = null;
-  @Input() gymName = 'WX GYM';
+  @Input() gymName = 'GX GYM';
   @Input() gymSector = '';
 
   @Output() navigate = new EventEmitter<string>();

@@ -159,7 +159,7 @@ export class DashboardComponent implements OnInit {
   get welcomeSubtitle(): string {
     return this.isMember
       ? 'Tu resumen de entrenamiento, progreso y membresia.'
-      : 'Rendimiento operativo de WX GYM en tiempo real.';
+      : 'Rendimiento operativo de GX GYM en tiempo real.';
   }
 
   get alerts() {
