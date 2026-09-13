@@ -68,11 +68,11 @@ interface PublicGymSettings {
   openingHours: string;
 }
 
-const OFFICIAL_GYM_NAME = 'GX GYM';
+const OFFICIAL_GYM_NAME = 'WX GYM';
 const OFFICIAL_WHATSAPP_LOCAL = '0969953775';
 const OFFICIAL_WHATSAPP_INTERNATIONAL = '593969953775';
-const OFFICIAL_GYM_EMAIL = 'contacto@gxgym.local';
-const DEFAULT_WHATSAPP_MESSAGE = 'Hola GX GYM, deseo información sobre el gimnasio.';
+const OFFICIAL_GYM_EMAIL = 'contacto@wxgym.local';
+const DEFAULT_WHATSAPP_MESSAGE = 'Hola WX GYM, deseo información sobre el gimnasio.';
 
 interface PaypalConfig {
   enabled: boolean;
@@ -201,7 +201,7 @@ export class LandingComponent implements OnInit {
       titleAccent: 'versión',
       description: 'Entrena fuerza, cardio y acondicionamiento con enfoque, disciplina y máquinas listas para progresar cada semana.',
       image: '/assets/img/gym-carousel-1.jpg',
-      alt: 'Área principal de entrenamiento de GX GYM'
+      alt: 'Área principal de entrenamiento de WX GYM'
     },
     {
       eyebrow: 'Fuerza y musculación',
@@ -217,7 +217,7 @@ export class LandingComponent implements OnInit {
       titleAccent: 'potencial',
       description: 'Planes personalizados y seguimiento para lograr los resultados que buscas.',
       image: '/assets/img/gym-carousel-4.jpg',
-      alt: 'Zona moderna de entrenamiento de GX GYM'
+      alt: 'Zona moderna de entrenamiento de WX GYM'
     },
     {
       eyebrow: 'Cardio y acondicionamiento',
@@ -225,7 +225,7 @@ export class LandingComponent implements OnInit {
       titleAccent: 'resistencia',
       description: 'Combina cardio, fuerza y acondicionamiento para ganar energía, control y una mejor condición física.',
       image: '/assets/img/gym-cycling-zone.jpg',
-      alt: 'Zona de cardio y bicicletas de GX GYM'
+      alt: 'Zona de cardio y bicicletas de WX GYM'
     },
     {
       eyebrow: 'Entrenamiento real',
@@ -233,7 +233,7 @@ export class LandingComponent implements OnInit {
       titleAccent: 'sesión',
       description: 'Rutinas, seguimiento y equipo disponible para convertir la constancia en resultados visibles.',
       image: '/assets/img/gym-carousel-3.jpg',
-      alt: 'Interior moderno de GX GYM'
+      alt: 'Interior moderno de WX GYM'
     }
   ];
 
@@ -729,7 +729,7 @@ export class LandingComponent implements OnInit {
   resultCards: ResultCard[] = [
     { value: '5.0', label: 'resenas', detail: 'Opiniones reales de clientes.' },
     { value: 'Quito', label: 'ubicacion', detail: 'Ecuador.' },
-    { value: 'GX', label: 'GX GYM', detail: 'Rutinas, fuerza y bienestar.' }
+    { value: 'WX', label: 'WX GYM', detail: 'Rutinas, fuerza y bienestar.' }
   ];
 
   private readonly searchIndex: SearchResult[] = [
@@ -1437,7 +1437,7 @@ export class LandingComponent implements OnInit {
       this.resultCards = [
         this.resultCards[0],
         { value: location, label: 'ubicacion', detail: this.publicGymSettings.sector ? this.publicGymSettings.city : 'Ecuador.' },
-        { value: 'GX', label: 'GX GYM', detail: 'Rutinas, fuerza y bienestar.' }
+        { value: 'WX', label: 'WX GYM', detail: 'Rutinas, fuerza y bienestar.' }
       ];
     });
   }

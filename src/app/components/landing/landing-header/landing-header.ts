@@ -20,7 +20,7 @@ export class LandingHeaderComponent {
   @Input() searchQuery = '';
   @Input() searchResults: SearchResult[] = [];
   @Input() cartCount = 0;
-  @Input() gymName = 'GX GYM';
+  @Input() gymName = 'WX GYM';
   @Input() isAuthenticated = false;
 
   @Output() searchQueryChange = new EventEmitter<string>();

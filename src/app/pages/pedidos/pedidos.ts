@@ -118,7 +118,7 @@ export class PaginaPedidosComponent implements OnInit, OnDestroy {
     const lines = (order.items || [])
       .map(item => `- ${item.quantity} x ${item.productName} ($${item.unitPrice.toFixed(2)})`)
       .join('\n');
-    const body = `Hola ${order.customerName}, te escribimos por tu pedido ${order.code} en GX GYM.\n${lines}\nTotal: $${order.total.toFixed(2)}.`;
+    const body = `Hola ${order.customerName}, te escribimos por tu pedido ${order.code} en WX GYM.\n${lines}\nTotal: $${order.total.toFixed(2)}.`;
     const digits = order.customerPhone.replace(/\D/g, '');
     const phone = digits.startsWith('593') ? digits : digits.startsWith('0') ? `593${digits.slice(1)}` : digits;
     return `https://wa.me/${phone}?text=${encodeURIComponent(body)}`;

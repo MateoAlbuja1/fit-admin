@@ -22,7 +22,7 @@ interface RegistrationForm {
 })
 export class DemoFormComponent implements OnChanges {
   @Input() selectedPlan = '';
-  @Input() gymName = 'GX GYM';
+  @Input() gymName = 'WX GYM';
 
   submitted = false;
   isSending = false;
