@@ -158,11 +158,18 @@
     <section class="form-drawer" (click)="$event.stopPropagation()">
       <header><div><span>EDITAR FICHA</span><h2>Suplemento</h2></div><button type="button" (click)="cancelEdit()">×</button></header>
       <form (ngSubmit)="saveEdit()">
-        <label class="photo-upload">
-          <input type="file" accept="image/*" (change)="handleEditPhoto($event)" />
-          @if (editItem.photo) { <img [src]="editItem.photo" alt="Vista previa" /> }
-          @else { <strong>Actualizar fotografía</strong><span>PNG o JPG · máximo 4 MB</span> }
-        </label>
+        <div class="form-row">
+          <label class="photo-upload">
+            <input type="file" accept="image/*" (change)="handleEditPhoto($event)" />
+            @if (editItem.photo) { <img [src]="editItem.photo" alt="Vista previa del producto" /> }
+            @else { <strong>Foto del producto</strong><span>PNG o JPG · máximo 4 MB</span> }
+          </label>
+          <label class="photo-upload">
+            <input type="file" accept="image/*" (change)="handleEditFactsPhoto($event)" />
+            @if (editItem.factsPhoto) { <img [src]="editItem.factsPhoto" alt="Vista previa de tabla nutricional" /> }
+            @else { <strong>Tabla nutricional</strong><span>Se muestra al pasar el mouse</span> }
+          </label>
+        </div>
         <label><span>Nombre *</span><input [(ngModel)]="editItem.name" name="editName" required /></label>
         <label><span>Categoría *</span><input [(ngModel)]="editItem.category" name="editCategory" required /></label>
         <label><span>Descripción</span><textarea [(ngModel)]="editItem.description" name="editDescription" rows="4"></textarea></label>
@@ -184,7 +191,10 @@
       <div class="form-progress"><button type="button" [class.active]="formStep === 1" (click)="formStep = 1"><b>1</b><span>Identificación</span></button><i></i><button type="button" [class.active]="formStep === 2" (click)="formStep = 2"><b>2</b><span>Detalles</span></button></div>
       <form (ngSubmit)="add()">
         @if (formStep === 1) {
-          <label class="photo-upload"><input type="file" accept="image/*" (change)="handlePhoto($event)" />@if (newItem.photo) { <img [src]="newItem.photo" alt="Vista previa" /> } @else { <strong>Agregar fotografía</strong><span>PNG o JPG · máximo 4 MB</span> }</label>
+          <div class="form-row">
+            <label class="photo-upload"><input type="file" accept="image/*" (change)="handlePhoto($event)" />@if (newItem.photo) { <img [src]="newItem.photo" alt="Vista previa del producto" /> } @else { <strong>Foto del producto</strong><span>PNG o JPG · máximo 4 MB</span> }</label>
+            <label class="photo-upload"><input type="file" accept="image/*" (change)="handleFactsPhoto($event)" />@if (newItem.factsPhoto) { <img [src]="newItem.factsPhoto" alt="Vista previa de tabla nutricional" /> } @else { <strong>Tabla nutricional</strong><span>Se muestra al pasar el mouse</span> }</label>
+          </div>
           <label><span>Nombre *</span><input [(ngModel)]="newItem.name" name="name" required /></label>
           <label><span>Categoría *</span><input [(ngModel)]="newItem.category" name="category" required /></label>
           <button class="primary-button form-submit" type="button" (click)="formStep = 2">Continuar</button>

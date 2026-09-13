@@ -19,8 +19,8 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
   editingItemId: number | null = null;
   stockFilter: FiltroStock = 'Todos';
   categoryFilter = 'Todas';
-  newItem = { name: '', category: '', description: '', stock: 0, minStock: 5, price: 0, photo: '' };
-  editItem = { name: '', category: '', description: '', stock: 0, minStock: 5, price: 0, photo: '' };
+  newItem = this.emptySupplementForm();
+  editItem = this.emptySupplementForm();
 
   readonly stockFilters: FiltroStock[] = ['Todos', 'Stock bajo', 'Disponibles', 'Agotados'];
 
@@ -90,7 +90,16 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
 
   openEdit(item: Suplemento): void {
     this.editingItemId = item.id;
-    this.editItem = { name: item.name, category: item.category, description: item.description, stock: item.stock, minStock: item.minStock, price: item.price, photo: item.photo };
+    this.editItem = {
+      name: item.name,
+      category: item.category,
+      description: item.description,
+      stock: item.stock,
+      minStock: item.minStock,
+      price: item.price,
+      photo: item.photo,
+      factsPhoto: item.factsPhoto ?? ''
+    };
   }
 
   cancelEdit(): void {
@@ -111,7 +120,8 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
       stock: Math.max(0, Number(this.editItem.stock) || 0),
       minStock: Math.max(0, Number(this.editItem.minStock) || 0),
       price: Math.max(0, Number(this.editItem.price) || 0),
-      photo: this.editItem.photo
+      photo: this.editItem.photo,
+      factsPhoto: this.editItem.factsPhoto
     }).subscribe({
       next: updated => {
         Object.assign(item, updated);
@@ -163,24 +173,29 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
   }
 
   handlePhoto(event: Event): void {
-    const file = (event.target as HTMLInputElement).files?.[0];
-    if (!file || file.size > 4 * 1024 * 1024) {
-      this.notice = 'Selecciona una imagen menor a 4 MB.';
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => this.newItem.photo = String(reader.result);
-    reader.readAsDataURL(file);
+    this.readImageFile(event, value => this.newItem.photo = value);
+  }
+
+  handleFactsPhoto(event: Event): void {
+    this.readImageFile(event, value => this.newItem.factsPhoto = value);
   }
 
   handleEditPhoto(event: Event): void {
+    this.readImageFile(event, value => this.editItem.photo = value);
+  }
+
+  handleEditFactsPhoto(event: Event): void {
+    this.readImageFile(event, value => this.editItem.factsPhoto = value);
+  }
+
+  private readImageFile(event: Event, onLoad: (value: string) => void): void {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file || file.size > 4 * 1024 * 1024) {
       this.notice = 'Selecciona una imagen menor a 4 MB.';
       return;
     }
     const reader = new FileReader();
-    reader.onload = () => this.editItem.photo = String(reader.result);
+    reader.onload = () => onLoad(String(reader.result));
     reader.readAsDataURL(file);
   }
 
@@ -193,7 +208,7 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
     this.data.crearSuplemento(this.newItem).subscribe({
       next: created => {
         this.data.suplementos.unshift(created);
-        this.newItem = { name: '', category: '', description: '', stock: 0, minStock: 5, price: 0, photo: '' };
+        this.newItem = this.emptySupplementForm();
         this.showForm = false;
         this.formStep = 1;
         this.notice = 'Suplemento agregado correctamente.';
@@ -202,5 +217,9 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
         this.notice = 'No se pudo crear el suplemento en el backend.';
       }
     });
+  }
+
+  private emptySupplementForm() {
+    return { name: '', category: '', description: '', stock: 0, minStock: 5, price: 0, photo: '', factsPhoto: '' };
   }
 }
