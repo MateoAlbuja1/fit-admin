@@ -1,10 +1,11 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { PedidoTienda } from '../../core/modelos/modelos-administracion';
+import { PedidoTienda, Suplemento } from '../../core/modelos/modelos-administracion';
 import { AccionPaginaAdminService } from '../../core/servicios/accion-pagina-admin.service';
 import { DatosGimnasioService } from '../../core/servicios/datos-gimnasio.service';
 
 type FiltroPedidoEstado = 'Todos' | PedidoTienda['status'];
+type ItemPedidoManual = { supplementId: number | null; quantity: number };
 
 @Component({ selector: 'app-pagina-pedidos', standalone: true, imports: [FormsModule], templateUrl: './pedidos.html' })
 export class PaginaPedidosComponent implements OnInit, OnDestroy {
@@ -16,16 +17,22 @@ export class PaginaPedidosComponent implements OnInit, OnDestroy {
   readonly pageSize = 5;
   readonly statusFilters: FiltroPedidoEstado[] = ['Todos', 'Nuevo', 'Contactado', 'Confirmado', 'Preparado', 'Pago pendiente', 'Pagado', 'Entregado', 'Cancelado'];
   readonly nextStatuses: PedidoTienda['status'][] = ['Nuevo', 'Contactado', 'Confirmado', 'Preparado', 'Pago pendiente', 'Pagado', 'Entregado', 'Cancelado'];
+  readonly manualStatuses: PedidoTienda['status'][] = ['Nuevo', 'Confirmado', 'Pagado', 'Entregado'];
+  readonly paymentMethods = ['Efectivo', 'Transferencia', 'Tarjeta', 'WhatsApp'];
   detail: PedidoTienda | null = null;
   isLoading = false;
+  showManualForm = false;
+  isSavingManualOrder = false;
+  manualOrder = this.emptyManualOrder();
+  manualItems: ItemPedidoManual[] = [this.emptyManualItem()];
 
   constructor(
-    private data: DatosGimnasioService,
+    public data: DatosGimnasioService,
     private actions: AccionPaginaAdminService
   ) {}
 
   ngOnInit(): void {
-    this.actions.registrar('Actualizar pedidos', () => this.loadOrders());
+    this.actions.registrar('Nuevo pedido', () => this.openManualOrder());
     this.loadOrders();
   }
 
@@ -57,6 +64,19 @@ export class PaginaPedidosComponent implements OnInit, OnDestroy {
 
   get paged(): PedidoTienda[] {
     return this.filtered.slice((this.page - 1) * this.pageSize, this.page * this.pageSize);
+  }
+
+  get availableSupplements(): Suplemento[] {
+    return this.data.suplementos
+      .filter(item => item.stock > 0)
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  get manualOrderTotal(): number {
+    return this.manualItems.reduce((sum, item) => {
+      const product = this.productById(item.supplementId);
+      return sum + (product ? product.price * this.safeQuantity(item.quantity) : 0);
+    }, 0);
   }
 
   loadOrders(): void {
@@ -114,6 +134,90 @@ export class PaginaPedidosComponent implements OnInit, OnDestroy {
     });
   }
 
+  openManualOrder(): void {
+    this.manualOrder = this.emptyManualOrder();
+    this.manualItems = [this.emptyManualItem()];
+    this.showManualForm = true;
+    if (!this.data.suplementos.length) {
+      this.data.refrescar();
+    }
+  }
+
+  closeManualOrder(): void {
+    if (this.isSavingManualOrder) return;
+    this.showManualForm = false;
+  }
+
+  addManualItem(): void {
+    this.manualItems = [...this.manualItems, this.emptyManualItem()];
+  }
+
+  removeManualItem(index: number): void {
+    this.manualItems = this.manualItems.filter((_, itemIndex) => itemIndex !== index);
+    if (!this.manualItems.length) {
+      this.manualItems = [this.emptyManualItem()];
+    }
+  }
+
+  productById(id: number | null): Suplemento | undefined {
+    return id ? this.data.suplementos.find(item => item.id === Number(id)) : undefined;
+  }
+
+  stockLabel(item: ItemPedidoManual): string {
+    const product = this.productById(item.supplementId);
+    return product ? `${product.stock} disp. · $${product.price.toFixed(2)}` : 'Selecciona producto';
+  }
+
+  createManualOrder(): void {
+    this.notice = '';
+    const items = this.manualItems
+      .map(item => ({ supplementId: Number(item.supplementId), quantity: this.safeQuantity(item.quantity) }))
+      .filter(item => item.supplementId && item.quantity > 0);
+
+    if (!this.manualOrder.customerName.trim() || !this.manualOrder.customerPhone.trim()) {
+      this.notice = 'Completa nombre y telefono del cliente.';
+      return;
+    }
+    if (!items.length) {
+      this.notice = 'Agrega al menos un producto al pedido.';
+      return;
+    }
+
+    const invalidStock = items.find(item => {
+      const product = this.productById(item.supplementId);
+      return !product || item.quantity > product.stock;
+    });
+    if (invalidStock) {
+      const product = this.productById(invalidStock.supplementId);
+      this.notice = product
+        ? `${product.name} solo tiene ${product.stock} unidad(es) disponibles.`
+        : 'Uno de los productos seleccionados ya no esta disponible.';
+      return;
+    }
+
+    this.isSavingManualOrder = true;
+    this.data.crearPedidoManualTienda({
+      ...this.manualOrder,
+      channel: 'presencial',
+      items
+    }).subscribe({
+      next: order => {
+        this.showManualForm = false;
+        this.notice = `Pedido presencial ${order.code} registrado como ${order.status}.`;
+        this.loadOrders();
+        this.data.refrescar();
+      },
+      error: error => {
+        this.notice = error.status === 409
+          ? 'No hay stock suficiente para completar el pedido.'
+          : 'No se pudo registrar el pedido presencial.';
+      },
+      complete: () => {
+        this.isSavingManualOrder = false;
+      }
+    });
+  }
+
   whatsappUrl(order: PedidoTienda): string {
     const lines = (order.items || [])
       .map(item => `- ${item.quantity} x ${item.productName} ($${item.unitPrice.toFixed(2)})`)
@@ -126,5 +230,25 @@ export class PaginaPedidosComponent implements OnInit, OnDestroy {
 
   formatDate(value: string): string {
     return new Date(value).toLocaleString('es-EC', { dateStyle: 'medium', timeStyle: 'short' });
+  }
+
+  private emptyManualOrder() {
+    return {
+      customerName: '',
+      customerPhone: '',
+      customerEmail: '',
+      notes: 'Venta presencial',
+      status: 'Pagado' as PedidoTienda['status'],
+      paymentMethod: 'Efectivo'
+    };
+  }
+
+  private emptyManualItem(): ItemPedidoManual {
+    return { supplementId: null, quantity: 1 };
+  }
+
+  private safeQuantity(value: number): number {
+    const quantity = Math.floor(Number(value || 0));
+    return Number.isFinite(quantity) && quantity > 0 ? quantity : 0;
   }
 }

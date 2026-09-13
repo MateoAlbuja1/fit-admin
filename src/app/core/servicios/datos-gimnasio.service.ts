@@ -96,6 +96,10 @@ export class DatosGimnasioService {
     return this.http.post<PedidoTienda>(`${this.apiUrl}/public/store-orders`, payload);
   }
 
+  crearPedidoManualTienda(payload: Record<string, unknown>) {
+    return this.http.post<PedidoTienda>(`${this.apiUrl}/inventory/store-orders`, payload);
+  }
+
   obtenerConfiguracionPaypal() {
     return this.http.get<{ enabled: boolean; clientId: string; currency: string; mode: string }>(`${this.apiUrl}/public/paypal/config`);
   }
