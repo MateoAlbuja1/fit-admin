@@ -73,7 +73,7 @@ export class PaginaPedidosComponent implements OnInit, OnDestroy {
 
   get availableSupplements(): Suplemento[] {
     return this.data.suplementos
-      .filter(item => item.stock > 0)
+      .filter(item => item.stock > 0 && (item.status ?? 'Activo') === 'Activo')
       .sort((a, b) => a.name.localeCompare(b.name));
   }
 

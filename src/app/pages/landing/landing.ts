@@ -767,20 +767,26 @@ export class LandingComponent implements OnInit {
       return this.clientProductCatalogBackup;
     }
 
-    return this.data.suplementos.map(product => ({
-      id: product.id,
-      name: product.name,
-      price: this.formatCurrency(product.price),
-      stock: product.stock,
-      discount: product.discount,
-      rating: product.rating ?? '4.7/5',
-      image: product.photo,
-      factsImage: product.factsPhoto,
-      factsAlt: product.factsPhoto ? `Tabla nutricional de ${product.name}` : undefined,
-      imageFit: product.imageFit,
-      category: product.category,
-      description: product.description
-    }));
+    return this.data.suplementos
+      .filter(product => {
+        const isVisible = product.visibleEnTienda ?? product.visibleInStore ?? true;
+        const isActive = (product.status ?? 'Activo') === 'Activo';
+        return isVisible && isActive && product.stock > 0;
+      })
+      .map(product => ({
+        id: product.id,
+        name: product.name,
+        price: this.formatCurrency(product.price),
+        stock: product.stock,
+        discount: product.discount,
+        rating: product.rating ?? '4.7/5',
+        image: product.photo,
+        factsImage: product.factsPhoto,
+        factsAlt: product.factsPhoto ? `Tabla nutricional de ${product.name}` : undefined,
+        imageFit: product.imageFit,
+        category: product.category,
+        description: product.description
+      }));
   }
 
   get searchResults(): SearchResult[] {

@@ -76,6 +76,9 @@ export interface Suplemento {
   minStock: number;
   price: number;
   photo: string;
+  status?: 'Activo' | 'Inactivo';
+  visibleEnTienda?: boolean;
+  visibleInStore?: boolean;
   discount?: string;
   rating?: string;
   factsPhoto?: string;
