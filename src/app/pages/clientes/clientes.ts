@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { finalize, timeout } from 'rxjs';
 import { Cliente, DetalleRegistro } from '../../core/modelos/modelos-administracion';
 import { AccionPaginaAdminService } from '../../core/servicios/accion-pagina-admin.service';
 import { DatosGimnasioService } from '../../core/servicios/datos-gimnasio.service';
@@ -155,19 +156,23 @@ export class PaginaClientesComponent implements OnInit, OnDestroy {
       phone: this.newClient.phone.trim() || 'Sin telefono',
       status: 'Activo',
       plan: this.newClient.plan
-    }).subscribe({
+    }).pipe(
+      timeout(10000),
+      finalize(() => {
+        this.isSavingClient = false;
+      })
+    ).subscribe({
       next: created => {
         this.data.clientes.unshift(created);
-        this.data.refrescar();
         this.newClient = { name: '', document: '', phone: '', plan: 'Plan mensual' };
         this.showForm = false;
         this.notice = 'Cliente registrado con membresia inicial.';
+        this.data.refrescar();
       },
-      error: () => {
-        this.notice = 'No se pudo registrar el cliente en el backend.';
-      },
-      complete: () => {
-        this.isSavingClient = false;
+      error: error => {
+        this.notice = error.name === 'TimeoutError'
+          ? 'El registro esta tardando demasiado. Revisa la conexion e intenta nuevamente.'
+          : 'No se pudo registrar el cliente en el backend.';
       }
     });
   }
