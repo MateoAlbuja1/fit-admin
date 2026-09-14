@@ -19,7 +19,7 @@ export class PaginaClientesComponent implements OnInit, OnDestroy {
   planFilter: FiltroClientePlan = 'Todos';
   editingClientId: number | null = null;
   newClient = { name: '', document: '', phone: '', plan: 'Plan mensual' };
-  editClient = { name: '', document: '', phone: '', plan: 'Plan mensual' as FiltroClientePlan, status: 'Activo' as Cliente['status'] };
+  editClient = { name: '', document: '', phone: '', status: 'Activo' as Cliente['status'] };
 
   readonly statusFilters: FiltroClienteEstado[] = ['Todos', 'Activo', 'Inactivo'];
   readonly planFilters: FiltroClientePlan[] = ['Todos', 'Plan mensual', 'Plan trimestral', 'Plan anual'];
@@ -105,7 +105,7 @@ export class PaginaClientesComponent implements OnInit, OnDestroy {
 
   openEdit(client: Cliente): void {
     this.editingClientId = client.id;
-    this.editClient = { name: client.name, document: client.document, phone: client.phone, plan: client.plan as FiltroClientePlan, status: client.status };
+    this.editClient = { name: client.name, document: client.document, phone: client.phone, status: client.status };
   }
 
   cancelEdit(): void {
@@ -127,7 +127,6 @@ export class PaginaClientesComponent implements OnInit, OnDestroy {
     }).subscribe({
       next: updated => {
         Object.assign(client, updated);
-        client.plan = this.editClient.plan;
         this.editingClientId = null;
         this.notice = 'Cliente actualizado correctamente.';
       },
@@ -147,14 +146,15 @@ export class PaginaClientesComponent implements OnInit, OnDestroy {
       name: this.newClient.name.trim(),
       document: this.newClient.document.trim(),
       phone: this.newClient.phone.trim() || 'Sin telefono',
-      status: 'Activo'
+      status: 'Activo',
+      plan: this.newClient.plan
     }).subscribe({
       next: created => {
-        created.plan = this.newClient.plan;
         this.data.clientes.unshift(created);
+        this.data.refrescar();
         this.newClient = { name: '', document: '', phone: '', plan: 'Plan mensual' };
         this.showForm = false;
-        this.notice = 'Cliente registrado correctamente.';
+        this.notice = 'Cliente registrado con membresia inicial.';
       },
       error: () => {
         this.notice = 'No se pudo registrar el cliente en el backend.';
