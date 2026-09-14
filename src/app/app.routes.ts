@@ -35,7 +35,7 @@ export const routes: Routes = [
         path: 'usuarios',
         canActivate: [adminOnlyGuard],
         loadComponent: () => import('./pages/usuarios/usuarios').then(m => m.PaginaUsuariosComponent),
-        data: { meta: { modulo: 'usuarios', eyebrow: 'Control de acceso', title: 'Usuarios registrados' } }
+        data: { meta: { modulo: 'usuarios', eyebrow: 'Control de acceso', title: 'Usuarios web' } }
       },
       {
         path: 'clientes',

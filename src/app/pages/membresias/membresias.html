@@ -9,7 +9,7 @@
 <section class="content-card">
   <div class="card-toolbar">
     <div><h3>Vigencia de membresías</h3><span>Planes activos y renovaciones pendientes</span></div>
-    <span class="summary-chip">{{ filtered.length }} registros</span>
+    <label class="search-field"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4" /></svg><input [(ngModel)]="search" placeholder="Buscar membresía" /></label>
   </div>
 
   <div class="filter-panel filter-panel--selects">
@@ -36,6 +36,7 @@
     @if (statusFilter !== 'Todos' || planFilter !== 'Todos') {
       <button class="clear-filter" type="button" (click)="setStatusFilter('Todos'); setPlanFilter('Todos')">Limpiar filtros</button>
     }
+    <span class="summary-chip">{{ filtered.length }} registros</span>
   </div>
 
   <div class="table-scroll">

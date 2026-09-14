@@ -9,6 +9,7 @@ type FiltroMembresiaPlan = 'Todos' | 'Mensual' | 'Trimestral' | 'Anual';
 @Component({ selector: 'app-pagina-membresias', standalone: true, imports: [FormsModule], templateUrl: './membresias.html' })
 export class PaginaMembresiasComponent {
   notice = '';
+  search = '';
   statusFilter: FiltroMembresiaEstado = 'Todos';
   planFilter: FiltroMembresiaPlan = 'Todos';
   editingMembershipId: number | null = null;
@@ -20,10 +21,13 @@ export class PaginaMembresiasComponent {
   constructor(public data: DatosGimnasioService) {}
 
   get filtered(): Membresia[] {
-    return this.data.membresias.filter(item =>
-      (this.statusFilter === 'Todos' || item.status === this.statusFilter)
-      && (this.planFilter === 'Todos' || item.plan === this.planFilter)
-    );
+    const q = this.search.toLowerCase().trim();
+    return this.data.membresias.filter(item => {
+      const matchesSearch = !q || `${item.member} ${item.plan} ${item.start} ${item.end} ${item.status}`.toLowerCase().includes(q);
+      const matchesStatus = this.statusFilter === 'Todos' || item.status === this.statusFilter;
+      const matchesPlan = this.planFilter === 'Todos' || item.plan === this.planFilter;
+      return matchesSearch && matchesStatus && matchesPlan;
+    });
   }
 
   setStatusFilter(filter: FiltroMembresiaEstado): void {
