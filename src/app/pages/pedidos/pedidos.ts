@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { PedidoTienda } from '../../core/modelos/modelos-administracion';
 import { DatosGimnasioService } from '../../core/servicios/datos-gimnasio.service';
@@ -18,7 +18,7 @@ export class PaginaPedidosComponent implements OnInit {
   detail: PedidoTienda | null = null;
   isLoading = false;
 
-  constructor(public data: DatosGimnasioService) {}
+  constructor(public data: DatosGimnasioService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.loadOrders();
@@ -55,12 +55,16 @@ export class PaginaPedidosComponent implements OnInit {
     this.data.listarPedidosTienda().subscribe({
       next: orders => {
         this.pedidos = orders;
+        this.page = 1;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.notice = 'No se pudieron cargar los pedidos de tienda.';
+        this.cdr.detectChanges();
       },
       complete: () => {
         this.isLoading = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -78,9 +82,11 @@ export class PaginaPedidosComponent implements OnInit {
     this.data.obtenerPedidoTienda(order.id).subscribe({
       next: detail => {
         this.detail = detail;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.notice = 'No se pudo cargar el detalle del pedido.';
+        this.cdr.detectChanges();
       }
     });
   }
@@ -98,9 +104,11 @@ export class PaginaPedidosComponent implements OnInit {
           this.detail = updated;
         }
         this.notice = `Pedido ${order.code} actualizado a ${status}.`;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.notice = 'No se pudo actualizar el estado del pedido.';
+        this.cdr.detectChanges();
       }
     });
   }
