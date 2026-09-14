@@ -1,12 +1,14 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { PedidoTienda } from '../../core/modelos/modelos-administracion';
 import { DatosGimnasioService } from '../../core/servicios/datos-gimnasio.service';
 
 type FiltroPedidoEstado = 'Todos' | PedidoTienda['status'];
 
 @Component({ selector: 'app-pagina-pedidos', standalone: true, imports: [FormsModule], templateUrl: './pedidos.html' })
-export class PaginaPedidosComponent implements OnInit {
+export class PaginaPedidosComponent implements OnInit, OnDestroy {
   pedidos: PedidoTienda[] = [];
   notice = '';
   search = '';
@@ -17,11 +19,25 @@ export class PaginaPedidosComponent implements OnInit {
   readonly nextStatuses: PedidoTienda['status'][] = ['Nuevo', 'Contactado', 'Confirmado', 'Preparado', 'Pago pendiente', 'Pagado', 'Entregado', 'Cancelado'];
   detail: PedidoTienda | null = null;
   isLoading = false;
+  private routeSub?: Subscription;
+  private destroyed = false;
 
-  constructor(public data: DatosGimnasioService, private cdr: ChangeDetectorRef) {}
+  constructor(
+    public data: DatosGimnasioService,
+    private route: ActivatedRoute,
+    private zone: NgZone,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
-    this.loadOrders();
+    this.routeSub = this.route.url.subscribe(() => {
+      this.loadOrders();
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.destroyed = true;
+    this.routeSub?.unsubscribe();
   }
 
   get pendingCount(): number {
@@ -54,17 +70,20 @@ export class PaginaPedidosComponent implements OnInit {
     this.isLoading = true;
     this.data.listarPedidosTienda().subscribe({
       next: orders => {
-        this.pedidos = orders;
-        this.page = 1;
-        this.cdr.detectChanges();
+        this.updateView(() => {
+          this.pedidos = orders;
+          this.page = 1;
+        });
       },
       error: () => {
-        this.notice = 'No se pudieron cargar los pedidos de tienda.';
-        this.cdr.detectChanges();
+        this.updateView(() => {
+          this.notice = 'No se pudieron cargar los pedidos de tienda.';
+        });
       },
       complete: () => {
-        this.isLoading = false;
-        this.cdr.detectChanges();
+        this.updateView(() => {
+          this.isLoading = false;
+        });
       }
     });
   }
@@ -81,12 +100,14 @@ export class PaginaPedidosComponent implements OnInit {
   openDetail(order: PedidoTienda): void {
     this.data.obtenerPedidoTienda(order.id).subscribe({
       next: detail => {
-        this.detail = detail;
-        this.cdr.detectChanges();
+        this.updateView(() => {
+          this.detail = detail;
+        });
       },
       error: () => {
-        this.notice = 'No se pudo cargar el detalle del pedido.';
-        this.cdr.detectChanges();
+        this.updateView(() => {
+          this.notice = 'No se pudo cargar el detalle del pedido.';
+        });
       }
     });
   }
@@ -99,16 +120,18 @@ export class PaginaPedidosComponent implements OnInit {
       : undefined;
     this.data.actualizarEstadoPedidoTienda(order.id, status, paymentMethod).subscribe({
       next: updated => {
-        Object.assign(order, updated);
-        if (this.detail?.id === order.id) {
-          this.detail = updated;
-        }
-        this.notice = `Pedido ${order.code} actualizado a ${status}.`;
-        this.cdr.detectChanges();
+        this.updateView(() => {
+          Object.assign(order, updated);
+          if (this.detail?.id === order.id) {
+            this.detail = updated;
+          }
+          this.notice = `Pedido ${order.code} actualizado a ${status}.`;
+        });
       },
       error: () => {
-        this.notice = 'No se pudo actualizar el estado del pedido.';
-        this.cdr.detectChanges();
+        this.updateView(() => {
+          this.notice = 'No se pudo actualizar el estado del pedido.';
+        });
       }
     });
   }
@@ -125,6 +148,14 @@ export class PaginaPedidosComponent implements OnInit {
 
   formatDate(value: string): string {
     return new Date(value).toLocaleString('es-EC', { dateStyle: 'medium', timeStyle: 'short' });
+  }
+
+  private updateView(update: () => void): void {
+    if (this.destroyed) return;
+    this.zone.run(() => {
+      update();
+      this.cdr.detectChanges();
+    });
   }
 
 }
