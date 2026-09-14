@@ -99,7 +99,7 @@
         <label><span>Cédula *</span><input [(ngModel)]="newClient.document" name="document" required /></label>
         <label><span>Teléfono</span><input [(ngModel)]="newClient.phone" name="phone" /></label>
         <label><span>Plan inicial</span><select [(ngModel)]="newClient.plan" name="plan"><option>Plan mensual</option><option>Plan trimestral</option><option>Plan anual</option></select></label>
-        <button class="primary-button form-submit" type="submit">Guardar cliente</button>
+        <button class="primary-button form-submit" type="submit" [disabled]="isSavingClient">{{ isSavingClient ? 'Guardando...' : 'Guardar cliente' }}</button>
       </form>
     </section>
   </div>

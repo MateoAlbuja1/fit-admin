@@ -18,6 +18,7 @@ export class PaginaClientesComponent implements OnInit, OnDestroy {
   statusFilter: FiltroClienteEstado = 'Todos';
   planFilter: FiltroClientePlan = 'Todos';
   editingClientId: number | null = null;
+  isSavingClient = false;
   newClient = { name: '', document: '', phone: '', plan: 'Plan mensual' };
   editClient = { name: '', document: '', phone: '', status: 'Activo' as Cliente['status'] };
 
@@ -137,11 +138,17 @@ export class PaginaClientesComponent implements OnInit, OnDestroy {
   }
 
   addClient(): void {
+    if (this.isSavingClient) {
+      return;
+    }
+
+    this.notice = '';
     if (!this.newClient.name.trim() || !this.newClient.document.trim()) {
       this.notice = 'Completa el nombre y la cedula.';
       return;
     }
 
+    this.isSavingClient = true;
     this.data.crearCliente({
       name: this.newClient.name.trim(),
       document: this.newClient.document.trim(),
@@ -158,6 +165,9 @@ export class PaginaClientesComponent implements OnInit, OnDestroy {
       },
       error: () => {
         this.notice = 'No se pudo registrar el cliente en el backend.';
+      },
+      complete: () => {
+        this.isSavingClient = false;
       }
     });
   }
