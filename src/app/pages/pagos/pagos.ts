@@ -98,7 +98,7 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
   get supplementSaleTotal(): number {
     return this.supplementSaleItems.reduce((sum, item) => {
       const product = this.productById(item.supplementId);
-      return sum + (product ? product.price * this.safeQuantity(item.quantity) : 0);
+      return sum + (product ? product.price * this.boundedQuantity(item) : 0);
     }, 0);
   }
 
@@ -225,7 +225,7 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
     const emptyIndex = this.supplementSaleItems.findIndex(item => !item.supplementId);
     if (emptyIndex >= 0) {
       this.supplementSaleItems = this.supplementSaleItems.map((item, index) =>
-        index === emptyIndex ? { ...item, supplementId: product.id, quantity: item.quantity || 1 } : item
+        index === emptyIndex ? { ...item, supplementId: product.id, quantity: this.clampQuantity(item.quantity, product.stock) } : item
       );
     } else {
       this.supplementSaleItems = [
@@ -252,6 +252,18 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
     return product ? `${product.stock} disp. · $${product.price.toFixed(2)}` : 'Selecciona producto';
   }
 
+  maxQuantityForItem(item: ItemVentaSuplemento): number {
+    return Math.max(1, this.productById(item.supplementId)?.stock ?? 1);
+  }
+
+  normalizeSupplementSaleItem(index: number): void {
+    const current = this.supplementSaleItems[index];
+    if (!current) return;
+    this.supplementSaleItems = this.supplementSaleItems.map((item, itemIndex) =>
+      itemIndex === index ? { ...item, quantity: this.boundedQuantity(item) || 1 } : item
+    );
+  }
+
   supplementsForItem(item: ItemVentaSuplemento): Suplemento[] {
     const selected = this.productById(item.supplementId);
     const filtered = this.filteredAvailableSupplements;
@@ -264,7 +276,7 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
   registerSupplementSale(): void {
     this.notice = '';
     const items = this.supplementSaleItems
-      .map(item => ({ supplementId: Number(item.supplementId), quantity: this.safeQuantity(item.quantity) }))
+      .map(item => ({ supplementId: Number(item.supplementId), quantity: this.boundedQuantity(item) }))
       .filter(item => item.supplementId && item.quantity > 0);
 
     if (!this.newPayment.member.trim() || !this.newPayment.customerPhone.trim()) {
@@ -337,5 +349,14 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
   private safeQuantity(value: number): number {
     const quantity = Math.floor(Number(value || 0));
     return Number.isFinite(quantity) && quantity > 0 ? quantity : 0;
+  }
+
+  private boundedQuantity(item: ItemVentaSuplemento): number {
+    return this.clampQuantity(item.quantity, this.maxQuantityForItem(item));
+  }
+
+  private clampQuantity(value: number, max: number): number {
+    const quantity = this.safeQuantity(value) || 1;
+    return Math.min(quantity, Math.max(1, max));
   }
 }

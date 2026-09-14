@@ -143,7 +143,7 @@
               <div class="manual-order-row">
                 <label>
                   <span>Producto</span>
-                  <select [(ngModel)]="item.supplementId" [name]="'saleProduct' + $index">
+                  <select [(ngModel)]="item.supplementId" (ngModelChange)="normalizeSupplementSaleItem($index)" [name]="'saleProduct' + $index">
                     <option [ngValue]="null">Selecciona un suplemento</option>
                     @for (product of supplementsForItem(item); track product.id) {
                       <option [ngValue]="product.id">{{ product.name }}</option>
@@ -152,7 +152,7 @@
                 </label>
                 <label>
                   <span>Cantidad</span>
-                  <input type="number" min="1" [(ngModel)]="item.quantity" [name]="'saleQuantity' + $index" />
+                  <input type="number" min="1" [max]="maxQuantityForItem(item)" [(ngModel)]="item.quantity" (ngModelChange)="normalizeSupplementSaleItem($index)" [name]="'saleQuantity' + $index" [disabled]="!item.supplementId" />
                 </label>
                 <small>{{ stockLabel(item) }}</small>
                 <button class="secondary-button danger-action" type="button" (click)="removeSupplementSaleItem($index)">Quitar</button>
