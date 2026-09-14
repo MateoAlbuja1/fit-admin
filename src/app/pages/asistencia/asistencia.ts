@@ -6,13 +6,14 @@ import { DatosGimnasioService } from '../../core/servicios/datos-gimnasio.servic
 export class PaginaAsistenciaComponent {
   code = '';
   notice = '';
+  noticeType: 'success' | 'warning' | 'error' = 'success';
 
   constructor(public data: DatosGimnasioService) {}
 
   register(): void {
     const code = this.code.trim();
     if (!code) {
-      this.notice = 'Ingresa la cedula o codigo del cliente.';
+      this.showNotice('Ingresa la cedula o codigo del cliente.', 'warning');
       return;
     }
 
@@ -20,13 +21,27 @@ export class PaginaAsistenciaComponent {
       next: record => {
         this.data.asistencias.unshift(record);
         this.code = '';
-        this.notice = 'Asistencia registrada correctamente.';
+        this.showNotice('Asistencia registrada correctamente.', 'success');
       },
       error: error => {
-        this.notice = error.status === 409
-          ? 'El cliente no tiene membresia activa.'
-          : 'No se pudo registrar la asistencia en el backend.';
+        if (error.status === 404) {
+          this.showNotice('No existe un cliente registrado con esa cedula o codigo.', 'error');
+          return;
+        }
+
+        this.showNotice(error.status === 409
+          ? 'El cliente existe, pero no tiene una membresia activa.'
+          : 'No se pudo registrar la asistencia. Verifica que el backend este encendido.', 'error');
       }
     });
+  }
+
+  clearNotice(): void {
+    this.notice = '';
+  }
+
+  private showNotice(message: string, type: 'success' | 'warning' | 'error'): void {
+    this.notice = message;
+    this.noticeType = type;
   }
 }
