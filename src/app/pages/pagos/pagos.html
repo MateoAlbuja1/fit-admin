@@ -120,10 +120,24 @@
               <button class="secondary-button" type="button" (click)="addSupplementSaleItem()">Agregar producto</button>
             </div>
 
-            <label class="search-field manual-order-search">
-              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4" /></svg>
-              <input [(ngModel)]="supplementProductSearch" name="supplementProductSearch" placeholder="Buscar suplemento por nombre o categoria" />
-            </label>
+            <div class="manual-product-search">
+              <label class="search-field manual-order-search">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4" /></svg>
+                <input [(ngModel)]="supplementProductSearch" name="supplementProductSearch" placeholder="Buscar suplemento por nombre o categoria" autocomplete="off" />
+              </label>
+              @if (showSupplementSearchResults) {
+                <div class="manual-product-results">
+                  @for (product of filteredAvailableSupplements; track product.id) {
+                    <button type="button" (click)="selectSupplementFromSearch(product)">
+                      <span>{{ product.name }}</span>
+                      <small>{{ product.category }} · {{ product.stock }} disp. · ${{ product.price.toFixed(2) }}</small>
+                    </button>
+                  } @empty {
+                    <div class="manual-product-empty">No hay suplementos disponibles con esa búsqueda.</div>
+                  }
+                </div>
+              }
+            </div>
 
             @for (item of supplementSaleItems; track $index) {
               <div class="manual-order-row">

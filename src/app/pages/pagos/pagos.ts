@@ -106,6 +106,10 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
     return this.newPayment.concept === 'Venta de suplemento';
   }
 
+  get showSupplementSearchResults(): boolean {
+    return this.isSupplementSale && this.supplementProductSearch.trim().length > 0;
+  }
+
   setStatusFilter(filter: FiltroPagoEstado): void {
     this.statusFilter = filter;
     this.page = 1;
@@ -215,6 +219,21 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
 
   addSupplementSaleItem(): void {
     this.supplementSaleItems = [...this.supplementSaleItems, this.emptySupplementSaleItem()];
+  }
+
+  selectSupplementFromSearch(product: Suplemento): void {
+    const emptyIndex = this.supplementSaleItems.findIndex(item => !item.supplementId);
+    if (emptyIndex >= 0) {
+      this.supplementSaleItems = this.supplementSaleItems.map((item, index) =>
+        index === emptyIndex ? { ...item, supplementId: product.id, quantity: item.quantity || 1 } : item
+      );
+    } else {
+      this.supplementSaleItems = [
+        ...this.supplementSaleItems,
+        { supplementId: product.id, quantity: 1 }
+      ];
+    }
+    this.supplementProductSearch = '';
   }
 
   removeSupplementSaleItem(index: number): void {
