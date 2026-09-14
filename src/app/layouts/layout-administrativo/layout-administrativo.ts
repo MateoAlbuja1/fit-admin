@@ -1,7 +1,7 @@
-import { AsyncPipe } from '@angular/common';
 import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
-import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { filter, Observable, Subscription } from 'rxjs';
+import { AdminSidebarComponent, AdminSidebarUser } from '../../components/admin/admin-sidebar/admin-sidebar';
 import { MetaPagina } from '../../core/modelos/modelos-administracion';
 import { AccionPaginaAdminService } from '../../core/servicios/accion-pagina-admin.service';
 import { ApiUserRole, AuthService } from '../../core/servicios/auth.service';
@@ -10,7 +10,7 @@ import { DatosGimnasioService } from '../../core/servicios/datos-gimnasio.servic
 @Component({
   selector: 'app-layout-administrativo',
   standalone: true,
-  imports: [AsyncPipe, RouterLink, RouterLinkActive, RouterOutlet],
+  imports: [AdminSidebarComponent, RouterLink, RouterOutlet],
   templateUrl: './layout-administrativo.html',
   styleUrl: './layout-administrativo.css',
   encapsulation: ViewEncapsulation.None
@@ -22,6 +22,11 @@ export class LayoutAdministrativoComponent implements OnInit, OnDestroy {
   showAlerts = false;
   alertasLeidas = false;
   readonly role$: Observable<ApiUserRole | null>;
+  readonly adminUser: AdminSidebarUser = {
+    initials: 'MA',
+    name: 'Mateo Admin',
+    subtitle: 'Administrador'
+  };
   meta: MetaPagina = { modulo: 'clientes', eyebrow: 'Administración', title: 'Clientes' };
   private navigationSub?: Subscription;
 

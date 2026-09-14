@@ -91,15 +91,72 @@
 }
 
 @if (showForm) {
-  <div class="form-overlay" (click)="showForm = false">
+  <div class="form-overlay" (click)="closePaymentForm()">
     <section class="form-drawer" (click)="$event.stopPropagation()">
-      <header><div><span>NUEVO REGISTRO</span><h2>Pago</h2></div><button type="button" (click)="showForm = false">×</button></header>
+      <header><div><span>NUEVO REGISTRO</span><h2>Pago</h2></div><button type="button" (click)="closePaymentForm()">×</button></header>
       <form (ngSubmit)="addPayment()">
         <label><span>Cliente *</span><input [(ngModel)]="newPayment.member" name="member" required /></label>
-        <label><span>Concepto</span><select [(ngModel)]="newPayment.concept" name="concept"><option>Membresía mensual</option><option>Membresía trimestral</option><option>Membresía anual</option><option>Venta de suplemento</option><option>Otro</option></select></label>
+        <label>
+          <span>Concepto</span>
+          <select [(ngModel)]="newPayment.concept" (ngModelChange)="onPaymentConceptChange()" name="concept">
+            <option>Membresía mensual</option>
+            <option>Membresía trimestral</option>
+            <option>Membresía anual</option>
+            <option>Venta de suplemento</option>
+            <option>Otro</option>
+          </select>
+        </label>
         <label><span>Método</span><select [(ngModel)]="newPayment.method" name="method"><option>Efectivo</option><option>Transferencia</option><option>Tarjeta</option></select></label>
-        <label><span>Monto *</span><input type="number" min="0" step="0.01" [(ngModel)]="newPayment.amount" name="amount" /></label>
-        <button class="primary-button form-submit" type="submit">Confirmar pago</button>
+
+        @if (isSupplementSale) {
+          <div class="form-row">
+            <label><span>Telefono *</span><input [(ngModel)]="newPayment.customerPhone" name="saleCustomerPhone" placeholder="09..." /></label>
+            <label><span>Correo opcional</span><input type="email" [(ngModel)]="newPayment.customerEmail" name="saleCustomerEmail" placeholder="cliente@correo.com" /></label>
+          </div>
+
+          <section class="manual-order-items">
+            <div class="manual-order-items__head">
+              <span>Suplementos del inventario</span>
+              <button class="secondary-button" type="button" (click)="addSupplementSaleItem()">Agregar producto</button>
+            </div>
+
+            <label class="search-field manual-order-search">
+              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4" /></svg>
+              <input [(ngModel)]="supplementProductSearch" name="supplementProductSearch" placeholder="Buscar suplemento por nombre o categoria" />
+            </label>
+
+            @for (item of supplementSaleItems; track $index) {
+              <div class="manual-order-row">
+                <label>
+                  <span>Producto</span>
+                  <select [(ngModel)]="item.supplementId" [name]="'saleProduct' + $index">
+                    <option [ngValue]="null">Selecciona un suplemento</option>
+                    @for (product of supplementsForItem(item); track product.id) {
+                      <option [ngValue]="product.id">{{ product.name }}</option>
+                    }
+                  </select>
+                </label>
+                <label>
+                  <span>Cantidad</span>
+                  <input type="number" min="1" [(ngModel)]="item.quantity" [name]="'saleQuantity' + $index" />
+                </label>
+                <small>{{ stockLabel(item) }}</small>
+                <button class="secondary-button danger-action" type="button" (click)="removeSupplementSaleItem($index)">Quitar</button>
+              </div>
+            }
+          </section>
+
+          <label><span>Nota</span><textarea [(ngModel)]="newPayment.notes" name="saleNotes" rows="3"></textarea></label>
+
+          <div class="manual-order-total">
+            <span>Total a cobrar</span>
+            <strong>${{ supplementSaleTotal.toFixed(2) }}</strong>
+          </div>
+        } @else {
+          <label><span>Monto *</span><input type="number" min="0" step="0.01" [(ngModel)]="newPayment.amount" name="amount" /></label>
+        }
+
+        <button class="primary-button form-submit" type="submit" [disabled]="isSavingSupplementSale">{{ isSavingSupplementSale ? 'Guardando...' : 'Confirmar pago' }}</button>
       </form>
     </section>
   </div>

@@ -1,8 +1,8 @@
-import { AsyncPipe } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { catchError, forkJoin, Observable, of, switchMap } from 'rxjs';
+import { AdminSidebarComponent } from '../../components/admin/admin-sidebar/admin-sidebar';
 import { ApiUserRole, AuthService } from '../../core/servicios/auth.service';
 import { DatosGimnasioService } from '../../core/servicios/datos-gimnasio.service';
 
@@ -51,7 +51,7 @@ interface DashboardSummary {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [AsyncPipe, RouterLink, FormsModule],
+  imports: [AdminSidebarComponent, RouterLink, FormsModule],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })

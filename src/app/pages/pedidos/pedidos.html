@@ -10,7 +10,6 @@
 <section class="content-card">
   <div class="card-toolbar">
     <div><h3>Pedidos de tienda</h3><span>{{ isLoading ? 'Cargando...' : 'Carrito publico y WhatsApp' }}</span></div>
-    <button class="primary-button" type="button" (click)="openManualOrder()">Nuevo pedido presencial</button>
     <label class="search-field"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4" /></svg><input [(ngModel)]="search" (ngModelChange)="page = 1" placeholder="Buscar pedido" /></label>
   </div>
 
@@ -84,78 +83,6 @@
         <a class="primary-button" [href]="whatsappUrl(detail)" target="_blank" rel="noreferrer">Abrir WhatsApp</a>
         <button class="secondary-button" type="button" (click)="detail = null">Cerrar</button>
       </div>
-    </aside>
-  </div>
-}
-
-@if (showManualForm) {
-  <div class="form-overlay" (click)="closeManualOrder()">
-    <aside class="form-drawer" (click)="$event.stopPropagation()">
-      <header>
-        <div><span>VENTA PRESENCIAL</span><h2>Nuevo pedido</h2></div>
-        <button type="button" (click)="closeManualOrder()">×</button>
-      </header>
-
-      <form (ngSubmit)="createManualOrder()">
-        <div class="form-row">
-          <label><span>Cliente</span><input [(ngModel)]="manualOrder.customerName" name="manualCustomerName" placeholder="Nombre del cliente" /></label>
-          <label><span>Telefono</span><input [(ngModel)]="manualOrder.customerPhone" name="manualCustomerPhone" placeholder="09..." /></label>
-        </div>
-        <label><span>Correo opcional</span><input type="email" [(ngModel)]="manualOrder.customerEmail" name="manualCustomerEmail" placeholder="cliente@correo.com" /></label>
-        <div class="form-row">
-          <label>
-            <span>Metodo de pago</span>
-            <select [(ngModel)]="manualOrder.paymentMethod" name="manualPaymentMethod">
-              @for (method of paymentMethods; track method) { <option [ngValue]="method">{{ method }}</option> }
-            </select>
-          </label>
-          <label>
-            <span>Estado inicial</span>
-            <select [(ngModel)]="manualOrder.status" name="manualStatus">
-              @for (status of manualStatuses; track status) { <option [ngValue]="status">{{ status }}</option> }
-            </select>
-          </label>
-        </div>
-
-        <section class="manual-order-items">
-          <div class="manual-order-items__head">
-            <span>Productos</span>
-            <button class="secondary-button" type="button" (click)="addManualItem()">Agregar producto</button>
-          </div>
-
-          @for (item of manualItems; track $index) {
-            <div class="manual-order-row">
-              <label>
-                <span>Producto</span>
-                <select [(ngModel)]="item.supplementId" [name]="'manualProduct' + $index">
-                  <option [ngValue]="null">Selecciona un producto</option>
-                  @for (product of availableSupplements; track product.id) {
-                    <option [ngValue]="product.id">{{ product.name }}</option>
-                  }
-                </select>
-              </label>
-              <label>
-                <span>Cantidad</span>
-                <input type="number" min="1" [(ngModel)]="item.quantity" [name]="'manualQuantity' + $index" />
-              </label>
-              <small>{{ stockLabel(item) }}</small>
-              <button class="secondary-button danger-action" type="button" (click)="removeManualItem($index)">Quitar</button>
-            </div>
-          }
-        </section>
-
-        <label><span>Nota</span><textarea [(ngModel)]="manualOrder.notes" name="manualNotes" rows="3"></textarea></label>
-
-        <div class="manual-order-total">
-          <span>Total</span>
-          <strong>${{ manualOrderTotal.toFixed(2) }}</strong>
-        </div>
-
-        <div class="form-navigation">
-          <button class="secondary-button" type="button" (click)="closeManualOrder()" [disabled]="isSavingManualOrder">Cancelar</button>
-          <button class="primary-button" type="submit" [disabled]="isSavingManualOrder">{{ isSavingManualOrder ? 'Guardando...' : 'Guardar pedido' }}</button>
-        </div>
-      </form>
     </aside>
   </div>
 }

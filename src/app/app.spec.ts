@@ -4,7 +4,7 @@ import { App } from './app';
 describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [App],
+      imports: [App]
     }).compileComponents();
   });
 
@@ -14,13 +14,10 @@ describe('App', () => {
     expect(app).toBeTruthy();
   });
 
-  it('should render the official WhatsApp contact', async () => {
+  it('should keep the root component focused on routing', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    const whatsappLink = compiled.querySelector<HTMLAnchorElement>('.global-whatsapp');
-    expect(whatsappLink?.getAttribute('aria-label')).toContain('WX GYM');
-    expect(whatsappLink?.href).toContain('593969953775');
-    expect(whatsappLink?.href).toContain(encodeURIComponent('Hola WX GYM, deseo información sobre el gimnasio.'));
+    expect(compiled.querySelector('router-outlet')).toBeTruthy();
   });
 });

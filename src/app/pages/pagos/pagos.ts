@@ -1,12 +1,14 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Pago } from '../../core/modelos/modelos-administracion';
+import { ActivatedRoute } from '@angular/router';
+import { Pago, PedidoTienda, Suplemento } from '../../core/modelos/modelos-administracion';
 import { AccionPaginaAdminService } from '../../core/servicios/accion-pagina-admin.service';
 import { DatosGimnasioService } from '../../core/servicios/datos-gimnasio.service';
 
 type FiltroPagoEstado = 'Todos' | Pago['status'];
 type FiltroPagoMetodo = 'Todos' | 'Efectivo' | 'Transferencia' | 'Tarjeta';
 type FiltroPagoConcepto = 'Todos' | 'Membresia' | 'Suplemento' | 'Tienda';
+type ItemVentaSuplemento = { supplementId: number | null; quantity: number };
 
 @Component({ selector: 'app-pagina-pagos', standalone: true, imports: [FormsModule], templateUrl: './pagos.html' })
 export class PaginaPagosComponent implements OnInit, OnDestroy {
@@ -19,17 +21,28 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
   methodFilter: FiltroPagoMetodo = 'Todos';
   conceptFilter: FiltroPagoConcepto = 'Todos';
   editingPaymentId: number | null = null;
-  newPayment = { member: '', concept: 'Membresia mensual', method: 'Efectivo', amount: 35 };
+  isSavingSupplementSale = false;
+  supplementProductSearch = '';
+  newPayment = this.emptyPaymentForm();
   editPayment = { member: '', concept: '', method: 'Efectivo' as FiltroPagoMetodo, amount: 0, status: 'Pagado' as Pago['status'] };
+  supplementSaleItems: ItemVentaSuplemento[] = [this.emptySupplementSaleItem()];
 
   readonly statusFilters: FiltroPagoEstado[] = ['Todos', 'Pagado', 'Pendiente', 'Anulado'];
   readonly methodFilters: FiltroPagoMetodo[] = ['Todos', 'Efectivo', 'Transferencia', 'Tarjeta'];
   readonly conceptFilters: FiltroPagoConcepto[] = ['Todos', 'Membresia', 'Suplemento', 'Tienda'];
+  readonly salePaymentMethods: Array<Exclude<FiltroPagoMetodo, 'Todos'>> = ['Efectivo', 'Transferencia', 'Tarjeta'];
 
-  constructor(public data: DatosGimnasioService, private actions: AccionPaginaAdminService) {}
+  constructor(
+    public data: DatosGimnasioService,
+    private actions: AccionPaginaAdminService,
+    private route: ActivatedRoute
+  ) {}
 
   ngOnInit(): void {
-    this.actions.registrar('+ Registrar pago', () => this.showForm = true);
+    this.actions.registrar('+ Registrar pago', () => this.openPaymentForm());
+    if (this.route.snapshot.queryParamMap.get('accion') === 'venta-suplementos') {
+      this.openPaymentForm('Venta de suplemento');
+    }
   }
 
   ngOnDestroy(): void {
@@ -68,6 +81,31 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
     return this.filtered.slice((this.page - 1) * this.pageSize, this.page * this.pageSize);
   }
 
+  get availableSupplements(): Suplemento[] {
+    return this.data.suplementos
+      .filter(item => item.stock > 0 && (item.status ?? 'Activo') === 'Activo')
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  get filteredAvailableSupplements(): Suplemento[] {
+    const q = this.supplementProductSearch.toLowerCase().trim();
+    if (!q) return this.availableSupplements;
+    return this.availableSupplements.filter(item =>
+      `${item.name} ${item.category} ${item.description}`.toLowerCase().includes(q)
+    );
+  }
+
+  get supplementSaleTotal(): number {
+    return this.supplementSaleItems.reduce((sum, item) => {
+      const product = this.productById(item.supplementId);
+      return sum + (product ? product.price * this.safeQuantity(item.quantity) : 0);
+    }, 0);
+  }
+
+  get isSupplementSale(): boolean {
+    return this.newPayment.concept === 'Venta de suplemento';
+  }
+
   setStatusFilter(filter: FiltroPagoEstado): void {
     this.statusFilter = filter;
     this.page = 1;
@@ -94,6 +132,28 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
 
   cancelEdit(): void {
     this.editingPaymentId = null;
+  }
+
+  openPaymentForm(concept = 'Membresia mensual'): void {
+    this.newPayment = this.emptyPaymentForm(concept);
+    this.supplementProductSearch = '';
+    this.supplementSaleItems = [this.emptySupplementSaleItem()];
+    this.showForm = true;
+    if (concept === 'Venta de suplemento' && !this.data.suplementos.length) {
+      this.data.refrescar();
+    }
+  }
+
+  closePaymentForm(): void {
+    if (this.isSavingSupplementSale) return;
+    this.showForm = false;
+  }
+
+  onPaymentConceptChange(): void {
+    this.notice = '';
+    if (this.isSupplementSale && !this.data.suplementos.length) {
+      this.data.refrescar();
+    }
   }
 
   saveEdit(): void {
@@ -123,6 +183,11 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
   }
 
   addPayment(): void {
+    if (this.isSupplementSale) {
+      this.registerSupplementSale();
+      return;
+    }
+
     if (!this.newPayment.member.trim() || this.newPayment.amount <= 0) {
       this.notice = 'Completa el cliente y un monto valido.';
       return;
@@ -138,7 +203,7 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
       next: created => {
         created.member = this.newPayment.member.trim();
         this.data.pagos.unshift(created);
-        this.newPayment = { member: '', concept: 'Membresia mensual', method: 'Efectivo', amount: 35 };
+        this.newPayment = this.emptyPaymentForm();
         this.showForm = false;
         this.notice = 'Pago registrado correctamente.';
       },
@@ -146,5 +211,112 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
         this.notice = 'No se pudo registrar el pago en el backend.';
       }
     });
+  }
+
+  addSupplementSaleItem(): void {
+    this.supplementSaleItems = [...this.supplementSaleItems, this.emptySupplementSaleItem()];
+  }
+
+  removeSupplementSaleItem(index: number): void {
+    this.supplementSaleItems = this.supplementSaleItems.filter((_, itemIndex) => itemIndex !== index);
+    if (!this.supplementSaleItems.length) {
+      this.supplementSaleItems = [this.emptySupplementSaleItem()];
+    }
+  }
+
+  productById(id: number | null): Suplemento | undefined {
+    return id ? this.data.suplementos.find(item => item.id === Number(id)) : undefined;
+  }
+
+  stockLabel(item: ItemVentaSuplemento): string {
+    const product = this.productById(item.supplementId);
+    return product ? `${product.stock} disp. · $${product.price.toFixed(2)}` : 'Selecciona producto';
+  }
+
+  supplementsForItem(item: ItemVentaSuplemento): Suplemento[] {
+    const selected = this.productById(item.supplementId);
+    const filtered = this.filteredAvailableSupplements;
+    if (!selected || filtered.some(product => product.id === selected.id)) {
+      return filtered;
+    }
+    return [selected, ...filtered];
+  }
+
+  registerSupplementSale(): void {
+    this.notice = '';
+    const items = this.supplementSaleItems
+      .map(item => ({ supplementId: Number(item.supplementId), quantity: this.safeQuantity(item.quantity) }))
+      .filter(item => item.supplementId && item.quantity > 0);
+
+    if (!this.newPayment.member.trim() || !this.newPayment.customerPhone.trim()) {
+      this.notice = 'Completa nombre y telefono del cliente.';
+      return;
+    }
+    if (!items.length) {
+      this.notice = 'Selecciona al menos un suplemento.';
+      return;
+    }
+
+    const invalidStock = items.find(item => {
+      const product = this.productById(item.supplementId);
+      return !product || item.quantity > product.stock;
+    });
+    if (invalidStock) {
+      const product = this.productById(invalidStock.supplementId);
+      this.notice = product
+        ? `${product.name} solo tiene ${product.stock} unidad(es) disponibles.`
+        : 'Uno de los productos seleccionados ya no esta disponible.';
+      return;
+    }
+
+    this.isSavingSupplementSale = true;
+    this.data.crearPedidoManualTienda({
+      customerName: this.newPayment.member.trim(),
+      customerPhone: this.newPayment.customerPhone.trim(),
+      customerEmail: this.newPayment.customerEmail.trim(),
+      notes: this.newPayment.notes.trim() || 'Venta presencial de suplementos',
+      paymentMethod: this.newPayment.method,
+      channel: 'presencial',
+      status: 'Pagado' as PedidoTienda['status'],
+      items
+    }).subscribe({
+      next: order => {
+        this.showForm = false;
+        this.newPayment = this.emptyPaymentForm();
+        this.supplementSaleItems = [this.emptySupplementSaleItem()];
+        this.supplementProductSearch = '';
+        this.notice = `Venta de suplementos ${order.code} registrada y stock descontado.`;
+        this.data.refrescar();
+      },
+      error: error => {
+        this.notice = error.status === 409
+          ? 'No hay stock suficiente para completar la venta.'
+          : 'No se pudo registrar la venta de suplementos.';
+      },
+      complete: () => {
+        this.isSavingSupplementSale = false;
+      }
+    });
+  }
+
+  private emptyPaymentForm(concept = 'Membresia mensual') {
+    return {
+      member: '',
+      concept,
+      method: 'Efectivo',
+      amount: concept === 'Venta de suplemento' ? 0 : 35,
+      customerPhone: '',
+      customerEmail: '',
+      notes: concept === 'Venta de suplemento' ? 'Venta presencial de suplementos' : ''
+    };
+  }
+
+  private emptySupplementSaleItem(): ItemVentaSuplemento {
+    return { supplementId: null, quantity: 1 };
+  }
+
+  private safeQuantity(value: number): number {
+    const quantity = Math.floor(Number(value || 0));
+    return Number.isFinite(quantity) && quantity > 0 ? quantity : 0;
   }
 }
