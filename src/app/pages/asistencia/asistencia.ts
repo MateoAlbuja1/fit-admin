@@ -44,6 +44,8 @@ export class PaginaAsistenciaComponent implements OnDestroy {
         this.showNotice('Asistencia registrada correctamente.', 'success');
       },
       error: error => {
+        this.finishRegistering();
+
         if (error.status === 404) {
           this.showNotice('No existe un cliente registrado con esa cedula o codigo.', 'error');
           return;
@@ -54,9 +56,7 @@ export class PaginaAsistenciaComponent implements OnDestroy {
           : 'No se pudo registrar la asistencia. Verifica que el backend este encendido.', 'error');
       },
       complete: () => {
-        this.updateView(() => {
-          this.isRegistering = false;
-        });
+        this.finishRegistering();
       }
     });
   }
@@ -82,6 +82,12 @@ export class PaginaAsistenciaComponent implements OnDestroy {
       clearTimeout(this.noticeTimer);
       this.noticeTimer = undefined;
     }
+  }
+
+  private finishRegistering(): void {
+    this.updateView(() => {
+      this.isRegistering = false;
+    });
   }
 
   private updateView(update: () => void): void {
