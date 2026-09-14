@@ -17,7 +17,7 @@
     <label class="select-filter">
       <span>Estado</span>
       <div class="select-filter__control">
-        <select [(ngModel)]="statusFilter" (ngModelChange)="setStatusFilter(statusFilter)" name="orderStatusFilter" aria-label="Filtrar pedidos por estado">
+        <select [(ngModel)]="statusFilter" (ngModelChange)="setStatusFilter($event)" name="orderStatusFilter" aria-label="Filtrar pedidos por estado">
           @for (filter of statusFilters; track filter) { <option [ngValue]="filter">{{ filter }}</option> }
         </select>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>
