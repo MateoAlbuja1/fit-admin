@@ -149,14 +149,20 @@ export class PaginaClientesComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const draft = { ...this.newClient };
+    const payload = {
+      name: draft.name.trim(),
+      document: draft.document.trim(),
+      phone: draft.phone.trim() || 'Sin telefono',
+      status: 'Activo' as Cliente['status'],
+      plan: draft.plan
+    };
+
     this.isSavingClient = true;
-    this.data.crearCliente({
-      name: this.newClient.name.trim(),
-      document: this.newClient.document.trim(),
-      phone: this.newClient.phone.trim() || 'Sin telefono',
-      status: 'Activo',
-      plan: this.newClient.plan
-    }).pipe(
+    this.showForm = false;
+    this.notice = 'Guardando cliente y membresia...';
+
+    this.data.crearCliente(payload).pipe(
       timeout(10000),
       finalize(() => {
         this.isSavingClient = false;
@@ -170,6 +176,8 @@ export class PaginaClientesComponent implements OnInit, OnDestroy {
         this.data.refrescar();
       },
       error: error => {
+        this.newClient = draft;
+        this.showForm = true;
         this.notice = error.name === 'TimeoutError'
           ? 'El registro esta tardando demasiado. Revisa la conexion e intenta nuevamente.'
           : 'No se pudo registrar el cliente en el backend.';
