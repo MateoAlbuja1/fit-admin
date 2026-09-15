@@ -48,13 +48,24 @@
           <div class="schedule-list">
             @for (horario of horarios; track horario.dia) {
               <div class="schedule-row">
-                <label class="schedule-day"><input type="checkbox" [(ngModel)]="horario.activo" [name]="'active' + horario.dia" /><strong>{{ horario.dia }}</strong></label>
-                <label><span>Apertura</span><input type="time" [(ngModel)]="horario.apertura" [name]="'open' + horario.dia" [disabled]="!horario.activo" /></label>
-                <label><span>Cierre</span><input type="time" [(ngModel)]="horario.cierre" [name]="'close' + horario.dia" [disabled]="!horario.activo" /></label>
+                <label class="schedule-day"><input type="checkbox" [ngModel]="horario.activo" (ngModelChange)="updateScheduleActive(horario, $event)" [name]="'active' + horario.dia" /><strong>{{ horario.dia }}</strong></label>
+                <label>
+                  <span>Apertura</span>
+                  <select [ngModel]="horario.apertura" (ngModelChange)="updateScheduleTime(horario, 'apertura', $event)" [name]="'open' + horario.dia">
+                    @for (time of timeOptions; track time) { <option [ngValue]="time">{{ time }}</option> }
+                  </select>
+                </label>
+                <label>
+                  <span>Cierre</span>
+                  <select [ngModel]="horario.cierre" (ngModelChange)="updateScheduleTime(horario, 'cierre', $event)" [name]="'close' + horario.dia">
+                    @for (time of timeOptions; track time) { <option [ngValue]="time">{{ time }}</option> }
+                  </select>
+                </label>
                 <small [class.closed]="!horario.activo">{{ horario.activo ? 'Activo' : 'Cerrado' }}</small>
               </div>
             }
           </div>
+          <p class="settings-hint">Los horarios se guardan automaticamente al cambiar una hora o cerrar un dia.</p>
         </article>
       }
 
@@ -62,7 +73,7 @@
         <article class="settings-screen">
           <header>
             <div><span>CUENTA</span><h3>Administrador</h3></div>
-            <b>02</b>
+            <b>03</b>
           </header>
 
           <div class="admin-profile-card">
@@ -95,11 +106,61 @@
         </article>
       }
 
+      @case ('tributacion') {
+        <article class="settings-screen">
+          <header>
+            <div><span>IMPUESTOS</span><h3>IVA temporal</h3></div>
+            <b>02</b>
+          </header>
+
+          <div class="tax-status" [class.tax-status--active]="ivaTemporal.enabled">
+            <span>{{ ivaTemporal.enabled ? 'Activo' : 'Inactivo' }}</span>
+            <strong>{{ ivaTemporal.rate }}%</strong>
+            <small>{{ ivaTemporalResumen }}</small>
+          </div>
+
+          <div class="settings-divider"></div>
+
+          <div class="toggle-list">
+            <label>
+              <span>
+                <strong>Aplicar IVA temporal</strong>
+                <small>Actualiza los precios de la tienda solo dentro del rango configurado.</small>
+              </span>
+              <input type="checkbox" [(ngModel)]="ivaTemporal.enabled" name="temporaryVatEnabled" />
+            </label>
+          </div>
+
+          <div class="settings-divider"></div>
+
+          <div class="settings-form">
+            <label>
+              <span>Porcentaje de IVA</span>
+              <input type="number" min="0" max="100" step="0.01" [(ngModel)]="ivaTemporal.rate" name="temporaryVatRate" />
+            </label>
+            <label>
+              <span>Motivo</span>
+              <input [(ngModel)]="ivaTemporal.reason" name="temporaryVatReason" placeholder="Feriado nacional" />
+            </label>
+            <label>
+              <span>Fecha de inicio</span>
+              <input type="date" [(ngModel)]="ivaTemporal.startsAt" name="temporaryVatStartsAt" />
+            </label>
+            <label>
+              <span>Fecha de fin</span>
+              <input type="date" [(ngModel)]="ivaTemporal.endsAt" name="temporaryVatEndsAt" />
+            </label>
+          </div>
+
+          <p class="tax-help">Los pedidos web y pagos con PayPal toman este porcentaje mientras la fecha actual este dentro del rango.</p>
+        </article>
+      }
+
       @case ('seguridad') {
         <article class="settings-screen">
           <header>
             <div><span>SEGURIDAD</span><h3>Acceso y respaldo</h3></div>
-            <b>03</b>
+            <b>04</b>
           </header>
 
           <div class="toggle-list">
@@ -147,7 +208,7 @@
 
 <section class="settings-actions">
   <button class="secondary-button" type="button" (click)="resetFromBackend()" [disabled]="isSaving">Restaurar valores</button>
-  <button class="secondary-button" type="button" (click)="requestBackup()" [disabled]="isSaving">Generar respaldo</button>
+  <button class="secondary-button" type="button" (click)="requestBackup()" [disabled]="isSaving">Crear backup</button>
   <button class="primary-button" type="button" (click)="saveSettings()" [disabled]="isSaving">
     {{ isSaving ? 'Guardando...' : 'Guardar configuracion' }}
   </button>

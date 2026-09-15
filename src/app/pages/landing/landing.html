@@ -335,6 +335,9 @@
         <h2 class="ui-title">Suplementos <span class="title-accent">WX GYM</span></h2>
         <p>Elige categoría y arma tu pedido.</p>
       </div>
+      @if (activeTemporaryVat) {
+        <small class="temporary-vat-pill">{{ temporaryVatLabel }}</small>
+      }
     </div>
 
     @if (cartNotice) {
@@ -343,11 +346,18 @@
 
     <div class="store-layout">
       <section class="store-products">
+        <div class="store-category-bar" aria-label="Categorías de productos">
+          @for (category of storeCategories; track category) {
+            <button type="button" [class.active]="activeStoreCategory === category" (click)="activeStoreCategory = category">
+              {{ category }}
+            </button>
+          }
+        </div>
         <div class="product-grid">
         @for (product of filteredProducts; track product.name) {
           <app-product-card [product]="product" (add)="addToCart($event)" />
         }
-      </div>
+        </div>
       </section>
     </div>
   </section>
@@ -395,6 +405,24 @@
 
   @if (activeAnchor === 'inicio') {
   <section class="landing-section social-section">
+    <section class="home-schedule-panel">
+      <div class="section-heading">
+        <span>Horarios</span>
+        <h2>Atención de {{ gymName }}</h2>
+        <p>{{ gymOpeningHours }}</p>
+      </div>
+
+      <div class="schedule-grid schedule-grid--home">
+        @for (schedule of publicSchedules; track schedule.dia) {
+          <article [class.schedule-closed]="!schedule.activo">
+            <span>{{ schedule.dia }}</span>
+            <strong>{{ schedule.activo ? schedule.apertura : '--:--' }}</strong>
+            <p>{{ schedule.activo ? 'Cierre ' + schedule.cierre : 'Cerrado' }}</p>
+          </article>
+        }
+      </div>
+    </section>
+
     <div class="section-heading section-heading--row">
       <div>
         <span>Opiniones</span>
@@ -491,39 +519,34 @@
           }
         </div>
 
-        <form class="cart-checkout" (ngSubmit)="submitCartOrder()">
+        <section class="cart-checkout">
           <div class="checkout-total">
             <span>Subtotal</span>
             <strong>{{ formatCurrency(cartSubtotal) }}</strong>
+            @if (activeTemporaryVat) {
+              <small>{{ temporaryVatLabel }}</small>
+            }
           </div>
 
-          <label>
-            <span>Nombre</span>
-            <input [(ngModel)]="checkoutForm.customerName" name="orderCustomerName" required placeholder="Tu nombre" />
-          </label>
+          <form class="cart-contact-form" (ngSubmit)="submitCartOrder()">
+            <label>
+              <span>Nombre</span>
+              <input [(ngModel)]="checkoutForm.customerName" name="orderCustomerName" required placeholder="Tu nombre" />
+            </label>
 
-          <label>
-            <span>Telefono / WhatsApp</span>
-            <input [(ngModel)]="checkoutForm.customerPhone" name="orderCustomerPhone" required placeholder="0969953775" />
-          </label>
+            <label>
+              <span>Telefono / WhatsApp</span>
+              <input [(ngModel)]="checkoutForm.customerPhone" name="orderCustomerPhone" required placeholder="0969953775" />
+            </label>
 
-          <label>
-            <span>Correo opcional</span>
-            <input type="email" [(ngModel)]="checkoutForm.customerEmail" name="orderCustomerEmail" placeholder="correo@ejemplo.com" />
-          </label>
+            @if (lastOrderWhatsappUrl) {
+              <a [href]="lastOrderWhatsappUrl" target="_blank" rel="noreferrer">Enviar pedido {{ lastOrderCode }} por WhatsApp</a>
+            }
 
-          <label>
-            <span>Nota opcional</span>
-            <textarea [(ngModel)]="checkoutForm.notes" name="orderNotes" rows="3" placeholder="Ej. Retiro hoy en el gimnasio"></textarea>
-          </label>
-
-          @if (lastOrderWhatsappUrl) {
-            <a [href]="lastOrderWhatsappUrl" target="_blank" rel="noreferrer">Enviar pedido {{ lastOrderCode }} por WhatsApp</a>
-          }
-
-          <button type="submit" [disabled]="isSubmittingOrder || isProcessingPaypal">
-            {{ isSubmittingOrder ? 'Guardando pedido...' : 'Enviar pedido por WhatsApp' }}
-          </button>
+            <button class="cart-whatsapp-button" type="submit" [disabled]="isSubmittingOrder || isProcessingPaypal">
+              {{ isSubmittingOrder ? 'Guardando pedido...' : 'Enviar pedido por WhatsApp' }}
+            </button>
+          </form>
 
           @if (paypalConfig.enabled) {
             <div class="paypal-checkout">
@@ -537,8 +560,8 @@
             <button class="paypal-placeholder" type="button" disabled>PayPal no configurado</button>
           }
 
-          <button type="button" (click)="clearCart()">Vaciar carrito</button>
-        </form>
+          <button class="cart-clear-button" type="button" (click)="clearCart()">Vaciar carrito</button>
+        </section>
       } @else {
         <div class="empty-cart">
           <span class="material-icons" aria-hidden="true">shopping_cart</span>

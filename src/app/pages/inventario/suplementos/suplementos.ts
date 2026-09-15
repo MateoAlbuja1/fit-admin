@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DetalleRegistro, Suplemento } from '../../../core/modelos/modelos-administracion';
 import { AccionPaginaAdminService } from '../../../core/servicios/accion-pagina-admin.service';
@@ -19,21 +19,32 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
   editingItemId: number | null = null;
   stockFilter: FiltroStock = 'Todos';
   categoryFilter = 'Todas';
+  readonly newCategoryOption = '__new_category__';
+  newCategorySelection = '';
+  newCategoryText = '';
+  editCategorySelection = '';
+  editCategoryText = '';
   newItem = this.emptySupplementForm();
   editItem = this.emptySupplementForm();
+  private noticeTimer?: ReturnType<typeof setTimeout>;
 
   readonly stockFilters: FiltroStock[] = ['Todos', 'Stock bajo', 'Disponibles', 'Agotados'];
 
-  constructor(public data: DatosGimnasioService, private actions: AccionPaginaAdminService) {}
+  constructor(
+    public data: DatosGimnasioService,
+    private actions: AccionPaginaAdminService,
+    private cdr: ChangeDetectorRef,
+    private zone: NgZone
+  ) {}
 
   ngOnInit(): void {
-    this.actions.registrar('+ Nuevo suplemento', () => {
-      this.formStep = 1;
-      this.showForm = true;
-    });
+    this.actions.registrar('+ Nuevo suplemento', () => this.openCreate());
   }
 
   ngOnDestroy(): void {
+    if (this.noticeTimer) {
+      clearTimeout(this.noticeTimer);
+    }
     this.actions.limpiar();
   }
 
@@ -46,7 +57,7 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
   }
 
   get inventoryValue(): number {
-    return this.data.suplementos.reduce((sum, item) => sum + item.stock * item.price, 0);
+    return this.data.suplementos.reduce((sum, item) => sum + item.stock * this.displayPrice(item), 0);
   }
 
   get items(): Suplemento[] {
@@ -66,7 +77,20 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
   }
 
   get categoryFilters(): string[] {
-    return ['Todas', ...Array.from(new Set(this.data.suplementos.map(item => item.category)))];
+    return ['Todas', ...this.categoryOptions];
+  }
+
+  get categoryOptions(): string[] {
+    return Array.from(new Set(this.data.suplementos.map(item => item.category.trim()).filter(Boolean)))
+      .sort((a, b) => a.localeCompare(b));
+  }
+
+  get ivaTemporalLabel(): string {
+    return this.data.etiquetaIvaTemporal;
+  }
+
+  displayPrice(item: Suplemento): number {
+    return this.data.precioConIvaTemporal(item.price);
   }
 
   setStockFilter(filter: FiltroStock): void {
@@ -80,8 +104,23 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
   changeStock(item: Suplemento, amount: number): void {
     this.data.actualizarStockSuplemento(item.id, amount).subscribe({
       next: updated => Object.assign(item, updated),
-      error: () => this.notice = 'No se pudo actualizar el stock en el backend.'
+      error: () => this.showNotice('No se pudo actualizar el stock en el backend.')
     });
+  }
+
+  openCreate(): void {
+    this.newItem = this.emptySupplementForm();
+    this.newCategorySelection = '';
+    this.newCategoryText = '';
+    this.formStep = 1;
+    this.showForm = true;
+  }
+
+  closeCreate(): void {
+    this.showForm = false;
+    this.formStep = 1;
+    this.newCategorySelection = '';
+    this.newCategoryText = '';
   }
 
   remove(item: Suplemento): void {
@@ -90,6 +129,8 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
 
   openEdit(item: Suplemento): void {
     this.editingItemId = item.id;
+    this.editCategorySelection = this.categoryOptions.includes(item.category) ? item.category : this.newCategoryOption;
+    this.editCategoryText = this.editCategorySelection === this.newCategoryOption ? item.category : '';
     this.editItem = {
       name: item.name,
       category: item.category,
@@ -109,7 +150,7 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
   saveEdit(): void {
     const item = this.data.suplementos.find(current => current.id === this.editingItemId);
     if (!item || !this.editItem.name.trim() || !this.editItem.category.trim()) {
-      this.notice = 'Completa nombre y categoria.';
+      this.showNotice('Completa nombre y categoria.');
       return;
     }
 
@@ -126,10 +167,10 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
       next: updated => {
         Object.assign(item, updated);
         this.editingItemId = null;
-        this.notice = 'Suplemento actualizado correctamente.';
+        this.showNotice('Suplemento actualizado correctamente.');
       },
       error: () => {
-        this.notice = 'No se pudo actualizar el suplemento en el backend.';
+        this.showNotice('No se pudo actualizar el suplemento en el backend.');
       }
     });
   }
@@ -148,10 +189,10 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
         this.suplementoAEliminar = null;
         this.detail = null;
         this.detailItem = null;
-        this.notice = `${item.name} eliminado del inventario.`;
+        this.showNotice(`${item.name} eliminado del inventario.`);
       },
       error: () => {
-        this.notice = 'No se pudo eliminar el suplemento en el backend.';
+        this.showNotice('No se pudo eliminar el suplemento en el backend.');
       }
     });
   }
@@ -165,7 +206,7 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
       photo: item.photo,
       fields: [
         { label: 'Categoria', value: item.category },
-        { label: 'Precio', value: `$${item.price.toFixed(2)}` },
+        { label: this.data.ivaTemporalActivo ? 'Precio con IVA' : 'Precio', value: `$${this.displayPrice(item).toFixed(2)}` },
         { label: 'Stock actual', value: `${item.stock} unidades` },
         { label: 'Stock minimo', value: `${item.minStock} unidades` }
       ]
@@ -188,20 +229,52 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
     this.readImageFile(event, value => this.editItem.factsPhoto = value);
   }
 
+  setNewCategorySelection(value: string): void {
+    this.newCategorySelection = value;
+    this.newItem.category = value === this.newCategoryOption ? this.newCategoryText.trim() : value;
+  }
+
+  setNewCategoryText(value: string): void {
+    this.newCategoryText = value;
+    if (this.newCategorySelection === this.newCategoryOption) {
+      this.newItem.category = value.trim();
+    }
+  }
+
+  setEditCategorySelection(value: string): void {
+    this.editCategorySelection = value;
+    this.editItem.category = value === this.newCategoryOption ? this.editCategoryText.trim() : value;
+  }
+
+  setEditCategoryText(value: string): void {
+    this.editCategoryText = value;
+    if (this.editCategorySelection === this.newCategoryOption) {
+      this.editItem.category = value.trim();
+    }
+  }
+
   private readImageFile(event: Event, onLoad: (value: string) => void): void {
-    const file = (event.target as HTMLInputElement).files?.[0];
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
     if (!file || file.size > 4 * 1024 * 1024) {
-      this.notice = 'Selecciona una imagen menor a 4 MB.';
+      this.showNotice('Selecciona una imagen menor a 4 MB.');
+      input.value = '';
       return;
     }
     const reader = new FileReader();
-    reader.onload = () => onLoad(String(reader.result));
+    reader.onload = () => {
+      this.updateView(() => {
+        onLoad(String(reader.result));
+        input.value = '';
+      });
+    };
+    reader.onerror = () => this.showNotice('No se pudo cargar la imagen.');
     reader.readAsDataURL(file);
   }
 
   add(): void {
     if (!this.newItem.name.trim() || !this.newItem.category.trim() || !this.newItem.description.trim()) {
-      this.notice = 'Completa nombre, categoria y descripcion.';
+      this.showNotice('Completa nombre, categoria y descripcion.');
       return;
     }
 
@@ -209,13 +282,38 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
       next: created => {
         this.data.suplementos.unshift(created);
         this.newItem = this.emptySupplementForm();
-        this.showForm = false;
-        this.formStep = 1;
-        this.notice = 'Suplemento agregado correctamente.';
+        this.closeCreate();
+        this.showNotice('Suplemento agregado correctamente.');
       },
       error: () => {
-        this.notice = 'No se pudo crear el suplemento en el backend.';
+        this.showNotice('No se pudo crear el suplemento en el backend.');
       }
+    });
+  }
+
+  clearNotice(): void {
+    if (this.noticeTimer) {
+      clearTimeout(this.noticeTimer);
+      this.noticeTimer = undefined;
+    }
+    this.notice = '';
+  }
+
+  private showNotice(message: string): void {
+    if (this.noticeTimer) {
+      clearTimeout(this.noticeTimer);
+    }
+    this.updateView(() => this.notice = message);
+    this.noticeTimer = setTimeout(() => {
+      this.updateView(() => this.notice = '');
+      this.noticeTimer = undefined;
+    }, 4200);
+  }
+
+  private updateView(update: () => void): void {
+    this.zone.run(() => {
+      update();
+      this.cdr.detectChanges();
     });
   }
 

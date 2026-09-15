@@ -14,9 +14,24 @@ import {
 } from '../modelos/modelos-administracion';
 import { apiBaseUrl } from '../config/api.config';
 
+export interface TemporaryVatSettings {
+  enabled: boolean;
+  rate: number;
+  startsAt: string;
+  endsAt: string;
+  reason: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class DatosGimnasioService {
   private readonly apiUrl = apiBaseUrl();
+  temporaryVat: TemporaryVatSettings = {
+    enabled: false,
+    rate: 15,
+    startsAt: '',
+    endsAt: '',
+    reason: 'Feriado nacional'
+  };
 
   constructor(private http: HttpClient) {
     if (typeof window !== 'undefined') {
@@ -32,7 +47,8 @@ export class DatosGimnasioService {
       pagos: this.http.get<Pago[]>(`${this.apiUrl}/payments`).pipe(catchError(() => of(this.pagos))),
       suplementos: this.http.get<Suplemento[]>(`${this.apiUrl}/inventory/supplements`).pipe(catchError(() => of(this.suplementos))),
       maquinas: this.http.get<Maquina[]>(`${this.apiUrl}/inventory/machines`).pipe(catchError(() => of(this.maquinas))),
-      alertas: this.http.get<AlertaAdministrativa[]>(`${this.apiUrl}/alerts`).pipe(catchError(() => of(this.alertas)))
+      alertas: this.http.get<AlertaAdministrativa[]>(`${this.apiUrl}/alerts`).pipe(catchError(() => of(this.alertas))),
+      settings: this.http.get<Record<string, unknown>>(`${this.apiUrl}/public/gym-settings`).pipe(catchError(() => of({} as Record<string, unknown>)))
     }).subscribe(data => {
       this.clientes = data.clientes;
       this.membresias = data.membresias;
@@ -41,6 +57,7 @@ export class DatosGimnasioService {
       this.suplementos = data.suplementos;
       this.maquinas = data.maquinas;
       this.alertasBackend = data.alertas;
+      this.temporaryVat = this.normalizeTemporaryVat(data.settings['temporaryVat']);
     });
   }
 
@@ -221,7 +238,11 @@ export class DatosGimnasioService {
   }
 
   guardarConfiguracionGimnasio(payload: object) {
-    return this.http.put<Record<string, unknown>>(`${this.apiUrl}/settings/gym`, payload);
+    return this.http.put<Record<string, unknown>>(`${this.apiUrl}/settings/gym`, payload).pipe(
+      tap(settings => {
+        this.temporaryVat = this.normalizeTemporaryVat(settings['temporaryVat']);
+      })
+    );
   }
 
   obtenerConfiguracionAdmin() {
@@ -264,6 +285,51 @@ export class DatosGimnasioService {
     }
 
     return null;
+  }
+
+  get ivaTemporalActivo(): boolean {
+    const vat = this.temporaryVat;
+    if (!vat.enabled || vat.rate <= 0) {
+      return false;
+    }
+
+    const today = this.todayKey();
+    return (!vat.startsAt || today >= vat.startsAt) && (!vat.endsAt || today <= vat.endsAt);
+  }
+
+  get etiquetaIvaTemporal(): string {
+    if (!this.ivaTemporalActivo) {
+      return '';
+    }
+    return `IVA temporal ${this.temporaryVat.rate}%`;
+  }
+
+  precioConIvaTemporal(price: number): number {
+    const basePrice = Number(price) || 0;
+    if (!this.ivaTemporalActivo) {
+      return Number(basePrice.toFixed(2));
+    }
+    return Number((basePrice * (1 + this.temporaryVat.rate / 100)).toFixed(2));
+  }
+
+  private normalizeTemporaryVat(value: unknown): TemporaryVatSettings {
+    const settings = typeof value === 'object' && value !== null ? value as Partial<TemporaryVatSettings> : {};
+    const rate = Number(settings.rate ?? 15);
+    return {
+      enabled: Boolean(settings.enabled),
+      rate: Number.isFinite(rate) ? Math.min(100, Math.max(0, Number(rate.toFixed(2)))) : 15,
+      startsAt: typeof settings.startsAt === 'string' ? settings.startsAt : '',
+      endsAt: typeof settings.endsAt === 'string' ? settings.endsAt : '',
+      reason: typeof settings.reason === 'string' && settings.reason.trim() ? settings.reason.trim() : 'Feriado nacional'
+    };
+  }
+
+  private todayKey(): string {
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   private alertasBackend: AlertaAdministrativa[] = [];
@@ -721,13 +787,13 @@ export class DatosGimnasioService {
   ];
 
   maquinas: Maquina[] = [
-    { id: 1, name: 'Prensa inclinada', type: 'Maquina de fuerza', location: 'Zona inferior', status: 'Operativa', nextMaintenance: '15 Jul 2026', photo: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1000&q=80' },
-    { id: 2, name: 'Polea crossover', type: 'Multiestacion', location: 'Zona funcional', status: 'Operativa', nextMaintenance: '28 Jun 2026', photo: 'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?auto=format&fit=crop&w=1000&q=80' },
-    { id: 3, name: 'Caminadora profesional', type: 'Cardio', location: 'Zona cardio', status: 'Mantenimiento', nextMaintenance: '20 Jun 2026', photo: 'https://images.unsplash.com/photo-1576678927484-cc907957088c?auto=format&fit=crop&w=1000&q=80' },
-    { id: 4, name: 'Bicicleta de spinning', type: 'Cardio indoor', location: 'Sala de cycling', status: 'Operativa', nextMaintenance: '22 Jul 2026', photo: 'https://images.unsplash.com/photo-1599058917212-d750089bc07e?auto=format&fit=crop&w=1000&q=80' },
-    { id: 5, name: 'Maquina Smith', type: 'Fuerza guiada', location: 'Zona de peso libre', status: 'Operativa', nextMaintenance: '05 Ago 2026', photo: 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?auto=format&fit=crop&w=1000&q=80' },
-    { id: 6, name: 'Extension de cuadriceps', type: 'Fuerza selectorizada', location: 'Zona inferior', status: 'Operativa', nextMaintenance: '30 Jul 2026', photo: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=1000&q=80' },
-    { id: 7, name: 'Remo sentado', type: 'Fuerza selectorizada', location: 'Zona superior', status: 'Fuera de servicio', nextMaintenance: '19 Jun 2026', photo: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=1000&q=80' }
+    { id: 1, name: 'Extension de piernas', type: 'Fuerza de tren inferior', location: 'Zona de piernas', status: 'Operativa', nextMaintenance: '10 Oct 2026', photo: '/assets/img/machines/extension-piernas.png' },
+    { id: 2, name: 'Remo sentado', type: 'Fuerza selectorizada', location: 'Zona de espalda', status: 'Operativa', nextMaintenance: '12 Oct 2026', photo: '/assets/img/machines/remo-sentado.png' },
+    { id: 3, name: 'Jalon al pecho', type: 'Polea alta', location: 'Zona de espalda', status: 'Operativa', nextMaintenance: '14 Oct 2026', photo: '/assets/img/machines/jalon-al-pecho.png' },
+    { id: 4, name: 'Estacion de poleas', type: 'Multiestacion', location: 'Zona funcional', status: 'Operativa', nextMaintenance: '16 Oct 2026', photo: '/assets/img/machines/estacion-poleas.png' },
+    { id: 5, name: 'Polea alta', type: 'Fuerza guiada', location: 'Zona de espalda', status: 'Operativa', nextMaintenance: '18 Oct 2026', photo: '/assets/img/machines/polea-alta.png' },
+    { id: 6, name: 'Banco Scott', type: 'Peso libre asistido', location: 'Zona de brazos', status: 'Operativa', nextMaintenance: '20 Oct 2026', photo: '/assets/img/machines/banco-scott.png' },
+    { id: 7, name: 'Press de pecho', type: 'Fuerza selectorizada', location: 'Zona superior', status: 'Operativa', nextMaintenance: '22 Oct 2026', photo: '/assets/img/machines/press-pecho.png' }
   ];
 
   get alertas(): AlertaAdministrativa[] {

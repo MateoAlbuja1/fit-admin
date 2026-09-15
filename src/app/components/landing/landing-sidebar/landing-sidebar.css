@@ -32,20 +32,22 @@ header {
 
 .brand-logo {
   display: grid;
-  width: 54px;
-  height: 54px;
-  min-width: 54px;
+  width: 64px;
+  height: 42px;
+  min-width: 64px;
   place-items: center;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, .16);
-  border-radius: 15px;
+  border-radius: 10px;
   background: #050505;
   box-shadow: 0 14px 28px rgba(0, 0, 0, .35);
 }
 
-.brand-logo .material-icons {
-  color: #fff;
-  font-size: 30px;
+.brand-logo img {
+  width: 92%;
+  height: 92%;
+  object-fit: contain;
+  object-position: center;
 }
 
 header div {
@@ -346,9 +348,9 @@ nav > .nav-group > button.is-expanded .dropdown-cue {
   }
 
   .brand-logo {
-    width: 48px;
-    height: 48px;
-    min-width: 48px;
+    width: 58px;
+    height: 38px;
+    min-width: 58px;
   }
 
   header div,

@@ -98,7 +98,7 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
   get supplementSaleTotal(): number {
     return this.supplementSaleItems.reduce((sum, item) => {
       const product = this.productById(item.supplementId);
-      return sum + (product ? product.price * this.boundedQuantity(item) : 0);
+      return sum + (product ? this.supplementSalePrice(product) * this.boundedQuantity(item) : 0);
     }, 0);
   }
 
@@ -249,7 +249,11 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
 
   stockLabel(item: ItemVentaSuplemento): string {
     const product = this.productById(item.supplementId);
-    return product ? `${product.stock} disp. · $${product.price.toFixed(2)}` : 'Selecciona producto';
+    return product ? `${product.stock} disp. · $${this.supplementSalePrice(product).toFixed(2)}` : 'Selecciona producto';
+  }
+
+  supplementSalePrice(product: Suplemento): number {
+    return this.data.precioConIvaTemporal(product.price);
   }
 
   maxQuantityForItem(item: ItemVentaSuplemento): number {

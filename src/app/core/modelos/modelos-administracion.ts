@@ -124,6 +124,7 @@ export interface Maquina {
   location: string;
   status: 'Operativa' | 'Mantenimiento' | 'Fuera de servicio';
   nextMaintenance: string;
+  maintenanceDate?: string;
   photo: string;
 }
 

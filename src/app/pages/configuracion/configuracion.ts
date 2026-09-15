@@ -1,5 +1,5 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { catchError, forkJoin, of } from 'rxjs';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { catchError, finalize, forkJoin, of, timeout } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { AccionPaginaAdminService } from '../../core/servicios/accion-pagina-admin.service';
 import { DatosGimnasioService } from '../../core/servicios/datos-gimnasio.service';
@@ -21,6 +21,7 @@ interface GymSettingsPayload {
   openingHours?: string;
   schedules?: HorarioAtencion[];
   currency?: string;
+  temporaryVat?: TemporaryVatSettings;
 }
 
 interface AdminSettingsPayload {
@@ -38,7 +39,15 @@ interface AdminSettingsPayload {
   alertasCriticas?: boolean;
 }
 
-type PanelConfiguracion = 'gimnasio' | 'administrador' | 'seguridad';
+type PanelConfiguracion = 'gimnasio' | 'tributacion' | 'administrador' | 'seguridad';
+
+interface TemporaryVatSettings {
+  enabled: boolean;
+  rate: number;
+  startsAt: string;
+  endsAt: string;
+  reason: string;
+}
 
 interface LoginHistoryEntry {
   date: string;
@@ -59,11 +68,37 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
   notice = '';
   activePanel: PanelConfiguracion = 'gimnasio';
   isSaving = false;
+  private noticeTimer?: ReturnType<typeof setTimeout>;
+  private savingFallbackTimer?: ReturnType<typeof setTimeout>;
+  private scheduleSaveTimer?: ReturnType<typeof setTimeout>;
 
   readonly panels: Array<{ id: PanelConfiguracion; label: string; description: string; icon: string }> = [
     { id: 'gimnasio', label: 'Datos del gimnasio', description: 'Sede, contacto y horarios', icon: 'M' },
+    { id: 'tributacion', label: 'IVA temporal', description: 'Feriados y rangos especiales', icon: '%' },
     { id: 'administrador', label: 'Administrador', description: 'Cuenta y permisos', icon: 'A' },
     { id: 'seguridad', label: 'Acceso y respaldo', description: 'Seguridad y copias', icon: 'S' }
+  ];
+
+  readonly timeOptions = [
+    '05:00', '05:30',
+    '06:00', '06:30',
+    '07:00', '07:30',
+    '08:00', '08:30',
+    '09:00', '09:30',
+    '10:00', '10:30',
+    '11:00', '11:30',
+    '12:00', '12:30',
+    '13:00', '13:30',
+    '14:00', '14:30',
+    '15:00', '15:30',
+    '16:00', '16:30',
+    '17:00', '17:30',
+    '18:00', '18:30',
+    '19:00', '19:30',
+    '20:00', '20:30',
+    '21:00', '21:30',
+    '22:00', '22:30',
+    '23:00'
   ];
 
   gimnasio = {
@@ -97,6 +132,14 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
 
   horarios: HorarioAtencion[] = this.defaultSchedules();
 
+  ivaTemporal: TemporaryVatSettings = {
+    enabled: false,
+    rate: 15,
+    startsAt: '',
+    endsAt: '',
+    reason: 'Feriado nacional'
+  };
+
   loginHistory: LoginHistoryEntry[] = [
     { date: '02/07/2026, 09:22', user: 'admin', device: 'Chrome en Windows', ip: '192.168.1.24', status: 'Exitoso' },
     { date: '01/07/2026, 18:40', user: 'admin', device: 'Edge en Windows', ip: '192.168.1.24', status: 'Exitoso' },
@@ -105,7 +148,8 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
 
   constructor(
     private actions: AccionPaginaAdminService,
-    private data: DatosGimnasioService
+    private data: DatosGimnasioService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -115,31 +159,48 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.actions.limpiar();
+    this.clearNoticeTimer();
+    this.clearSavingFallbackTimer();
+    this.clearScheduleSaveTimer();
   }
 
   setPanel(panel: PanelConfiguracion): void {
     this.activePanel = panel;
     this.notice = '';
+    this.clearNoticeTimer();
   }
 
   loadSettings(): void {
     forkJoin({
-      gym: this.data.obtenerConfiguracionGimnasio(),
-      admin: this.data.obtenerConfiguracionAdmin(),
+      gym: this.data.obtenerConfiguracionGimnasio().pipe(
+        catchError(() => this.data.obtenerConfiguracionPublicaGimnasio().pipe(catchError(() => of(null))))
+      ),
+      admin: this.data.obtenerConfiguracionAdmin().pipe(catchError(() => of(null))),
       logins: this.data.obtenerHistorialLogin().pipe(catchError(() => of([])))
     }).subscribe({
       next: settings => {
-        this.applyGymSettings(settings.gym as GymSettingsPayload);
-        this.applyAdminSettings(settings.admin as AdminSettingsPayload);
+        if (settings.gym) {
+          this.applyGymSettings(settings.gym as GymSettingsPayload);
+        }
+        if (settings.admin) {
+          this.applyAdminSettings(settings.admin as AdminSettingsPayload);
+        }
         this.loginHistory = this.mapLoginHistory(settings.logins);
+        this.cdr.detectChanges();
       },
       error: () => {
-        this.notice = 'No se pudo cargar la configuracion guardada. Se muestran valores locales.';
+        this.showNotice('No se pudo cargar la configuracion guardada. Se muestran valores locales.');
       }
     });
   }
 
   saveSettings(): void {
+    if (!this.validateTemporaryVat()) {
+      return;
+    }
+
+    this.clearScheduleSaveTimer();
+
     if (this.password.actual || this.password.nueva || this.password.confirmar) {
       this.saveWithPasswordChange();
       return;
@@ -154,73 +215,136 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
   }
 
   requestBackup(): void {
-    this.isSaving = true;
-    this.data.solicitarBackup().subscribe({
+    this.startSaving();
+    this.data.solicitarBackup().pipe(
+      timeout(12000),
+      finalize(() => {
+        this.finishSaving();
+      })
+    ).subscribe({
       next: response => {
         const fileName = typeof response['fileName'] === 'string' ? response['fileName'] : '';
-        this.notice = fileName ? `Respaldo generado: ${fileName}` : 'Respaldo generado correctamente.';
+        this.showNotice(fileName ? `Backup generado: ${fileName}` : 'Backup generado correctamente.');
       },
-      error: () => this.notice = 'No se pudo generar el respaldo en el backend.',
-      complete: () => {
-        this.isSaving = false;
-      }
+      error: () => this.showNotice('No se pudo generar el backup en el backend.')
     });
   }
 
   resetNotice(): void {
     this.notice = '';
+    this.clearNoticeTimer();
+  }
+
+  updateScheduleActive(horario: HorarioAtencion, active: boolean): void {
+    horario.activo = active;
+    this.scheduleGymAutoSave();
+  }
+
+  updateScheduleTime(horario: HorarioAtencion, field: 'apertura' | 'cierre', value: string): void {
+    horario[field] = value;
+    this.scheduleGymAutoSave();
+  }
+
+  get ivaTemporalResumen(): string {
+    if (!this.ivaTemporal.enabled) {
+      return 'Inactivo: la tienda usa los precios base del inventario.';
+    }
+
+    if (!this.ivaTemporal.startsAt || !this.ivaTemporal.endsAt) {
+      return 'Activo, pero falta definir el rango completo de fechas.';
+    }
+
+    return `Activo: aplica ${this.ivaTemporal.rate}% desde ${this.ivaTemporal.startsAt} hasta ${this.ivaTemporal.endsAt}.`;
   }
 
   private saveWithPasswordChange(): void {
+    if (!this.validateTemporaryVat()) {
+      return;
+    }
+
     if (!this.password.actual || !this.password.nueva || !this.password.confirmar) {
-      this.notice = 'Completa los tres campos de contrasena para cambiarla.';
+      this.showNotice('Completa los tres campos de contrasena para cambiarla.');
       return;
     }
 
     if (this.password.nueva !== this.password.confirmar) {
-      this.notice = 'La nueva contrasena no coincide con la confirmacion.';
+      this.showNotice('La nueva contrasena no coincide con la confirmacion.');
       return;
     }
 
     if (this.password.nueva.length < 5) {
-      this.notice = 'La nueva contrasena debe tener al menos 5 caracteres.';
+      this.showNotice('La nueva contrasena debe tener al menos 5 caracteres.');
       return;
     }
 
-    this.isSaving = true;
+    this.startSaving();
     this.data.cambiarPassword({
       currentPassword: this.password.actual,
       newPassword: this.password.nueva
-    }).subscribe({
+    }).pipe(
+      timeout(12000)
+    ).subscribe({
       next: () => {
         this.password = { actual: '', nueva: '', confirmar: '' };
         this.persistSettings('Configuracion y contrasena guardadas correctamente.');
       },
       error: error => {
-        this.isSaving = false;
-        this.notice = error.status === 401
+        this.finishSaving();
+        this.showNotice(error.status === 401
           ? 'La contrasena actual no es correcta.'
-          : 'No se pudo cambiar la contrasena. Inicia sesion de nuevo e intenta otra vez.';
+          : 'No se pudo cambiar la contrasena. Inicia sesion de nuevo e intenta otra vez.');
       }
     });
   }
 
   private persistSettings(successMessage: string): void {
-    this.isSaving = true;
+    const shouldSaveGym = this.activePanel === 'gimnasio' || this.activePanel === 'tributacion';
+    const shouldSaveAdmin = this.activePanel === 'administrador' || this.activePanel === 'seguridad';
+
+    this.startSaving();
     forkJoin({
-      gym: this.data.guardarConfiguracionGimnasio(this.buildGymPayload()),
-      admin: this.data.guardarConfiguracionAdmin(this.buildAdminPayload())
-    }).subscribe({
+      gym: shouldSaveGym ? this.data.guardarConfiguracionGimnasio(this.buildGymPayload()) : of(null),
+      admin: shouldSaveAdmin ? this.data.guardarConfiguracionAdmin(this.buildAdminPayload()) : of(null)
+    }).pipe(
+      timeout(12000),
+      finalize(() => {
+        this.finishSaving();
+      })
+    ).subscribe({
       next: settings => {
-        this.applyGymSettings(settings.gym as GymSettingsPayload);
-        this.applyAdminSettings(settings.admin as AdminSettingsPayload);
-        this.notice = successMessage;
+        if (settings.gym) {
+          this.applyGymSettings(settings.gym as GymSettingsPayload);
+        }
+        if (settings.admin) {
+          this.applyAdminSettings(settings.admin as AdminSettingsPayload);
+        }
+        this.showNotice(successMessage);
       },
       error: () => {
-        this.notice = 'No se pudo guardar la configuracion en el backend.';
+        this.showNotice('No se pudo guardar la configuracion. Revisa si la sesion sigue activa.');
+      }
+    });
+  }
+
+  private persistGymSettings(successMessage: string, showButtonSaving = false): void {
+    if (showButtonSaving) {
+      this.startSaving();
+    }
+
+    this.data.guardarConfiguracionGimnasio(this.buildGymPayload()).pipe(
+      timeout(12000),
+      finalize(() => {
+        if (showButtonSaving) {
+          this.finishSaving();
+        }
+      })
+    ).subscribe({
+      next: settings => {
+        this.applyGymSettings(settings as GymSettingsPayload);
+        this.showNotice(successMessage);
       },
-      complete: () => {
-        this.isSaving = false;
+      error: () => {
+        this.showNotice('No se pudo guardar el horario. Revisa si la sesion sigue activa.');
       }
     });
   }
@@ -235,7 +359,14 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
       address: this.gimnasio.direccion.trim(),
       openingHours: this.schedulesSummary(),
       schedules: this.horarios,
-      currency: 'USD'
+      currency: 'USD',
+      temporaryVat: {
+        enabled: Boolean(this.ivaTemporal.enabled),
+        rate: this.clampVatRate(this.ivaTemporal.rate),
+        startsAt: this.ivaTemporal.startsAt,
+        endsAt: this.ivaTemporal.endsAt,
+        reason: this.ivaTemporal.reason.trim() || 'Feriado nacional'
+      }
     };
   }
 
@@ -266,14 +397,9 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
       direccion: this.text(settings.address, this.gimnasio.direccion)
     };
 
-    if (Array.isArray(settings.schedules) && settings.schedules.length) {
-      this.horarios = settings.schedules.map(item => ({
-        dia: this.text(item.dia, ''),
-        apertura: this.text(item.apertura, '06:00'),
-        cierre: this.text(item.cierre, '22:00'),
-        activo: Boolean(item.activo)
-      })).filter(item => item.dia);
-    }
+    this.horarios = this.normalizeSchedules(settings.schedules);
+
+    this.ivaTemporal = this.normalizeTemporaryVat(settings.temporaryVat);
   }
 
   private applyAdminSettings(settings: AdminSettingsPayload = {}): void {
@@ -325,6 +451,155 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
 
   private text(value: unknown, fallback: string): string {
     return typeof value === 'string' && value.trim() ? value : fallback;
+  }
+
+  private normalizeTemporaryVat(value: unknown): TemporaryVatSettings {
+    const settings = typeof value === 'object' && value !== null ? value as Partial<TemporaryVatSettings> : {};
+    return {
+      enabled: Boolean(settings.enabled),
+      rate: this.clampVatRate(Number(settings.rate ?? 15)),
+      startsAt: this.text(settings.startsAt, ''),
+      endsAt: this.text(settings.endsAt, ''),
+      reason: this.text(settings.reason, 'Feriado nacional')
+    };
+  }
+
+  private validateTemporaryVat(): boolean {
+    if (!this.ivaTemporal.enabled) {
+      return true;
+    }
+
+    if (this.clampVatRate(this.ivaTemporal.rate) <= 0) {
+      this.showNotice('El porcentaje de IVA temporal debe ser mayor a 0.');
+      return false;
+    }
+
+    if (!this.ivaTemporal.startsAt || !this.ivaTemporal.endsAt) {
+      this.showNotice('Define fecha de inicio y fecha de fin para el IVA temporal.');
+      return false;
+    }
+
+    if (this.ivaTemporal.startsAt > this.ivaTemporal.endsAt) {
+      this.showNotice('La fecha de inicio del IVA temporal no puede ser mayor a la fecha de fin.');
+      return false;
+    }
+
+    return true;
+  }
+
+  private showNotice(message: string): void {
+    this.notice = message;
+    this.clearNoticeTimer();
+    this.noticeTimer = setTimeout(() => {
+      this.notice = '';
+      this.noticeTimer = undefined;
+      this.cdr.detectChanges();
+    }, 3600);
+    this.cdr.detectChanges();
+  }
+
+  private clearNoticeTimer(): void {
+    if (!this.noticeTimer) {
+      return;
+    }
+    clearTimeout(this.noticeTimer);
+    this.noticeTimer = undefined;
+  }
+
+  private startSaving(): void {
+    this.isSaving = true;
+    this.clearSavingFallbackTimer();
+    this.savingFallbackTimer = setTimeout(() => {
+      if (!this.isSaving) {
+        return;
+      }
+      this.isSaving = false;
+      this.showNotice('La respuesta esta tardando demasiado. Revisa conexion o inicia sesion nuevamente.');
+      this.cdr.detectChanges();
+    }, 14000);
+    this.cdr.detectChanges();
+  }
+
+  private finishSaving(): void {
+    this.isSaving = false;
+    this.clearSavingFallbackTimer();
+    this.cdr.detectChanges();
+  }
+
+  private clearSavingFallbackTimer(): void {
+    if (!this.savingFallbackTimer) {
+      return;
+    }
+    clearTimeout(this.savingFallbackTimer);
+    this.savingFallbackTimer = undefined;
+  }
+
+  private scheduleGymAutoSave(): void {
+    this.clearScheduleSaveTimer();
+    this.scheduleSaveTimer = setTimeout(() => {
+      this.scheduleSaveTimer = undefined;
+      this.persistGymSettings('Horario actualizado correctamente.');
+    }, 650);
+  }
+
+  private clearScheduleSaveTimer(): void {
+    if (!this.scheduleSaveTimer) {
+      return;
+    }
+    clearTimeout(this.scheduleSaveTimer);
+    this.scheduleSaveTimer = undefined;
+  }
+
+  private normalizeSchedules(value: unknown): HorarioAtencion[] {
+    const defaults = this.defaultSchedules();
+    if (!Array.isArray(value) || !value.length) {
+      return defaults;
+    }
+
+    const savedByDay = new Map<string, Partial<HorarioAtencion>>();
+    value.forEach(item => {
+      if (!item || typeof item !== 'object') {
+        return;
+      }
+      const schedule = item as Partial<HorarioAtencion>;
+      const key = this.scheduleDayKey(schedule.dia);
+      if (!key) {
+        return;
+      }
+      savedByDay.set(key, schedule);
+    });
+
+    return defaults.map(defaultSchedule => {
+      const saved = savedByDay.get(this.scheduleDayKey(defaultSchedule.dia));
+      if (!saved) {
+        return { ...defaultSchedule };
+      }
+      return {
+        dia: defaultSchedule.dia,
+        apertura: this.validTime(saved.apertura, defaultSchedule.apertura),
+        cierre: this.validTime(saved.cierre, defaultSchedule.cierre),
+        activo: typeof saved.activo === 'boolean' ? saved.activo : defaultSchedule.activo
+      };
+    });
+  }
+
+  private scheduleDayKey(value: unknown): string {
+    return this.text(value, '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase();
+  }
+
+  private validTime(value: unknown, fallback: string): string {
+    const time = this.text(value, fallback);
+    return this.timeOptions.includes(time) ? time : fallback;
+  }
+
+  private clampVatRate(value: number): number {
+    if (!Number.isFinite(value)) {
+      return 15;
+    }
+    return Math.min(100, Math.max(0, Number(value.toFixed(2))));
   }
 
   private defaultSchedules(): HorarioAtencion[] {

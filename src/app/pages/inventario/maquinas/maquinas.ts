@@ -15,6 +15,10 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
   detailItem: Maquina | null = null;
   maquinaAEliminar: Maquina | null = null;
   editingItemId: number | null = null;
+  isCreating = false;
+  isSavingEdit = false;
+  savingStatusIds = new Set<number>();
+  private noticeTimer?: ReturnType<typeof setTimeout>;
   newItem = { name: '', type: '', location: '', status: 'Operativa' as Maquina['status'], nextMaintenance: '', photo: '' };
   editItem = { name: '', type: '', location: '', status: 'Operativa' as Maquina['status'], nextMaintenance: '', photo: '' };
 
@@ -29,6 +33,7 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.actions.limpiar();
+    this.clearNoticeTimer();
   }
 
   get operational(): number {
@@ -48,16 +53,31 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
   }
 
   toggleStatus(item: Maquina): void {
+    if (this.savingStatusIds.has(item.id)) {
+      return;
+    }
+
     const nextStatus: Maquina['status'] = item.status === 'Mantenimiento' ? 'Operativa' : 'Mantenimiento';
+    const previousStatus = item.status;
+    item.status = nextStatus;
+    this.savingStatusIds.add(item.id);
+
     this.data.actualizarEstadoMaquina(item.id, nextStatus).subscribe({
       next: updated => {
+        this.savingStatusIds.delete(item.id);
         Object.assign(item, updated);
-        this.notice = `${item.name}: estado actualizado.`;
+        this.showNotice(`${item.name}: estado actualizado.`);
       },
       error: () => {
-        this.notice = 'No se pudo actualizar la maquina en el backend.';
+        this.savingStatusIds.delete(item.id);
+        item.status = previousStatus;
+        this.showNotice('No se pudo actualizar la maquina en el backend.');
       }
     });
+  }
+
+  isStatusSaving(item: Maquina): boolean {
+    return this.savingStatusIds.has(item.id);
   }
 
   remove(item: Maquina): void {
@@ -78,10 +98,10 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
         this.maquinaAEliminar = null;
         this.detail = null;
         this.detailItem = null;
-        this.notice = `${item.name} eliminada del inventario.`;
+        this.showNotice(`${item.name} eliminada del inventario.`);
       },
       error: () => {
-        this.notice = 'No se pudo eliminar la maquina en el backend.';
+        this.showNotice('No se pudo eliminar la maquina en el backend.');
       }
     });
   }
@@ -108,7 +128,7 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
       type: item.type,
       location: item.location,
       status: item.status,
-      nextMaintenance: item.nextMaintenance,
+      nextMaintenance: this.toDateInputValue(item.maintenanceDate || item.nextMaintenance),
       photo: item.photo
     };
   }
@@ -118,12 +138,17 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
   }
 
   saveEdit(): void {
-    const item = this.data.maquinas.find(current => current.id === this.editingItemId);
-    if (!item || !this.editItem.name.trim() || !this.editItem.type.trim()) {
-      this.notice = 'Completa el nombre y tipo de equipo.';
+    if (this.isSavingEdit) {
       return;
     }
 
+    const item = this.data.maquinas.find(current => current.id === this.editingItemId);
+    if (!item || !this.editItem.name.trim() || !this.editItem.type.trim()) {
+      this.showNotice('Completa el nombre y tipo de equipo.');
+      return;
+    }
+
+    this.isSavingEdit = true;
     this.data.actualizarMaquina(item.id, {
       name: this.editItem.name.trim(),
       type: this.editItem.type.trim(),
@@ -133,12 +158,14 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
       photo: this.editItem.photo
     }).subscribe({
       next: updated => {
+        this.isSavingEdit = false;
         Object.assign(item, updated);
         this.editingItemId = null;
-        this.notice = 'Ficha de maquina actualizada correctamente.';
+        this.showNotice('Ficha de maquina actualizada correctamente.');
       },
       error: () => {
-        this.notice = 'No se pudo actualizar la maquina en el backend.';
+        this.isSavingEdit = false;
+        this.showNotice('No se pudo actualizar la maquina en el backend.');
       }
     });
   }
@@ -146,7 +173,7 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
   handlePhoto(event: Event): void {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file || file.size > 4 * 1024 * 1024) {
-      this.notice = 'Selecciona una imagen menor a 4 MB.';
+      this.showNotice('Selecciona una imagen menor a 4 MB.');
       return;
     }
     const reader = new FileReader();
@@ -157,7 +184,7 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
   handleEditPhoto(event: Event): void {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file || file.size > 4 * 1024 * 1024) {
-      this.notice = 'Selecciona una imagen menor a 4 MB.';
+      this.showNotice('Selecciona una imagen menor a 4 MB.');
       return;
     }
     const reader = new FileReader();
@@ -166,22 +193,62 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
   }
 
   add(): void {
-    if (!this.newItem.name.trim() || !this.newItem.type.trim()) {
-      this.notice = 'Completa el nombre y tipo de equipo.';
+    if (this.isCreating) {
       return;
     }
 
+    if (!this.newItem.name.trim() || !this.newItem.type.trim()) {
+      this.showNotice('Completa el nombre y tipo de equipo.');
+      return;
+    }
+
+    this.isCreating = true;
     this.data.crearMaquina(this.newItem).subscribe({
       next: created => {
+        this.isCreating = false;
         this.data.maquinas.unshift(created);
         this.newItem = { name: '', type: '', location: '', status: 'Operativa', nextMaintenance: '', photo: '' };
         this.showForm = false;
         this.formStep = 1;
-        this.notice = 'Maquina agregada correctamente.';
+        this.showNotice('Maquina agregada correctamente.');
       },
       error: () => {
-        this.notice = 'No se pudo crear la maquina en el backend.';
+        this.isCreating = false;
+        this.showNotice('No se pudo crear la maquina en el backend.');
       }
     });
+  }
+
+  private showNotice(message: string): void {
+    this.notice = message;
+    this.clearNoticeTimer();
+    this.noticeTimer = setTimeout(() => {
+      this.notice = '';
+      this.noticeTimer = undefined;
+    }, 3600);
+  }
+
+  private clearNoticeTimer(): void {
+    if (!this.noticeTimer) {
+      return;
+    }
+    clearTimeout(this.noticeTimer);
+    this.noticeTimer = undefined;
+  }
+
+  private toDateInputValue(value: string | undefined): string {
+    if (!value) {
+      return '';
+    }
+
+    if (/^\d{4}-\d{2}-\d{2}/.test(value)) {
+      return value.slice(0, 10);
+    }
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      return '';
+    }
+    return parsed.toISOString().slice(0, 10);
   }
 }

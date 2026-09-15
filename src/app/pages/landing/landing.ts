@@ -1,5 +1,5 @@
 import { isPlatformBrowser } from '@angular/common';
-import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Router } from '@angular/router';
@@ -66,6 +66,23 @@ interface PublicGymSettings {
   email: string;
   address: string;
   openingHours: string;
+  schedules: PublicSchedule[];
+  temporaryVat: TemporaryVatSettings;
+}
+
+interface PublicSchedule {
+  dia: string;
+  apertura: string;
+  cierre: string;
+  activo: boolean;
+}
+
+interface TemporaryVatSettings {
+  enabled: boolean;
+  rate: number;
+  startsAt: string;
+  endsAt: string;
+  reason: string;
 }
 
 const OFFICIAL_GYM_NAME = 'WX GYM';
@@ -86,13 +103,22 @@ interface PaypalApproveData {
 }
 
 interface PaypalButtons {
+  isEligible?: () => boolean;
   render(selector: string | HTMLElement): Promise<void> | void;
 }
+
+type PaypalFundingSource = string;
+type SidebarChild = NonNullable<SidebarSection['children']>[number];
 
 declare global {
   interface Window {
     paypal?: {
+      FUNDING?: {
+        PAYPAL?: PaypalFundingSource;
+        CARD?: PaypalFundingSource;
+      };
       Buttons(options: {
+        fundingSource?: PaypalFundingSource;
         style?: Record<string, string>;
         createOrder: () => Promise<string>;
         onApprove: (data: PaypalApproveData) => Promise<void>;
@@ -120,7 +146,7 @@ declare global {
   templateUrl: './landing.html',
   styleUrl: './landing.css'
 })
-export class LandingComponent implements OnInit {
+export class LandingComponent implements OnInit, OnDestroy {
   private readonly trackedAnchors = ['inicio', 'servicios', 'planes', 'tienda', 'contacto', 'perfil'];
 
   sidebarOpen = false;
@@ -141,6 +167,7 @@ export class LandingComponent implements OnInit {
     mode: 'sandbox'
   };
   private paypalScriptPromise?: Promise<void>;
+  private paypalRenderTimer?: number;
   checkoutForm = {
     customerName: '',
     customerPhone: '',
@@ -158,7 +185,23 @@ export class LandingComponent implements OnInit {
     phone: OFFICIAL_WHATSAPP_LOCAL,
     email: OFFICIAL_GYM_EMAIL,
     address: 'Quito, Ecuador',
-    openingHours: 'Lunes a Viernes 08:00 - 21:00 · Sábado 08:00 - 16:00'
+    openingHours: 'Lunes a Viernes 08:00 - 21:00 · Sábado 08:00 - 16:00',
+    schedules: [
+      { dia: 'Lunes', apertura: '06:00', cierre: '22:00', activo: true },
+      { dia: 'Martes', apertura: '06:00', cierre: '22:00', activo: true },
+      { dia: 'Miercoles', apertura: '06:00', cierre: '22:00', activo: true },
+      { dia: 'Jueves', apertura: '06:00', cierre: '22:00', activo: true },
+      { dia: 'Viernes', apertura: '06:00', cierre: '22:00', activo: true },
+      { dia: 'Sabado', apertura: '08:00', cierre: '16:00', activo: true },
+      { dia: 'Domingo', apertura: '08:00', cierre: '13:00', activo: false }
+    ],
+    temporaryVat: {
+      enabled: false,
+      rate: 15,
+      startsAt: '',
+      endsAt: '',
+      reason: 'Feriado nacional'
+    }
   };
   clientProfile: Cliente | null = null;
   clientMembership: Membresia | null = null;
@@ -237,36 +280,38 @@ export class LandingComponent implements OnInit {
     }
   ];
 
-  readonly sidebarItems: SidebarSection[] = [
-    { label: 'Inicio', anchor: 'inicio', icon: 'home' },
-    {
-      label: 'Productos',
-      anchor: 'tienda',
-      icon: 'shopping_bag',
-      children: [
-        { label: 'Proteinas', anchor: 'tienda:Proteinas', badge: 'TOP', badgeTone: 'hot' },
-        { label: 'Creatinas', anchor: 'tienda:Creatinas', badge: 'NEW', badgeTone: 'new' },
-        { label: 'Vitaminas y minerales', anchor: 'tienda:Vitaminas y minerales' },
-        { label: 'Pre-entrenos', anchor: 'tienda:Pre-entrenos' },
-        { label: 'Barras y snacks', anchor: 'tienda:Barras y snacks de proteina', badge: 'SALE', badgeTone: 'sale' }
-      ]
-    },
-    {
-      label: 'Servicios',
-      anchor: 'servicios',
-      icon: 'fitness_center',
-      children: [
-        { label: 'Musculación', anchor: 'servicios:Musculación' },
-        { label: 'Cardio', anchor: 'servicios:Cardio' },
-        { label: 'Personalizado', anchor: 'servicios:Entrenamiento personalizado', badge: 'PRO', badgeTone: 'hot' },
-        { label: 'Clases grupales', anchor: 'servicios:Clases grupales' },
-        { label: 'Evaluación física', anchor: 'servicios:Evaluación física' },
-        { label: 'Principiantes', anchor: 'servicios:Rutinas para principiantes' }
-      ]
-    },
-    { label: 'Planes', anchor: 'planes', icon: 'workspace_premium' },
-    { label: 'Contacto', anchor: 'contacto', icon: 'call' }
-  ];
+  get sidebarItems(): SidebarSection[] {
+    return [
+      { label: 'Inicio', anchor: 'inicio', icon: 'home' },
+      {
+        label: 'Productos',
+        anchor: 'tienda',
+        icon: 'shopping_bag',
+        children: this.storeCategories
+          .filter(category => category !== 'Todos')
+          .map(category => ({
+            label: this.storeCategoryLabel(category),
+            anchor: `tienda:${category}`,
+            ...this.storeCategoryBadge(category)
+          }))
+      },
+      {
+        label: 'Servicios',
+        anchor: 'servicios',
+        icon: 'fitness_center',
+        children: [
+          { label: 'Musculación', anchor: 'servicios:Musculación' },
+          { label: 'Cardio', anchor: 'servicios:Cardio' },
+          { label: 'Personalizado', anchor: 'servicios:Entrenamiento personalizado', badge: 'PRO' as const, badgeTone: 'hot' as const },
+          { label: 'Clases grupales', anchor: 'servicios:Clases grupales' },
+          { label: 'Evaluación física', anchor: 'servicios:Evaluación física' },
+          { label: 'Principiantes', anchor: 'servicios:Rutinas para principiantes' }
+        ]
+      },
+      { label: 'Planes', anchor: 'planes', icon: 'workspace_premium' },
+      { label: 'Contacto', anchor: 'contacto', icon: 'call' }
+    ];
+  }
 
   readonly services: LandingService[] = [
     {
@@ -762,9 +807,13 @@ export class LandingComponent implements OnInit {
     this.loadMemberSession();
   }
 
+  ngOnDestroy(): void {
+    this.clearPaypalRenderTimer();
+  }
+
   get products(): FitnessProduct[] {
     if (!this.data.suplementos.length) {
-      return this.clientProductCatalogBackup;
+      return this.clientProductCatalogBackup.map(product => this.productWithActiveVat(product));
     }
 
     return this.data.suplementos
@@ -776,7 +825,7 @@ export class LandingComponent implements OnInit {
       .map(product => ({
         id: product.id,
         name: product.name,
-        price: this.formatCurrency(product.price),
+        price: this.formatCurrency(this.priceWithActiveVat(product.price)),
         stock: product.stock,
         discount: product.discount,
         rating: product.rating ?? '4.7/5',
@@ -787,6 +836,33 @@ export class LandingComponent implements OnInit {
         category: product.category,
         description: product.description
       }));
+  }
+
+  get activeTemporaryVat(): TemporaryVatSettings | null {
+    const vat = this.publicGymSettings.temporaryVat;
+    if (!vat.enabled || vat.rate <= 0) {
+      return null;
+    }
+
+    const today = this.todayKey();
+    if (vat.startsAt && today < vat.startsAt) {
+      return null;
+    }
+    if (vat.endsAt && today > vat.endsAt) {
+      return null;
+    }
+
+    return vat;
+  }
+
+  get temporaryVatLabel(): string {
+    const vat = this.activeTemporaryVat;
+    if (!vat) {
+      return '';
+    }
+
+    const period = vat.endsAt ? ` hasta ${vat.endsAt}` : '';
+    return `Precios con IVA temporal ${vat.rate}%${period}`;
   }
 
   get searchResults(): SearchResult[] {
@@ -805,6 +881,27 @@ export class LandingComponent implements OnInit {
       .slice(0, 6);
   }
 
+  get storeCategories(): string[] {
+    const categories = this.products
+      .map(product => product.category.trim())
+      .filter(Boolean);
+    return ['Todos', ...Array.from(new Set(categories)).sort((a, b) => a.localeCompare(b))];
+  }
+
+  storeCategoryLabel(category: string): string {
+    return category === 'Barras y snacks de proteina' ? 'Barras y snacks' : category;
+  }
+
+  storeCategoryBadge(category: string): Pick<SidebarChild, 'badge' | 'badgeTone'> {
+    const badges: Record<string, Pick<SidebarChild, 'badge' | 'badgeTone'>> = {
+      Proteinas: { badge: 'TOP', badgeTone: 'hot' },
+      Creatinas: { badge: 'NEW', badgeTone: 'new' },
+      'Barras y snacks de proteina': { badge: 'SALE', badgeTone: 'sale' }
+    };
+
+    return badges[category] ?? {};
+  }
+
   get cartCount(): number {
     return this.cartItems.reduce((total, item) => total + item.quantity, 0);
   }
@@ -814,7 +911,7 @@ export class LandingComponent implements OnInit {
   }
 
   get filteredProducts(): FitnessProduct[] {
-    if (this.activeStoreCategory === 'Todos') {
+    if (this.activeStoreCategory === 'Todos' || !this.storeCategories.includes(this.activeStoreCategory)) {
       return this.products;
     }
 
@@ -905,6 +1002,12 @@ export class LandingComponent implements OnInit {
     return this.publicGymSettings.openingHours;
   }
 
+  get publicSchedules(): PublicSchedule[] {
+    return this.publicGymSettings.schedules.length
+      ? this.publicGymSettings.schedules
+      : [];
+  }
+
   get gymSummary(): string {
     const location = [this.publicGymSettings.city, this.publicGymSettings.sector].filter(Boolean).join(' - ');
     return `Entrenamiento, musculación y bienestar${location ? ` en ${location}` : ''}.`;
@@ -962,6 +1065,7 @@ export class LandingComponent implements OnInit {
   navigateTo(anchor: string): void {
     this.sidebarOpen = false;
     this.cartOpen = false;
+    this.clearPaypalRenderTimer();
     this.searchTerm = '';
 
     if (anchor.startsWith('tienda:')) {
@@ -976,6 +1080,9 @@ export class LandingComponent implements OnInit {
 
     if (this.trackedAnchors.includes(sectionAnchor)) {
       this.activeAnchor = sectionAnchor;
+      if (sectionAnchor === 'inicio') {
+        this.loadPublicGymSettings();
+      }
     }
     if (!isPlatformBrowser(this.platformId)) return;
 
@@ -1060,12 +1167,14 @@ export class LandingComponent implements OnInit {
 
   closeCart(): void {
     this.cartOpen = false;
+    this.clearPaypalRenderTimer();
   }
 
   clearCart(): void {
     this.cartItems = [];
     this.lastOrderCode = '';
     this.lastOrderWhatsappUrl = '';
+    this.clearPaypalRenderTimer();
   }
 
   submitCartOrder(): void {
@@ -1197,13 +1306,21 @@ export class LandingComponent implements OnInit {
     if (!isPlatformBrowser(this.platformId) || !this.cartItems.length || !this.isMemberLoggedIn) {
       return;
     }
-    window.setTimeout(() => {
-      this.renderPaypalButton();
-    }, 0);
+    this.clearPaypalRenderTimer();
+    this.paypalRenderTimer = window.setTimeout(() => {
+      this.paypalRenderTimer = undefined;
+      void this.renderPaypalButton();
+    }, 220);
   }
 
   private async renderPaypalButton(): Promise<void> {
     if (!this.paypalConfig.enabled || !this.paypalConfig.clientId) {
+      return;
+    }
+
+    await this.waitForCartPaint();
+
+    if (!this.cartOpen || !this.cartItems.length) {
       return;
     }
 
@@ -1216,27 +1333,65 @@ export class LandingComponent implements OnInit {
 
     try {
       await this.loadPaypalScript();
-      window.paypal?.Buttons({
-        style: {
-          layout: 'vertical',
-          color: 'gold',
-          shape: 'rect',
-          label: 'paypal'
-        },
-        createOrder: () => this.createPaypalOrder(),
-        onApprove: data => this.capturePaypalOrder(data.orderID),
-        onCancel: () => {
-          this.isProcessingPaypal = false;
-          this.cartNotice = 'Pago con PayPal cancelado.';
-        },
-        onError: () => {
-          this.isProcessingPaypal = false;
-          this.cartNotice = 'No se pudo abrir PayPal. Revisa la configuracion e intenta nuevamente.';
+      const paypal = window.paypal;
+      if (!paypal) {
+        throw new Error('PayPal SDK unavailable');
+      }
+
+      const fundingSources = [
+        paypal.FUNDING?.PAYPAL ?? 'paypal',
+        paypal.FUNDING?.CARD ?? 'card'
+      ];
+
+      for (const fundingSource of fundingSources) {
+        const mount = document.createElement('div');
+        mount.className = `paypal-funding-slot paypal-funding-slot--${fundingSource}`;
+        container.appendChild(mount);
+
+        const buttons = paypal.Buttons({
+          fundingSource,
+          style: {
+            layout: 'vertical',
+            color: fundingSource === (paypal.FUNDING?.PAYPAL ?? 'paypal') ? 'gold' : 'black',
+            shape: 'rect',
+            label: 'paypal'
+          },
+          createOrder: () => this.createPaypalOrder(),
+          onApprove: data => this.capturePaypalOrder(data.orderID),
+          onCancel: () => {
+            this.isProcessingPaypal = false;
+            this.cartNotice = 'Pago con PayPal cancelado.';
+          },
+          onError: () => {
+            this.isProcessingPaypal = false;
+            this.cartNotice = 'No se pudo abrir PayPal. Revisa la configuracion e intenta nuevamente.';
+          }
+        });
+
+        if (buttons.isEligible && !buttons.isEligible()) {
+          mount.remove();
+          continue;
         }
-      }).render(container);
+
+        await buttons.render(mount);
+      }
     } catch {
       this.cartNotice = 'No se pudo cargar PayPal. Revisa internet o las credenciales Sandbox.';
     }
+  }
+
+  private waitForCartPaint(): Promise<void> {
+    return new Promise(resolve => {
+      window.requestAnimationFrame(() => window.requestAnimationFrame(() => resolve()));
+    });
+  }
+
+  private clearPaypalRenderTimer(): void {
+    if (!isPlatformBrowser(this.platformId) || this.paypalRenderTimer === undefined) {
+      return;
+    }
+    window.clearTimeout(this.paypalRenderTimer);
+    this.paypalRenderTimer = undefined;
   }
 
   private loadPaypalScript(): Promise<void> {
@@ -1254,7 +1409,8 @@ export class LandingComponent implements OnInit {
       const params = new URLSearchParams({
         'client-id': this.paypalConfig.clientId,
         currency: this.paypalConfig.currency || 'USD',
-        intent: 'capture'
+        intent: 'capture',
+        'enable-funding': 'card'
       });
       script.src = `https://www.paypal.com/sdk/js?${params.toString()}`;
       script.onload = () => resolve();
@@ -1284,6 +1440,9 @@ export class LandingComponent implements OnInit {
   }
 
   logoutMember(): void {
+    this.clearCart();
+    this.closeCart();
+
     if (isPlatformBrowser(this.platformId)) {
       localStorage.removeItem('fitadmin-session');
       localStorage.removeItem('fitadmin-auth');
@@ -1300,6 +1459,7 @@ export class LandingComponent implements OnInit {
     this.clientAttendance = [];
     this.showBodyMeasurementsModal = false;
     this.activeAnchor = 'inicio';
+    this.cartNotice = '';
   }
 
   private flashNotice(): void {
@@ -1437,7 +1597,9 @@ export class LandingComponent implements OnInit {
         phone: OFFICIAL_WHATSAPP_LOCAL,
         email: OFFICIAL_GYM_EMAIL,
         address: this.text(settings['address'], this.publicGymSettings.address),
-        openingHours: this.formatOpeningHours(this.text(settings['openingHours'], this.publicGymSettings.openingHours))
+        openingHours: this.formatOpeningHours(this.text(settings['openingHours'], this.publicGymSettings.openingHours)),
+        schedules: this.normalizeSchedules(settings['schedules']),
+        temporaryVat: this.normalizeTemporaryVat(settings['temporaryVat'])
       };
       const location = [this.publicGymSettings.city, this.publicGymSettings.sector].filter(Boolean).join(' - ') || this.publicGymSettings.city;
       this.resultCards = [
@@ -1617,6 +1779,66 @@ export class LandingComponent implements OnInit {
 
   private text(value: unknown, fallback: string): string {
     return typeof value === 'string' && value.trim() ? value.trim() : fallback;
+  }
+
+  private productWithActiveVat(product: FitnessProduct): FitnessProduct {
+    return {
+      ...product,
+      price: this.formatCurrency(this.priceWithActiveVat(this.priceToNumber(product.price)))
+    };
+  }
+
+  private priceWithActiveVat(price: number): number {
+    const vat = this.activeTemporaryVat;
+    if (!vat) {
+      return Number(price.toFixed(2));
+    }
+
+    return Number((price * (1 + vat.rate / 100)).toFixed(2));
+  }
+
+  private normalizeTemporaryVat(value: unknown): TemporaryVatSettings {
+    const settings = typeof value === 'object' && value !== null ? value as Partial<TemporaryVatSettings> : {};
+    const rate = Number(settings.rate ?? 15);
+    return {
+      enabled: Boolean(settings.enabled),
+      rate: Number.isFinite(rate) ? Math.min(100, Math.max(0, Number(rate.toFixed(2)))) : 15,
+      startsAt: this.text(settings.startsAt, ''),
+      endsAt: this.text(settings.endsAt, ''),
+      reason: this.text(settings.reason, 'Feriado nacional')
+    };
+  }
+
+  private normalizeSchedules(value: unknown): PublicSchedule[] {
+    if (!Array.isArray(value)) {
+      return this.publicGymSettings.schedules;
+    }
+
+    const schedules = value.map(item => {
+      const schedule = typeof item === 'object' && item !== null ? item as Partial<PublicSchedule> : {};
+      return {
+        dia: this.formatScheduleDay(this.text(schedule.dia, '')),
+        apertura: this.text(schedule.apertura, '06:00'),
+        cierre: this.text(schedule.cierre, '22:00'),
+        activo: Boolean(schedule.activo)
+      };
+    }).filter(item => item.dia);
+
+    return schedules.length ? schedules : this.publicGymSettings.schedules;
+  }
+
+  private formatScheduleDay(value: string): string {
+    return value
+      .replace(/\bMiercoles\b/gi, 'Miércoles')
+      .replace(/\bSabado\b/gi, 'Sábado');
+  }
+
+  private todayKey(): string {
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   private formatOpeningHours(value: string): string {

@@ -130,7 +130,7 @@
                   @for (product of filteredAvailableSupplements; track product.id) {
                     <button type="button" (click)="selectSupplementFromSearch(product)">
                       <span>{{ product.name }}</span>
-                      <small>{{ product.category }} · {{ product.stock }} disp. · ${{ product.price.toFixed(2) }}</small>
+                      <small>{{ product.category }} · {{ product.stock }} disp. · ${{ supplementSalePrice(product).toFixed(2) }}</small>
                     </button>
                   } @empty {
                     <div class="manual-product-empty">No hay suplementos disponibles con esa búsqueda.</div>

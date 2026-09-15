@@ -223,8 +223,7 @@ tbody tr:focus-within .row-actions { opacity: 1; transform: none; }
 .inventory-summary { grid-template-columns: repeat(auto-fit,minmax(190px,1fr)); }
 .inventory-summary article { min-height: 112px; }
 .inventory-toolbar { min-height: 68px; }
-.inventory-grid { gap: 18px; }
-.inventory-grid,
+.inventory-grid { grid-template-columns: repeat(auto-fill,minmax(255px,360px)); justify-content: start; gap: 18px; }
 .inventory-grid--machines { grid-template-columns: repeat(auto-fit,minmax(255px,1fr)); justify-content: stretch; }
 .inventory-card .item-photo { height: 170px; }
 .machine-card .item-photo { height: 175px; min-height: 175px; }
@@ -233,6 +232,48 @@ tbody tr:focus-within .row-actions { opacity: 1; transform: none; }
 .machine-card dl { margin: 15px 0; }
 .machine-card dl div { padding: 8px 0; }
 .machine-card .card-actions button { min-height: 36px; font-size: 9px; }
+
+.machine-card .item-photo {
+  height: 260px;
+  min-height: 260px;
+  padding: 10px;
+  background: #0b0c0d;
+}
+
+.machine-card .item-photo img {
+  object-fit: contain;
+  object-position: center;
+}
+
+.machine-card:hover .item-photo img {
+  transform: scale(1.015);
+}
+
+.detail-drawer .detail-photo {
+  background: #0b0c0d;
+  object-fit: contain;
+  object-position: center;
+}
+
+.machine-card .secondary-button:not(.danger-action):hover,
+.machine-status-action:hover {
+  border-color: #111;
+  background: #111;
+  color: #fff;
+}
+
+.form-navigation .primary-button:hover {
+  border-color: #222;
+  background: #222;
+  color: #fff;
+}
+
+.machine-card .secondary-button:disabled,
+.machine-status-action:disabled,
+.form-navigation button:disabled {
+  cursor: wait;
+  opacity: .68;
+}
 
 @media (max-width: 640px) {
   .inventory-grid,

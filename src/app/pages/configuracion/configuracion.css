@@ -169,7 +169,8 @@
 
 .settings-form input,
 .settings-form select,
-.schedule-row input {
+.schedule-row input,
+.schedule-row select {
   min-height: 42px;
   border: 1px solid #dededb;
   border-radius: 10px;
@@ -262,6 +263,58 @@
   line-height: 16px;
 }
 
+.tax-status {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 16px;
+  align-items: center;
+  border: 1px solid #ededeb;
+  border-radius: 14px;
+  background: #fafafa;
+  padding: 18px;
+}
+
+.tax-status span {
+  width: fit-content;
+  border-radius: 999px;
+  background: rgba(120, 120, 116, .12);
+  color: #666;
+  padding: 7px 10px;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.tax-status strong {
+  justify-self: end;
+  font-size: 34px;
+  line-height: 1;
+}
+
+.tax-status small {
+  grid-column: 1 / -1;
+  color: #777;
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.tax-status--active {
+  border-color: rgba(37, 143, 98, .26);
+  background: rgba(37, 143, 98, .08);
+}
+
+.tax-status--active span {
+  background: rgba(37, 143, 98, .14);
+  color: #258f62;
+}
+
+.tax-help {
+  margin: 16px 0 0;
+  color: #777;
+  font-size: 12px;
+  line-height: 18px;
+}
+
 .toggle-list {
   display: grid;
   gap: 12px;
@@ -288,6 +341,13 @@
 .schedule-list {
   display: grid;
   gap: 10px;
+}
+
+.settings-hint {
+  margin: 12px 0 0;
+  color: #8f8f8f;
+  font-size: 0.82rem;
+  font-weight: 700;
 }
 
 .schedule-row {
@@ -393,11 +453,17 @@
 .dark-mode .settings-tabs i,
 .dark-mode .permissions-grid article,
 .dark-mode .toggle-list label,
+.dark-mode .tax-status,
 .dark-mode .schedule-row,
 .dark-mode .admin-profile-card,
 .dark-mode .security-head {
   border-color: #2b3542;
   background: #151d28;
+}
+
+.dark-mode .tax-status--active {
+  border-color: rgba(74, 222, 128, .26);
+  background: rgba(74, 222, 128, .1);
 }
 
 .dark-mode .settings-screen > header,
@@ -409,6 +475,7 @@
 .dark-mode .settings-form input,
 .dark-mode .settings-form select,
 .dark-mode .schedule-row input,
+.dark-mode .schedule-row select,
 .dark-mode .security-table {
   border-color: #2b3542;
   background: #151d28;

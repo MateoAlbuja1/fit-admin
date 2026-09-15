@@ -47,7 +47,9 @@
           <div class="card-actions">
             <button class="secondary-button" type="button" (click)="showDetail(item)">Ver ficha</button>
             <button class="secondary-button" type="button" (click)="openEdit(item)">Editar ficha</button>
-            <button class="secondary-button" type="button" (click)="toggleStatus(item)">{{ item.status === 'Mantenimiento' ? 'Activar' : 'Mantenimiento' }}</button>
+            <button class="secondary-button machine-status-button" type="button" (click)="toggleStatus(item)" [disabled]="isStatusSaving(item)">
+              {{ isStatusSaving(item) ? 'Actualizando...' : (item.status === 'Mantenimiento' ? 'Activar' : 'Mantenimiento') }}
+            </button>
             <button class="secondary-button danger-action icon-delete" type="button" (click)="remove(item)" aria-label="Eliminar máquina" title="Eliminar">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 15h10l1-15"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
             </button>
@@ -73,7 +75,9 @@
           <div class="list-actions">
             <button class="list-detail" type="button" (click)="showDetail(item)">Ver ficha</button>
             <button class="list-detail" type="button" (click)="openEdit(item)">Editar ficha</button>
-            <button class="machine-status-action" type="button" (click)="toggleStatus(item)">{{ item.status === 'Mantenimiento' ? 'Activar' : 'Mantenimiento' }}</button>
+            <button class="machine-status-action" type="button" (click)="toggleStatus(item)" [disabled]="isStatusSaving(item)">
+              {{ isStatusSaving(item) ? 'Actualizando...' : (item.status === 'Mantenimiento' ? 'Activar' : 'Mantenimiento') }}
+            </button>
             <button class="list-delete icon-delete" type="button" (click)="remove(item)" aria-label="Eliminar máquina" title="Eliminar">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 15h10l1-15"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
             </button>
@@ -133,7 +137,7 @@
           <label><span>Estado</span><select [(ngModel)]="editItem.status" name="editMachineStatus"><option>Operativa</option><option>Mantenimiento</option><option>Fuera de servicio</option></select></label>
           <label><span>Próximo mantenimiento</span><input type="date" [(ngModel)]="editItem.nextMaintenance" name="editMachineMaintenance" /></label>
         </div>
-        <div class="form-navigation"><button class="secondary-button" type="button" (click)="cancelEdit()">Cancelar</button><button class="primary-button" type="submit">Guardar cambios</button></div>
+        <div class="form-navigation"><button class="secondary-button" type="button" (click)="cancelEdit()" [disabled]="isSavingEdit">Cancelar</button><button class="primary-button" type="submit" [disabled]="isSavingEdit">{{ isSavingEdit ? 'Guardando...' : 'Guardar cambios' }}</button></div>
       </form>
     </section>
   </div>
@@ -153,7 +157,7 @@
           <button class="primary-button form-submit" type="button" (click)="formStep = 2">Continuar</button>
         } @else {
           <div class="form-row"><label><span>Estado</span><select [(ngModel)]="newItem.status" name="status"><option>Operativa</option><option>Mantenimiento</option><option>Fuera de servicio</option></select></label><label><span>Próximo mantenimiento</span><input type="date" [(ngModel)]="newItem.nextMaintenance" name="maintenance" /></label></div>
-          <div class="form-navigation"><button class="secondary-button" type="button" (click)="formStep = 1">Atrás</button><button class="primary-button" type="submit">Guardar máquina</button></div>
+          <div class="form-navigation"><button class="secondary-button" type="button" (click)="formStep = 1" [disabled]="isCreating">Atrás</button><button class="primary-button" type="submit" [disabled]="isCreating">{{ isCreating ? 'Guardando...' : 'Guardar máquina' }}</button></div>
         }
       </form>
     </section>

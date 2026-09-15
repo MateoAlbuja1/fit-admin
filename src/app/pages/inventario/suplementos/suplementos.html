@@ -1,7 +1,7 @@
 @if (notice) {
   <div class="notice">
     <span>✓</span>{{ notice }}
-    <button type="button" (click)="notice = ''">×</button>
+    <button type="button" (click)="clearNotice()">×</button>
   </div>
 }
 
@@ -15,7 +15,7 @@
 <section class="inventory-toolbar">
   <div>
     <h3>Catálogo de suplementos</h3>
-    <span>Los productos con stock bajo aparecen primero</span>
+    <span>{{ ivaTemporalLabel || 'Los productos con stock bajo aparecen primero' }}</span>
   </div>
   <div class="inventory-tools">
     <div class="view-switch" aria-label="Cambiar vista">
@@ -66,7 +66,7 @@
           @if (item.stock <= item.minStock) { <em>STOCK BAJO</em> }
         </div>
         <div class="item-content">
-          <div class="item-title"><h3>{{ item.name }}</h3><strong>${{ item.price.toFixed(2) }}</strong></div>
+          <div class="item-title"><h3>{{ item.name }}</h3><strong>${{ displayPrice(item).toFixed(2) }}</strong></div>
           <div class="stock-row"><span>Stock</span><strong [class.danger-text]="item.stock <= item.minStock">{{ item.stock }} unidades</strong></div>
           <div class="stock-control">
             <button type="button" (click)="changeStock(item, -1)">−</button>
@@ -101,7 +101,7 @@
               <div><strong>{{ item.name }}</strong><small>{{ item.stock <= item.minStock ? 'Prioridad · stock bajo' : 'Disponible' }}</small></div>
             </div>
             <span class="list-category">{{ item.category }}</span>
-            <strong class="list-price">${{ item.price.toFixed(2) }}</strong>
+            <strong class="list-price">${{ displayPrice(item).toFixed(2) }}</strong>
             <div class="list-stock"><strong [class.danger-text]="item.stock <= item.minStock">{{ item.stock }}</strong><span>mín. {{ item.minStock }}</span></div>
             <div class="list-actions">
               <button type="button" (click)="changeStock(item, -1)">−</button>
@@ -171,7 +171,16 @@
           </label>
         </div>
         <label><span>Nombre *</span><input [(ngModel)]="editItem.name" name="editName" required /></label>
-        <label><span>Categoría *</span><input [(ngModel)]="editItem.category" name="editCategory" required /></label>
+        <label>
+          <span>Categoría *</span>
+          <select [ngModel]="editCategorySelection" (ngModelChange)="setEditCategorySelection($event)" name="editCategorySelection" required>
+            @for (category of categoryOptions; track category) { <option [ngValue]="category">{{ category }}</option> }
+            <option [ngValue]="newCategoryOption">Crear nueva categoría</option>
+          </select>
+        </label>
+        @if (editCategorySelection === newCategoryOption) {
+          <label><span>Nueva categoría *</span><input [ngModel]="editCategoryText" (ngModelChange)="setEditCategoryText($event)" name="editCustomCategory" required placeholder="Ej. Aminoácidos" /></label>
+        }
         <label><span>Descripción</span><textarea [(ngModel)]="editItem.description" name="editDescription" rows="4"></textarea></label>
         <div class="form-row">
           <label><span>Stock</span><input type="number" min="0" [(ngModel)]="editItem.stock" name="editStock" /></label>
@@ -185,9 +194,9 @@
 }
 
 @if (showForm) {
-  <div class="form-overlay" (click)="showForm = false">
+  <div class="form-overlay" (click)="closeCreate()">
     <section class="form-drawer" (click)="$event.stopPropagation()">
-      <header><div><span>NUEVO REGISTRO</span><h2>Suplemento</h2></div><button type="button" (click)="showForm = false">×</button></header>
+      <header><div><span>NUEVO REGISTRO</span><h2>Suplemento</h2></div><button type="button" (click)="closeCreate()">×</button></header>
       <div class="form-progress"><button type="button" [class.active]="formStep === 1" (click)="formStep = 1"><b>1</b><span>Identificación</span></button><i></i><button type="button" [class.active]="formStep === 2" (click)="formStep = 2"><b>2</b><span>Detalles</span></button></div>
       <form (ngSubmit)="add()">
         @if (formStep === 1) {
@@ -196,7 +205,17 @@
             <label class="photo-upload"><input type="file" accept="image/*" (change)="handleFactsPhoto($event)" />@if (newItem.factsPhoto) { <img [src]="newItem.factsPhoto" alt="Vista previa de tabla nutricional" /> } @else { <strong>Tabla nutricional</strong><span>Se muestra al pasar el mouse</span> }</label>
           </div>
           <label><span>Nombre *</span><input [(ngModel)]="newItem.name" name="name" required /></label>
-          <label><span>Categoría *</span><input [(ngModel)]="newItem.category" name="category" required /></label>
+          <label>
+            <span>Categoría *</span>
+            <select [ngModel]="newCategorySelection" (ngModelChange)="setNewCategorySelection($event)" name="categorySelection" required>
+              <option value="">Selecciona una categoría</option>
+              @for (category of categoryOptions; track category) { <option [ngValue]="category">{{ category }}</option> }
+              <option [ngValue]="newCategoryOption">Crear nueva categoría</option>
+            </select>
+          </label>
+          @if (newCategorySelection === newCategoryOption) {
+            <label><span>Nueva categoría *</span><input [ngModel]="newCategoryText" (ngModelChange)="setNewCategoryText($event)" name="customCategory" required placeholder="Ej. Aminoácidos" /></label>
+          }
           <button class="primary-button form-submit" type="button" (click)="formStep = 2">Continuar</button>
         } @else {
           <label><span>Descripción *</span><textarea [(ngModel)]="newItem.description" name="description" rows="4" required></textarea></label>
