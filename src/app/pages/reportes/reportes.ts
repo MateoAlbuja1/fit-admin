@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { timeout } from 'rxjs';
+import { apiBaseUrl } from '../../core/config/api.config';
 import { DatosGimnasioService } from '../../core/servicios/datos-gimnasio.service';
 
 interface ReportMetric {
@@ -10,7 +10,7 @@ interface ReportMetric {
 }
 
 @Component({ selector: 'app-pagina-reportes', standalone: true, imports: [FormsModule], templateUrl: './reportes.html' })
-export class PaginaReportesComponent {
+export class PaginaReportesComponent implements OnDestroy {
   reportType = 'Resumen financiero';
   from = '2026-06-01';
   to = '2026-07-04';
@@ -20,8 +20,16 @@ export class PaginaReportesComponent {
   notice = '';
   reportId = '';
   reportMetrics: ReportMetric[] = [];
+  private readonly apiUrl = apiBaseUrl();
+  private reportAbort?: AbortController;
+  private generationTimer?: ReturnType<typeof setTimeout>;
 
-  constructor(public data: DatosGimnasioService) {}
+  constructor(public data: DatosGimnasioService, private cdr: ChangeDetectorRef) {}
+
+  ngOnDestroy(): void {
+    this.reportAbort?.abort();
+    this.clearGenerationTimer();
+  }
 
   get bars(): number[] {
     const values = this.reportMetrics.map(item => item.numeric).filter(value => value > 0);
@@ -30,7 +38,7 @@ export class PaginaReportesComponent {
     return normalized.length ? normalized : [48, 62, 55, 78, 69, 88];
   }
 
-  generate(): void {
+  async generate(): Promise<void> {
     if (this.isGenerating) {
       return;
     }
@@ -43,26 +51,43 @@ export class PaginaReportesComponent {
     }
 
     this.isGenerating = true;
-    this.data.generarReporte({
-      type: this.reportCode(),
-      from: this.from,
-      to: this.to,
-      generatedBy: 'fit-admin-dashboard'
-    }).pipe(
-      timeout(15000)
-    ).subscribe({
-      next: report => {
-        this.isGenerating = false;
-        this.ready = true;
-        this.reportId = String(report['id'] || '');
-        this.generatedAt = this.formatDateTime(report['createdAt']);
-        this.reportMetrics = this.buildMetrics((report['data'] || {}) as Record<string, unknown>);
-      },
-      error: () => {
-        this.isGenerating = false;
-        this.notice = 'No se pudo generar el reporte. Revisa que el backend este activo e intenta otra vez.';
+    const controller = new AbortController();
+    this.reportAbort = controller;
+    this.armGenerationTimer();
+
+    try {
+      const response = await fetch(`${this.apiUrl}/reports/generate`, {
+        method: 'POST',
+        headers: this.reportHeaders(),
+        body: JSON.stringify({
+          type: this.reportCode(),
+          from: this.from,
+          to: this.to,
+          generatedBy: 'fit-admin-dashboard'
+        }),
+        signal: controller.signal
+      });
+
+      if (!response.ok) {
+        throw new Error(`Report request failed: ${response.status}`);
       }
-    });
+
+      const report = await response.json() as Record<string, unknown>;
+      this.finishGenerating();
+      this.ready = true;
+      this.reportId = String(report['id'] || '');
+      this.generatedAt = this.formatDateTime(report['createdAt']);
+      this.reportMetrics = this.buildMetrics((report['data'] || {}) as Record<string, unknown>);
+      this.cdr.detectChanges();
+    } catch {
+      if (this.isGenerating) {
+        this.finishGenerating('No se pudo generar el reporte. Revisa que el backend este activo e intenta otra vez.');
+      }
+    } finally {
+      if (this.reportAbort === controller) {
+        this.reportAbort = undefined;
+      }
+    }
   }
 
   download(): void {
@@ -155,5 +180,53 @@ export class PaginaReportesComponent {
 
   private normalize(value: string): string {
     return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  }
+
+  private armGenerationTimer(): void {
+    this.clearGenerationTimer();
+    this.generationTimer = setTimeout(() => {
+      if (!this.isGenerating) {
+        return;
+      }
+      this.isGenerating = false;
+      this.notice = 'El reporte esta tardando demasiado. Verifica el backend e intenta de nuevo.';
+      this.reportAbort?.abort();
+      this.generationTimer = undefined;
+      this.cdr.detectChanges();
+    }, 14000);
+  }
+
+  private finishGenerating(message = ''): void {
+    this.isGenerating = false;
+    this.clearGenerationTimer();
+    if (message) {
+      this.notice = message;
+    }
+    this.cdr.detectChanges();
+  }
+
+  private clearGenerationTimer(): void {
+    if (!this.generationTimer) {
+      return;
+    }
+    clearTimeout(this.generationTimer);
+    this.generationTimer = undefined;
+  }
+
+  private reportHeaders(): HeadersInit {
+    const headers: HeadersInit = { 'Content-Type': 'application/json' };
+    const token = this.readToken();
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    return headers;
+  }
+
+  private readToken(): string | null {
+    if (typeof localStorage !== 'undefined') {
+      const token = localStorage.getItem('fitadmin-token');
+      if (token) return token;
+    }
+    return typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('fitadmin-token') : null;
   }
 }
