@@ -224,7 +224,10 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
     ).subscribe({
       next: response => {
         const fileName = typeof response['fileName'] === 'string' ? response['fileName'] : '';
-        this.showNotice(fileName ? `Backup generado: ${fileName}` : 'Backup generado correctamente.');
+        const downloaded = this.downloadBackup(response, fileName);
+        this.showNotice(downloaded
+          ? `Backup descargado: ${fileName || 'fitadmin-backup.json'}`
+          : 'Backup generado en el backend, pero no se pudo descargar el archivo.');
       },
       error: () => this.showNotice('No se pudo generar el backup en el backend.')
     });
@@ -548,6 +551,25 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
     }
     clearTimeout(this.scheduleSaveTimer);
     this.scheduleSaveTimer = undefined;
+  }
+
+  private downloadBackup(response: Record<string, unknown>, fileName: string): boolean {
+    const snapshot = response['snapshot'];
+    if (!snapshot || typeof document === 'undefined') {
+      return false;
+    }
+
+    const safeFileName = fileName || `fitadmin-backup-${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+    const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = safeFileName;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    return true;
   }
 
   private normalizeSchedules(value: unknown): HorarioAtencion[] {
