@@ -42,6 +42,9 @@ interface DashboardSummary {
   membresiasActivas?: number;
   ventas?: number;
   pagosPendientes?: number;
+  pedidosPorCobrar?: number;
+  pedidosPagados?: number;
+  ventasTienda?: number;
   asistenciasHoy?: number;
   stockBajo?: number;
   maquinasOperativas?: number;
@@ -208,16 +211,21 @@ export class DashboardComponent implements OnInit {
   }
 
   get supplementRevenue(): number {
+    if (this.dashboardSummary?.ventasTienda !== undefined) {
+      return this.dashboardSummary.ventasTienda;
+    }
     const supplementPayments = this.data.pagos
       .filter(payment => !payment.concept.toLowerCase().includes('membres'))
       .reduce((sum, payment) => sum + payment.amount, 0);
-    return 2801 + supplementPayments;
+    return supplementPayments;
   }
 
   get quickStats() {
+    const pedidosPorCobrar = this.dashboardSummary?.pedidosPorCobrar
+      ?? this.data.pedidosTienda.filter(order => order.status === 'Pago pendiente').length;
     return {
       clientesActivos: this.dashboardSummary?.clientesActivos ?? this.data.clientes.filter(client => client.status === 'Activo').length,
-      pagosPendientes: this.dashboardSummary?.pagosPendientes ?? this.data.pagos.filter(payment => payment.status === 'Pendiente').length,
+      pagosPendientes: (this.dashboardSummary?.pagosPendientes ?? this.data.pagos.filter(payment => payment.status === 'Pendiente').length) + pedidosPorCobrar,
       stockBajo: this.dashboardSummary?.stockBajo ?? this.data.suplementos.filter(item => item.stock <= item.minStock).length,
       maquinasAtencion: this.dashboardSummary?.maquinasOperativas === undefined
         ? this.data.maquinas.filter(item => item.status !== 'Operativa').length
@@ -281,6 +289,12 @@ export class DashboardComponent implements OnInit {
       detail: `${payment.member} · ${this.formatCurrency(payment.amount)}`,
       time: payment.date
     }));
+    const storeOrders = this.data.pedidosTienda.slice(0, 2).map(order => ({
+      initials: this.initials(order.customerName),
+      title: order.status === 'Pagado' ? 'Pedido pagado' : `Pedido ${order.status.toLowerCase()}`,
+      detail: `${order.code} · ${this.formatCurrency(order.total)}`,
+      time: this.shortDateTime(order.updatedAt || order.createdAt)
+    }));
     const attendance = this.data.asistencias.slice(0, 2).map(record => ({
       initials: this.initials(record.member),
       title: 'Ingreso al gimnasio',
@@ -296,7 +310,7 @@ export class DashboardComponent implements OnInit {
         detail: `${item.name} · ${item.stock} unidades`,
         time: 'Ahora'
       }));
-    return [...payments, ...attendance, ...stock].slice(0, 5);
+    return [...storeOrders, ...payments, ...attendance, ...stock].slice(0, 5);
   }
 
   get searchResults(): ResultadoBusqueda[] {
@@ -508,7 +522,8 @@ export class DashboardComponent implements OnInit {
       summary: this.data.obtenerResumenDashboard().pipe(catchError(() => of(null))),
       sales: this.data.obtenerDashboardVentas().pipe(catchError(() => of([]))),
       attendance: this.data.obtenerDashboardAsistencia().pipe(catchError(() => of([]))),
-      memberships: this.data.obtenerDashboardMembresias().pipe(catchError(() => of([])))
+      memberships: this.data.obtenerDashboardMembresias().pipe(catchError(() => of([]))),
+      orders: this.data.listarPedidosTienda().pipe(catchError(() => of(this.data.pedidosTienda)))
     }).subscribe(result => {
       this.dashboardSummary = result.summary as DashboardSummary | null;
       this.dashboardSales = result.sales;
@@ -603,6 +618,14 @@ export class DashboardComponent implements OnInit {
       .slice(0, 2)
       .map(part => part[0]?.toUpperCase())
       .join('');
+  }
+
+  private shortDateTime(value: string): string {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return 'Ahora';
+    }
+    return date.toLocaleDateString('es-EC', { day: '2-digit', month: 'short' }).replace('.', '');
   }
 
   private loadCurrentUser(): DashboardUser {

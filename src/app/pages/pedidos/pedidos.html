@@ -2,9 +2,9 @@
 
 <section class="metric-grid">
   <article><span>Pedidos totales</span><strong>{{ pedidos.length }}</strong><small>Solicitudes desde la tienda</small></article>
-  <article><span>Pendientes</span><strong>{{ pendingCount }}</strong><small class="positive">Por gestionar</small></article>
-  <article><span>Entregados</span><strong>{{ pedidos.length - pendingCount }}</strong><small>Completados o cancelados</small></article>
-  <article><span>Venta entregada</span><strong>${{ deliveredTotal.toFixed(2) }}</strong><small>Pedidos cerrados</small></article>
+  <article><span>Por gestionar</span><strong>{{ openCount }}</strong><small class="positive">Contacto y preparacion</small></article>
+  <article><span>Pagados</span><strong>{{ paidToDeliverCount }}</strong><small>{{ paymentPendingCount }} por cobrar</small></article>
+  <article><span>Venta entregada</span><strong>${{ deliveredTotal.toFixed(2) }}</strong><small>{{ closedCount }} pedidos cerrados</small></article>
 </section>
 
 <section class="content-card">
@@ -45,7 +45,7 @@
             <td>
               <div class="row-actions">
                 <button class="text-button" type="button" (click)="openDetail(order)">Detalle</button>
-                <select [ngModel]="order.status" (ngModelChange)="updateStatus(order, $event)" [name]="'status' + order.id" aria-label="Cambiar estado">
+                <select [ngModel]="order.status" (ngModelChange)="updateStatus(order, $event)" [name]="'status' + order.id" [disabled]="isUpdatingOrder(order)" aria-label="Cambiar estado">
                   @for (status of nextStatuses; track status) { <option [ngValue]="status">{{ status }}</option> }
                 </select>
               </div>

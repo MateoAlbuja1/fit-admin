@@ -21,11 +21,14 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
   methodFilter: FiltroPagoMetodo = 'Todos';
   conceptFilter: FiltroPagoConcepto = 'Todos';
   editingPaymentId: number | null = null;
+  isSavingPayment = false;
+  isSavingEdit = false;
   isSavingSupplementSale = false;
   supplementProductSearch = '';
   newPayment = this.emptyPaymentForm();
   editPayment = { member: '', concept: '', method: 'Efectivo' as FiltroPagoMetodo, amount: 0, status: 'Pagado' as Pago['status'] };
   supplementSaleItems: ItemVentaSuplemento[] = [this.emptySupplementSaleItem()];
+  private noticeTimer?: ReturnType<typeof setTimeout>;
 
   readonly statusFilters: FiltroPagoEstado[] = ['Todos', 'Pagado', 'Pendiente', 'Anulado'];
   readonly methodFilters: FiltroPagoMetodo[] = ['Todos', 'Efectivo', 'Transferencia', 'Tarjeta'];
@@ -47,6 +50,7 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.actions.limpiar();
+    this.clearNoticeTimer();
   }
 
   get paidTotal(): number {
@@ -154,19 +158,22 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
   }
 
   onPaymentConceptChange(): void {
-    this.notice = '';
+    this.clearNotice();
     if (this.isSupplementSale && !this.data.suplementos.length) {
       this.data.refrescar();
     }
   }
 
   saveEdit(): void {
+    if (this.isSavingEdit) return;
+
     const payment = this.data.pagos.find(item => item.id === this.editingPaymentId);
     if (!payment || !this.editPayment.member.trim() || this.editPayment.amount <= 0) {
-      this.notice = 'Completa el cliente y un monto valido.';
+      this.showNotice('Completa el cliente y un monto valido.');
       return;
     }
 
+    this.isSavingEdit = true;
     this.data.actualizarPago(payment.id, {
       member: this.editPayment.member.trim(),
       concept: this.editPayment.concept.trim() || 'Otro',
@@ -175,13 +182,16 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
       status: this.editPayment.status
     }).subscribe({
       next: updated => {
+        this.isSavingEdit = false;
         Object.assign(payment, updated);
         payment.member = this.editPayment.member.trim();
         this.editingPaymentId = null;
-        this.notice = 'Pago actualizado correctamente.';
+        this.showNotice('Pago actualizado correctamente.');
+        this.data.refrescar();
       },
       error: () => {
-        this.notice = 'No se pudo actualizar el pago en el backend.';
+        this.isSavingEdit = false;
+        this.showNotice('No se pudo actualizar el pago en el backend.');
       }
     });
   }
@@ -192,11 +202,14 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (this.isSavingPayment) return;
+
     if (!this.newPayment.member.trim() || this.newPayment.amount <= 0) {
-      this.notice = 'Completa el cliente y un monto valido.';
+      this.showNotice('Completa el cliente y un monto valido.');
       return;
     }
 
+    this.isSavingPayment = true;
     this.data.crearPago({
       member: this.newPayment.member.trim(),
       concept: this.newPayment.concept,
@@ -205,14 +218,17 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
       status: 'Pagado'
     }).subscribe({
       next: created => {
+        this.isSavingPayment = false;
         created.member = this.newPayment.member.trim();
         this.data.pagos.unshift(created);
         this.newPayment = this.emptyPaymentForm();
         this.showForm = false;
-        this.notice = 'Pago registrado correctamente.';
+        this.showNotice('Pago registrado correctamente.');
+        this.data.refrescar();
       },
       error: () => {
-        this.notice = 'No se pudo registrar el pago en el backend.';
+        this.isSavingPayment = false;
+        this.showNotice('No se pudo registrar el pago en el backend.');
       }
     });
   }
@@ -278,17 +294,19 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
   }
 
   registerSupplementSale(): void {
-    this.notice = '';
+    if (this.isSavingSupplementSale) return;
+
+    this.clearNotice();
     const items = this.supplementSaleItems
       .map(item => ({ supplementId: Number(item.supplementId), quantity: this.boundedQuantity(item) }))
       .filter(item => item.supplementId && item.quantity > 0);
 
     if (!this.newPayment.member.trim() || !this.newPayment.customerPhone.trim()) {
-      this.notice = 'Completa nombre y telefono del cliente.';
+      this.showNotice('Completa nombre y telefono del cliente.');
       return;
     }
     if (!items.length) {
-      this.notice = 'Selecciona al menos un suplemento.';
+      this.showNotice('Selecciona al menos un suplemento.');
       return;
     }
 
@@ -298,9 +316,9 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
     });
     if (invalidStock) {
       const product = this.productById(invalidStock.supplementId);
-      this.notice = product
+      this.showNotice(product
         ? `${product.name} solo tiene ${product.stock} unidad(es) disponibles.`
-        : 'Uno de los productos seleccionados ya no esta disponible.';
+        : 'Uno de los productos seleccionados ya no esta disponible.');
       return;
     }
 
@@ -316,22 +334,26 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
       items
     }).subscribe({
       next: order => {
+        this.isSavingSupplementSale = false;
         this.showForm = false;
         this.newPayment = this.emptyPaymentForm();
         this.supplementSaleItems = [this.emptySupplementSaleItem()];
         this.supplementProductSearch = '';
-        this.notice = `Venta de suplementos ${order.code} registrada y stock descontado.`;
+        this.showNotice(`Venta de suplementos ${order.code} registrada y stock descontado.`);
         this.data.refrescar();
       },
       error: error => {
-        this.notice = error.status === 409
-          ? 'No hay stock suficiente para completar la venta.'
-          : 'No se pudo registrar la venta de suplementos.';
-      },
-      complete: () => {
         this.isSavingSupplementSale = false;
+        this.showNotice(error.status === 409
+          ? 'No hay stock suficiente para completar la venta.'
+          : 'No se pudo registrar la venta de suplementos.');
       }
     });
+  }
+
+  clearNotice(): void {
+    this.notice = '';
+    this.clearNoticeTimer();
   }
 
   private emptyPaymentForm(concept = 'Membresia mensual') {
@@ -362,5 +384,20 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
   private clampQuantity(value: number, max: number): number {
     const quantity = this.safeQuantity(value) || 1;
     return Math.min(quantity, Math.max(1, max));
+  }
+
+  private showNotice(message: string): void {
+    this.notice = message;
+    this.clearNoticeTimer();
+    this.noticeTimer = setTimeout(() => {
+      this.notice = '';
+      this.noticeTimer = undefined;
+    }, 3600);
+  }
+
+  private clearNoticeTimer(): void {
+    if (!this.noticeTimer) return;
+    clearTimeout(this.noticeTimer);
+    this.noticeTimer = undefined;
   }
 }

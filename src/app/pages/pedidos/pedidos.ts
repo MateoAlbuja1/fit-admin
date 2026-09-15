@@ -19,8 +19,10 @@ export class PaginaPedidosComponent implements OnInit, OnDestroy {
   readonly nextStatuses: PedidoTienda['status'][] = ['Nuevo', 'Contactado', 'Confirmado', 'Preparado', 'Pago pendiente', 'Pagado', 'Entregado', 'Cancelado'];
   detail: PedidoTienda | null = null;
   isLoading = false;
+  updatingOrderIds = new Set<number>();
   private routeSub?: Subscription;
   private destroyed = false;
+  private noticeTimer?: ReturnType<typeof setTimeout>;
 
   constructor(
     public data: DatosGimnasioService,
@@ -38,15 +40,28 @@ export class PaginaPedidosComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroyed = true;
     this.routeSub?.unsubscribe();
+    this.clearNoticeTimer();
   }
 
-  get pendingCount(): number {
-    return this.pedidos.filter(item => !['Pagado', 'Entregado', 'Cancelado'].includes(item.status)).length;
+  get openCount(): number {
+    return this.pedidos.filter(item => ['Nuevo', 'Contactado', 'Confirmado', 'Preparado'].includes(item.status)).length;
+  }
+
+  get paymentPendingCount(): number {
+    return this.pedidos.filter(item => item.status === 'Pago pendiente').length;
+  }
+
+  get paidToDeliverCount(): number {
+    return this.pedidos.filter(item => item.status === 'Pagado').length;
+  }
+
+  get closedCount(): number {
+    return this.pedidos.filter(item => ['Entregado', 'Cancelado'].includes(item.status)).length;
   }
 
   get deliveredTotal(): number {
     return this.pedidos
-      .filter(item => item.status === 'Pagado' || item.status === 'Entregado')
+      .filter(item => item.status === 'Entregado')
       .reduce((sum, item) => sum + item.total, 0);
   }
 
@@ -73,16 +88,14 @@ export class PaginaPedidosComponent implements OnInit, OnDestroy {
         this.updateView(() => {
           this.pedidos = orders;
           this.page = 1;
+          this.isLoading = false;
         });
       },
       error: () => {
         this.updateView(() => {
-          this.notice = 'No se pudieron cargar los pedidos de tienda.';
-        });
-      },
-      complete: () => {
-        this.updateView(() => {
+          this.pedidos = this.data.pedidosTienda;
           this.isLoading = false;
+          this.showNotice('No se pudieron cargar los pedidos de tienda.');
         });
       }
     });
@@ -114,26 +127,36 @@ export class PaginaPedidosComponent implements OnInit, OnDestroy {
 
   updateStatus(order: PedidoTienda, status: PedidoTienda['status']): void {
     if (order.status === status) return;
+    if (this.updatingOrderIds.has(order.id)) return;
 
     const paymentMethod = status === 'Pagado' || status === 'Entregado'
       ? order.paymentMethod || 'WhatsApp'
       : undefined;
+    this.updatingOrderIds.add(order.id);
     this.data.actualizarEstadoPedidoTienda(order.id, status, paymentMethod).subscribe({
       next: updated => {
         this.updateView(() => {
+          this.updatingOrderIds.delete(order.id);
           Object.assign(order, updated);
+          this.pedidos = this.pedidos.map(current => current.id === updated.id ? updated : current);
           if (this.detail?.id === order.id) {
             this.detail = updated;
           }
-          this.notice = `Pedido ${order.code} actualizado a ${status}.`;
+          this.showNotice(`Pedido ${order.code} actualizado a ${status}.`);
+          this.data.refrescar();
         });
       },
       error: () => {
         this.updateView(() => {
-          this.notice = 'No se pudo actualizar el estado del pedido.';
+          this.updatingOrderIds.delete(order.id);
+          this.showNotice('No se pudo actualizar el estado del pedido.');
         });
       }
     });
+  }
+
+  isUpdatingOrder(order: PedidoTienda): boolean {
+    return this.updatingOrderIds.has(order.id);
   }
 
   whatsappUrl(order: PedidoTienda): string {
@@ -156,6 +179,21 @@ export class PaginaPedidosComponent implements OnInit, OnDestroy {
       update();
       this.cdr.detectChanges();
     });
+  }
+
+  private showNotice(message: string): void {
+    this.notice = message;
+    this.clearNoticeTimer();
+    this.noticeTimer = setTimeout(() => {
+      this.notice = '';
+      this.noticeTimer = undefined;
+    }, 3600);
+  }
+
+  private clearNoticeTimer(): void {
+    if (!this.noticeTimer) return;
+    clearTimeout(this.noticeTimer);
+    this.noticeTimer = undefined;
   }
 
 }

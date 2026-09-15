@@ -45,6 +45,7 @@ export class DatosGimnasioService {
       membresias: this.http.get<Membresia[]>(`${this.apiUrl}/memberships`).pipe(catchError(() => of(this.membresias))),
       asistencias: this.http.get<RegistroAsistencia[]>(`${this.apiUrl}/attendance`).pipe(catchError(() => of(this.asistencias))),
       pagos: this.http.get<Pago[]>(`${this.apiUrl}/payments`).pipe(catchError(() => of(this.pagos))),
+      pedidos: this.http.get<PedidoTienda[]>(`${this.apiUrl}/inventory/store-orders`, this.authOptions()).pipe(catchError(() => of(this.pedidosTienda))),
       suplementos: this.http.get<Suplemento[]>(`${this.apiUrl}/inventory/supplements`).pipe(catchError(() => of(this.suplementos))),
       maquinas: this.http.get<Maquina[]>(`${this.apiUrl}/inventory/machines`).pipe(catchError(() => of(this.maquinas))),
       alertas: this.http.get<AlertaAdministrativa[]>(`${this.apiUrl}/alerts`).pipe(catchError(() => of(this.alertas))),
@@ -54,6 +55,7 @@ export class DatosGimnasioService {
       this.membresias = data.membresias;
       this.asistencias = data.asistencias;
       this.pagos = data.pagos;
+      this.pedidosTienda = data.pedidos;
       this.suplementos = data.suplementos;
       this.maquinas = data.maquinas;
       this.alertasBackend = data.alertas;
@@ -114,7 +116,7 @@ export class DatosGimnasioService {
   }
 
   crearPedidoManualTienda(payload: Record<string, unknown>) {
-    return this.http.post<PedidoTienda>(`${this.apiUrl}/inventory/store-orders`, payload);
+    return this.http.post<PedidoTienda>(`${this.apiUrl}/inventory/store-orders`, payload, this.authOptions());
   }
 
   obtenerConfiguracionPaypal() {
@@ -130,15 +132,23 @@ export class DatosGimnasioService {
   }
 
   listarPedidosTienda() {
-    return this.http.get<PedidoTienda[]>(`${this.apiUrl}/inventory/store-orders`);
+    return this.http.get<PedidoTienda[]>(`${this.apiUrl}/inventory/store-orders`, this.authOptions()).pipe(
+      tap(pedidos => {
+        this.pedidosTienda = pedidos;
+      })
+    );
   }
 
   obtenerPedidoTienda(id: number | string) {
-    return this.http.get<PedidoTienda>(`${this.apiUrl}/inventory/store-orders/${id}`);
+    return this.http.get<PedidoTienda>(`${this.apiUrl}/inventory/store-orders/${id}`, this.authOptions());
   }
 
   actualizarEstadoPedidoTienda(id: number | string, status: PedidoTienda['status'], paymentMethod?: string) {
-    return this.http.patch<PedidoTienda>(`${this.apiUrl}/inventory/store-orders/${id}/status`, { status, paymentMethod });
+    return this.http.patch<PedidoTienda>(`${this.apiUrl}/inventory/store-orders/${id}/status`, { status, paymentMethod }, this.authOptions()).pipe(
+      tap(updated => {
+        this.pedidosTienda = this.pedidosTienda.map(order => order.id === updated.id ? updated : order);
+      })
+    );
   }
 
   crearMaquina(payload: Partial<Maquina>) {
@@ -795,6 +805,8 @@ export class DatosGimnasioService {
     { id: 6, name: 'Banco Scott', type: 'Peso libre asistido', location: 'Zona de brazos', status: 'Operativa', nextMaintenance: '20 Oct 2026', photo: '/assets/img/machines/banco-scott.png' },
     { id: 7, name: 'Press de pecho', type: 'Fuerza selectorizada', location: 'Zona superior', status: 'Operativa', nextMaintenance: '22 Oct 2026', photo: '/assets/img/machines/press-pecho.png' }
   ];
+
+  pedidosTienda: PedidoTienda[] = [];
 
   get alertas(): AlertaAdministrativa[] {
     if (this.alertasBackend.length) {
