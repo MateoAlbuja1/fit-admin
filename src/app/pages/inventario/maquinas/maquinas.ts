@@ -1,5 +1,6 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { finalize, timeout } from 'rxjs';
 import { DetalleRegistro, Maquina } from '../../../core/modelos/modelos-administracion';
 import { AccionPaginaAdminService } from '../../../core/servicios/accion-pagina-admin.service';
 import { DatosGimnasioService } from '../../../core/servicios/datos-gimnasio.service';
@@ -19,10 +20,16 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
   isSavingEdit = false;
   savingStatusIds = new Set<number>();
   private noticeTimer?: ReturnType<typeof setTimeout>;
+  private readonly requestTimeoutMs = 12000;
   newItem = { name: '', type: '', location: '', status: 'Operativa' as Maquina['status'], nextMaintenance: '', photo: '' };
   editItem = { name: '', type: '', location: '', status: 'Operativa' as Maquina['status'], nextMaintenance: '', photo: '' };
 
-  constructor(public data: DatosGimnasioService, private actions: AccionPaginaAdminService) {}
+  constructor(
+    public data: DatosGimnasioService,
+    private actions: AccionPaginaAdminService,
+    private cdr: ChangeDetectorRef,
+    private zone: NgZone
+  ) {}
 
   ngOnInit(): void {
     this.actions.registrar('+ Nueva maquina', () => {
@@ -59,19 +66,22 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
 
     const nextStatus: Maquina['status'] = item.status === 'Mantenimiento' ? 'Operativa' : 'Mantenimiento';
     const previousStatus = item.status;
-    item.status = nextStatus;
-    this.savingStatusIds.add(item.id);
+    this.updateView(() => {
+      item.status = nextStatus;
+      this.savingStatusIds.add(item.id);
+    });
 
-    this.data.actualizarEstadoMaquina(item.id, nextStatus).subscribe({
+    this.data.actualizarEstadoMaquina(item.id, nextStatus).pipe(
+      timeout(this.requestTimeoutMs),
+      finalize(() => this.updateView(() => this.savingStatusIds.delete(item.id)))
+    ).subscribe({
       next: updated => {
-        this.savingStatusIds.delete(item.id);
-        Object.assign(item, updated);
+        this.updateView(() => Object.assign(item, updated));
         this.showNotice(`${item.name}: estado actualizado.`);
       },
       error: () => {
-        this.savingStatusIds.delete(item.id);
-        item.status = previousStatus;
-        this.showNotice('No se pudo actualizar la maquina en el backend.');
+        this.updateView(() => item.status = previousStatus);
+        this.showNotice('No se pudo actualizar la máquina. Intenta otra vez.');
       }
     });
   }
@@ -148,7 +158,7 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.isSavingEdit = true;
+    this.updateView(() => this.isSavingEdit = true);
     this.data.actualizarMaquina(item.id, {
       name: this.editItem.name.trim(),
       type: this.editItem.type.trim(),
@@ -156,39 +166,54 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
       status: this.editItem.status,
       nextMaintenance: this.editItem.nextMaintenance,
       photo: this.editItem.photo
-    }).subscribe({
+    }).pipe(
+      timeout(this.requestTimeoutMs),
+      finalize(() => this.updateView(() => this.isSavingEdit = false))
+    ).subscribe({
       next: updated => {
-        this.isSavingEdit = false;
-        Object.assign(item, updated);
-        this.editingItemId = null;
-        this.showNotice('Ficha de maquina actualizada correctamente.');
+        this.updateView(() => {
+          Object.assign(item, updated);
+          this.editingItemId = null;
+        });
+        this.showNotice('Ficha de máquina actualizada correctamente.');
       },
       error: () => {
-        this.isSavingEdit = false;
-        this.showNotice('No se pudo actualizar la maquina en el backend.');
+        this.showNotice('No se pudo actualizar la máquina. Intenta otra vez.');
       }
     });
   }
 
   handlePhoto(event: Event): void {
-    const file = (event.target as HTMLInputElement).files?.[0];
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
     if (!file || file.size > 4 * 1024 * 1024) {
       this.showNotice('Selecciona una imagen menor a 4 MB.');
+      input.value = '';
       return;
     }
     const reader = new FileReader();
-    reader.onload = () => this.newItem.photo = String(reader.result);
+    reader.onload = () => this.updateView(() => {
+      this.newItem.photo = String(reader.result);
+      input.value = '';
+    });
+    reader.onerror = () => this.showNotice('No se pudo cargar la imagen.');
     reader.readAsDataURL(file);
   }
 
   handleEditPhoto(event: Event): void {
-    const file = (event.target as HTMLInputElement).files?.[0];
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
     if (!file || file.size > 4 * 1024 * 1024) {
       this.showNotice('Selecciona una imagen menor a 4 MB.');
+      input.value = '';
       return;
     }
     const reader = new FileReader();
-    reader.onload = () => this.editItem.photo = String(reader.result);
+    reader.onload = () => this.updateView(() => {
+      this.editItem.photo = String(reader.result);
+      input.value = '';
+    });
+    reader.onerror = () => this.showNotice('No se pudo cargar la imagen.');
     reader.readAsDataURL(file);
   }
 
@@ -202,28 +227,36 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.isCreating = true;
-    this.data.crearMaquina(this.newItem).subscribe({
+    this.updateView(() => this.isCreating = true);
+    this.data.crearMaquina(this.newItem).pipe(
+      timeout(this.requestTimeoutMs),
+      finalize(() => this.updateView(() => this.isCreating = false))
+    ).subscribe({
       next: created => {
-        this.isCreating = false;
-        this.data.maquinas.unshift(created);
-        this.newItem = { name: '', type: '', location: '', status: 'Operativa', nextMaintenance: '', photo: '' };
-        this.showForm = false;
-        this.formStep = 1;
-        this.showNotice('Maquina agregada correctamente.');
+        this.updateView(() => {
+          this.data.maquinas.unshift(created);
+          this.newItem = { name: '', type: '', location: '', status: 'Operativa', nextMaintenance: '', photo: '' };
+          this.showForm = false;
+          this.formStep = 1;
+        });
+        this.showNotice('Máquina agregada correctamente.');
       },
       error: () => {
-        this.isCreating = false;
-        this.showNotice('No se pudo crear la maquina en el backend.');
+        this.showNotice('No se pudo crear la máquina. Intenta otra vez.');
       }
     });
   }
 
+  clearNotice(): void {
+    this.clearNoticeTimer();
+    this.updateView(() => this.notice = '');
+  }
+
   private showNotice(message: string): void {
-    this.notice = message;
+    this.updateView(() => this.notice = message);
     this.clearNoticeTimer();
     this.noticeTimer = setTimeout(() => {
-      this.notice = '';
+      this.updateView(() => this.notice = '');
       this.noticeTimer = undefined;
     }, 3600);
   }
@@ -234,6 +267,13 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
     }
     clearTimeout(this.noticeTimer);
     this.noticeTimer = undefined;
+  }
+
+  private updateView(update: () => void): void {
+    this.zone.run(() => {
+      update();
+      this.cdr.detectChanges();
+    });
   }
 
   private toDateInputValue(value: string | undefined): string {
