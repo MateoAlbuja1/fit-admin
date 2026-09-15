@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { timeout } from 'rxjs';
 import { DatosGimnasioService } from '../../core/servicios/datos-gimnasio.service';
 
 interface ReportMetric {
@@ -30,6 +31,10 @@ export class PaginaReportesComponent {
   }
 
   generate(): void {
+    if (this.isGenerating) {
+      return;
+    }
+
     this.notice = '';
 
     if (this.from && this.to && this.from > this.to) {
@@ -43,18 +48,19 @@ export class PaginaReportesComponent {
       from: this.from,
       to: this.to,
       generatedBy: 'fit-admin-dashboard'
-    }).subscribe({
+    }).pipe(
+      timeout(15000)
+    ).subscribe({
       next: report => {
+        this.isGenerating = false;
         this.ready = true;
         this.reportId = String(report['id'] || '');
         this.generatedAt = this.formatDateTime(report['createdAt']);
         this.reportMetrics = this.buildMetrics((report['data'] || {}) as Record<string, unknown>);
       },
       error: () => {
-        this.notice = 'No se pudo generar el reporte desde el backend.';
-      },
-      complete: () => {
         this.isGenerating = false;
+        this.notice = 'No se pudo generar el reporte. Revisa que el backend este activo e intenta otra vez.';
       }
     });
   }
