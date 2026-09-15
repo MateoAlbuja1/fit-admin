@@ -1,5 +1,6 @@
 import { ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { timeout } from 'rxjs';
 import { DetalleRegistro, Suplemento } from '../../../core/modelos/modelos-administracion';
 import { AccionPaginaAdminService } from '../../../core/servicios/accion-pagina-admin.service';
 import { DatosGimnasioService } from '../../../core/servicios/datos-gimnasio.service';
@@ -27,6 +28,8 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
   newItem = this.emptySupplementForm();
   editItem = this.emptySupplementForm();
   private noticeTimer?: ReturnType<typeof setTimeout>;
+  private stockRequestVersions = new Map<number, number>();
+  private readonly requestTimeoutMs = 12000;
 
   readonly stockFilters: FiltroStock[] = ['Todos', 'Stock bajo', 'Disponibles', 'Agotados'];
 
@@ -102,9 +105,36 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
   }
 
   changeStock(item: Suplemento, amount: number): void {
-    this.data.actualizarStockSuplemento(item.id, amount).subscribe({
-      next: updated => Object.assign(item, updated),
-      error: () => this.showNotice('No se pudo actualizar el stock en el backend.')
+    const previousStock = item.stock;
+    const nextStock = Math.max(0, previousStock + amount);
+    if (nextStock === previousStock) {
+      return;
+    }
+    const requestVersion = (this.stockRequestVersions.get(item.id) ?? 0) + 1;
+    this.stockRequestVersions.set(item.id, requestVersion);
+
+    this.updateView(() => item.stock = nextStock);
+
+    this.data.actualizarStockSuplemento(item.id, amount).pipe(
+      timeout(this.requestTimeoutMs)
+    ).subscribe({
+      next: updated => {
+        if (this.stockRequestVersions.get(item.id) !== requestVersion) {
+          return;
+        }
+        this.updateView(() => {
+          const current = this.data.suplementos.find(product => product.id === updated.id);
+          if (current) {
+            Object.assign(current, updated);
+          }
+        });
+      },
+      error: () => {
+        if (this.stockRequestVersions.get(item.id) === requestVersion) {
+          this.data.refrescar();
+          this.showNotice('No se pudo confirmar el stock. Se actualizará desde el backend.');
+        }
+      }
     });
   }
 

@@ -69,7 +69,7 @@
           <div class="item-title"><h3>{{ item.name }}</h3><strong>${{ displayPrice(item).toFixed(2) }}</strong></div>
           <div class="stock-row"><span>Stock</span><strong [class.danger-text]="item.stock <= item.minStock">{{ item.stock }} unidades</strong></div>
           <div class="stock-control">
-            <button type="button" (click)="changeStock(item, -1)">−</button>
+            <button type="button" (click)="changeStock(item, -1)" [disabled]="item.stock <= 0">−</button>
             <span>{{ item.stock }}</span>
             <button type="button" (click)="changeStock(item, 1)">+</button>
             <button class="remove-button icon-delete" type="button" (click)="remove(item)" aria-label="Eliminar suplemento" title="Eliminar">
@@ -104,7 +104,7 @@
             <strong class="list-price">${{ displayPrice(item).toFixed(2) }}</strong>
             <div class="list-stock"><strong [class.danger-text]="item.stock <= item.minStock">{{ item.stock }}</strong><span>mín. {{ item.minStock }}</span></div>
             <div class="list-actions">
-              <button type="button" (click)="changeStock(item, -1)">−</button>
+              <button type="button" (click)="changeStock(item, -1)" [disabled]="item.stock <= 0">−</button>
               <button type="button" (click)="changeStock(item, 1)">+</button>
               <button class="list-detail" type="button" (click)="showDetail(item)">Ver ficha</button>
               <button class="list-detail" type="button" (click)="openEdit(item)">Editar ficha</button>
