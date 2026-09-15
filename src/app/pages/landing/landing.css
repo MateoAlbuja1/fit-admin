@@ -162,18 +162,6 @@ app-landing-footer {
   margin-bottom: 28px;
 }
 
-.temporary-vat-pill {
-  justify-self: end;
-  border: 1px solid rgba(37, 211, 102, .28);
-  border-radius: 999px;
-  background: rgba(37, 211, 102, .12);
-  color: #8df0b2;
-  padding: 8px 12px;
-  font-size: 11px;
-  font-weight: 950;
-  text-transform: uppercase;
-}
-
 .impact-strip {
   position: relative;
   display: grid;

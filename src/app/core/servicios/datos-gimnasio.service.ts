@@ -22,12 +22,14 @@ export interface TemporaryVatSettings {
   reason: string;
 }
 
+const ECUADOR_STANDARD_VAT_RATE = 15;
+
 @Injectable({ providedIn: 'root' })
 export class DatosGimnasioService {
   private readonly apiUrl = apiBaseUrl();
   temporaryVat: TemporaryVatSettings = {
     enabled: false,
-    rate: 15,
+    rate: ECUADOR_STANDARD_VAT_RATE,
     startsAt: '',
     endsAt: '',
     reason: 'Feriado nacional'
@@ -319,15 +321,17 @@ export class DatosGimnasioService {
     if (!this.ivaTemporalActivo) {
       return Number(basePrice.toFixed(2));
     }
-    return Number((basePrice * (1 + this.temporaryVat.rate / 100)).toFixed(2));
+
+    const priceBeforeVat = basePrice / (1 + ECUADOR_STANDARD_VAT_RATE / 100);
+    return Number((priceBeforeVat * (1 + this.temporaryVat.rate / 100)).toFixed(2));
   }
 
   private normalizeTemporaryVat(value: unknown): TemporaryVatSettings {
     const settings = typeof value === 'object' && value !== null ? value as Partial<TemporaryVatSettings> : {};
-    const rate = Number(settings.rate ?? 15);
+    const rate = Number(settings.rate ?? ECUADOR_STANDARD_VAT_RATE);
     return {
       enabled: Boolean(settings.enabled),
-      rate: Number.isFinite(rate) ? Math.min(100, Math.max(0, Number(rate.toFixed(2)))) : 15,
+      rate: Number.isFinite(rate) ? Math.min(100, Math.max(0, Number(rate.toFixed(2)))) : ECUADOR_STANDARD_VAT_RATE,
       startsAt: typeof settings.startsAt === 'string' ? settings.startsAt : '',
       endsAt: typeof settings.endsAt === 'string' ? settings.endsAt : '',
       reason: typeof settings.reason === 'string' && settings.reason.trim() ? settings.reason.trim() : 'Feriado nacional'

@@ -85,6 +85,8 @@ interface TemporaryVatSettings {
   reason: string;
 }
 
+const ECUADOR_STANDARD_VAT_RATE = 15;
+
 const OFFICIAL_GYM_NAME = 'WX GYM';
 const OFFICIAL_WHATSAPP_LOCAL = '0969953775';
 const OFFICIAL_WHATSAPP_INTERNATIONAL = '593969953775';
@@ -853,16 +855,6 @@ export class LandingComponent implements OnInit, OnDestroy {
     }
 
     return vat;
-  }
-
-  get temporaryVatLabel(): string {
-    const vat = this.activeTemporaryVat;
-    if (!vat) {
-      return '';
-    }
-
-    const period = vat.endsAt ? ` hasta ${vat.endsAt}` : '';
-    return `Precios con IVA temporal ${vat.rate}%${period}`;
   }
 
   get searchResults(): SearchResult[] {
@@ -1794,15 +1786,16 @@ export class LandingComponent implements OnInit, OnDestroy {
       return Number(price.toFixed(2));
     }
 
-    return Number((price * (1 + vat.rate / 100)).toFixed(2));
+    const priceBeforeVat = price / (1 + ECUADOR_STANDARD_VAT_RATE / 100);
+    return Number((priceBeforeVat * (1 + vat.rate / 100)).toFixed(2));
   }
 
   private normalizeTemporaryVat(value: unknown): TemporaryVatSettings {
     const settings = typeof value === 'object' && value !== null ? value as Partial<TemporaryVatSettings> : {};
-    const rate = Number(settings.rate ?? 15);
+    const rate = Number(settings.rate ?? ECUADOR_STANDARD_VAT_RATE);
     return {
       enabled: Boolean(settings.enabled),
-      rate: Number.isFinite(rate) ? Math.min(100, Math.max(0, Number(rate.toFixed(2)))) : 15,
+      rate: Number.isFinite(rate) ? Math.min(100, Math.max(0, Number(rate.toFixed(2)))) : ECUADOR_STANDARD_VAT_RATE,
       startsAt: this.text(settings.startsAt, ''),
       endsAt: this.text(settings.endsAt, ''),
       reason: this.text(settings.reason, 'Feriado nacional')

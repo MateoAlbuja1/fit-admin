@@ -335,9 +335,6 @@
         <h2 class="ui-title">Suplementos <span class="title-accent">WX GYM</span></h2>
         <p>Elige categoría y arma tu pedido.</p>
       </div>
-      @if (activeTemporaryVat) {
-        <small class="temporary-vat-pill">{{ temporaryVatLabel }}</small>
-      }
     </div>
 
     @if (cartNotice) {
@@ -523,9 +520,6 @@
           <div class="checkout-total">
             <span>Subtotal</span>
             <strong>{{ formatCurrency(cartSubtotal) }}</strong>
-            @if (activeTemporaryVat) {
-              <small>{{ temporaryVatLabel }}</small>
-            }
           </div>
 
           <form class="cart-contact-form" (ngSubmit)="submitCartOrder()">
