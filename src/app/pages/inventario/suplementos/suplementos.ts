@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { timeout } from 'rxjs';
+import { finalize, timeout } from 'rxjs';
 import { DetalleRegistro, Suplemento } from '../../../core/modelos/modelos-administracion';
 import { AccionPaginaAdminService } from '../../../core/servicios/accion-pagina-admin.service';
 import { DatosGimnasioService } from '../../../core/servicios/datos-gimnasio.service';
@@ -18,6 +18,9 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
   detailItem: Suplemento | null = null;
   suplementoAEliminar: Suplemento | null = null;
   editingItemId: number | null = null;
+  isCreating = false;
+  isSavingEdit = false;
+  isDeletingSupplement = false;
   stockFilter: FiltroStock = 'Todos';
   categoryFilter = 'Todas';
   readonly newCategoryOption = '__new_category__';
@@ -29,6 +32,7 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
   editItem = this.emptySupplementForm();
   private noticeTimer?: ReturnType<typeof setTimeout>;
   private stockRequestVersions = new Map<number, number>();
+  private stockDrafts = new Map<number, number | null>();
   private readonly requestTimeoutMs = 12000;
 
   readonly stockFilters: FiltroStock[] = ['Todos', 'Stock bajo', 'Disponibles', 'Agotados'];
@@ -104,16 +108,39 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
     this.categoryFilter = filter;
   }
 
+  stockDraftValue(item: Suplemento): number | null {
+    return this.stockDrafts.has(item.id) ? this.stockDrafts.get(item.id) ?? null : item.stock;
+  }
+
+  setStockDraft(item: Suplemento, value: number | string | null): void {
+    const parsed = value === null || value === '' ? null : Math.floor(Number(value));
+    this.stockDrafts.set(item.id, Number.isFinite(parsed) && parsed !== null ? Math.max(0, parsed) : null);
+  }
+
+  applyStockDraft(item: Suplemento): void {
+    const draft = this.stockDraftValue(item);
+    if (draft === null) {
+      this.showNotice('Ingresa una cantidad de stock valida.');
+      return;
+    }
+
+    this.changeStock(item, draft - item.stock);
+  }
+
   changeStock(item: Suplemento, amount: number): void {
     const previousStock = item.stock;
     const nextStock = Math.max(0, previousStock + amount);
     if (nextStock === previousStock) {
+      this.stockDrafts.set(item.id, nextStock);
       return;
     }
     const requestVersion = (this.stockRequestVersions.get(item.id) ?? 0) + 1;
     this.stockRequestVersions.set(item.id, requestVersion);
 
-    this.updateView(() => item.stock = nextStock);
+    this.updateView(() => {
+      item.stock = nextStock;
+      this.stockDrafts.set(item.id, nextStock);
+    });
 
     this.data.actualizarStockSuplemento(item.id, amount).pipe(
       timeout(this.requestTimeoutMs)
@@ -126,6 +153,7 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
           const current = this.data.suplementos.find(product => product.id === updated.id);
           if (current) {
             Object.assign(current, updated);
+            this.stockDrafts.set(current.id, current.stock);
           }
         });
       },
@@ -147,6 +175,9 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
   }
 
   closeCreate(): void {
+    if (this.isCreating) {
+      return;
+    }
     this.showForm = false;
     this.formStep = 1;
     this.newCategorySelection = '';
@@ -174,17 +205,25 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
   }
 
   cancelEdit(): void {
+    if (this.isSavingEdit) {
+      return;
+    }
     this.editingItemId = null;
   }
 
   saveEdit(): void {
+    if (this.isSavingEdit) {
+      return;
+    }
+
     const item = this.data.suplementos.find(current => current.id === this.editingItemId);
     if (!item || !this.editItem.name.trim() || !this.editItem.category.trim()) {
       this.showNotice('Completa nombre y categoria.');
       return;
     }
 
-    this.data.actualizarSuplemento(item.id, {
+    this.updateView(() => this.isSavingEdit = true);
+    const request$ = this.data.actualizarSuplemento(item.id, {
       name: this.editItem.name.trim(),
       category: this.editItem.category.trim(),
       description: this.editItem.description.trim(),
@@ -193,36 +232,64 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
       price: Math.max(0, Number(this.editItem.price) || 0),
       photo: this.editItem.photo,
       factsPhoto: this.editItem.factsPhoto
-    }).subscribe({
+    }).pipe(
+      timeout(this.requestTimeoutMs),
+      finalize(() => this.updateView(() => this.isSavingEdit = false))
+    );
+
+    request$.subscribe({
       next: updated => {
-        Object.assign(item, updated);
-        this.editingItemId = null;
+        this.updateView(() => {
+          Object.assign(item, updated);
+          this.stockDrafts.set(item.id, item.stock);
+          this.editingItemId = null;
+        });
         this.showNotice('Suplemento actualizado correctamente.');
       },
-      error: () => {
-        this.showNotice('No se pudo actualizar el suplemento en el backend.');
+      error: error => {
+        this.showNotice(error.name === 'TimeoutError'
+          ? 'La actualizacion esta tardando demasiado. Intenta nuevamente.'
+          : 'No se pudo actualizar el suplemento en el backend.');
       }
     });
   }
 
   cancelarEliminacion(): void {
+    if (this.isDeletingSupplement) {
+      return;
+    }
     this.suplementoAEliminar = null;
   }
 
   confirmarEliminacion(): void {
+    if (this.isDeletingSupplement) {
+      return;
+    }
+
     const item = this.suplementoAEliminar;
     if (!item) return;
 
-    this.data.eliminarSuplemento(item.id).subscribe({
+    this.isDeletingSupplement = true;
+    const request$ = this.data.eliminarSuplemento(item.id).pipe(
+      timeout(this.requestTimeoutMs),
+      finalize(() => this.updateView(() => this.isDeletingSupplement = false))
+    );
+
+    request$.subscribe({
       next: () => {
-        this.data.suplementos = this.data.suplementos.filter(current => current.id !== item.id);
-        this.suplementoAEliminar = null;
-        this.detail = null;
-        this.detailItem = null;
+        this.updateView(() => {
+          this.data.suplementos = this.data.suplementos.filter(current => current.id !== item.id);
+          this.stockDrafts.delete(item.id);
+          this.suplementoAEliminar = null;
+          this.detail = null;
+          this.detailItem = null;
+        });
         this.showNotice(`${item.name} eliminado del inventario.`);
       },
-      error: () => {
-        this.showNotice('No se pudo eliminar el suplemento en el backend.');
+      error: error => {
+        this.showNotice(error.name === 'TimeoutError'
+          ? 'La eliminacion esta tardando demasiado. Intenta nuevamente.'
+          : 'No se pudo eliminar el suplemento en el backend.');
       }
     });
   }
@@ -303,20 +370,38 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
   }
 
   add(): void {
+    if (this.isCreating) {
+      return;
+    }
+
     if (!this.newItem.name.trim() || !this.newItem.category.trim() || !this.newItem.description.trim()) {
       this.showNotice('Completa nombre, categoria y descripcion.');
       return;
     }
 
-    this.data.crearSuplemento(this.newItem).subscribe({
+    this.updateView(() => this.isCreating = true);
+    const request$ = this.data.crearSuplemento(this.newItem).pipe(
+      timeout(this.requestTimeoutMs),
+      finalize(() => this.updateView(() => this.isCreating = false))
+    );
+
+    request$.subscribe({
       next: created => {
-        this.data.suplementos.unshift(created);
-        this.newItem = this.emptySupplementForm();
-        this.closeCreate();
+        this.updateView(() => {
+          this.data.suplementos.unshift(created);
+          this.stockDrafts.set(created.id, created.stock);
+          this.newItem = this.emptySupplementForm();
+          this.showForm = false;
+          this.formStep = 1;
+          this.newCategorySelection = '';
+          this.newCategoryText = '';
+        });
         this.showNotice('Suplemento agregado correctamente.');
       },
-      error: () => {
-        this.showNotice('No se pudo crear el suplemento en el backend.');
+      error: error => {
+        this.showNotice(error.name === 'TimeoutError'
+          ? 'El registro esta tardando demasiado. Intenta nuevamente.'
+          : 'No se pudo crear el suplemento en el backend.');
       }
     });
   }

@@ -313,6 +313,14 @@ q {
   color: #fff;
 }
 
+.row-actions .text-button:disabled,
+.row-actions .text-button:disabled:hover {
+  border-color: #dededb;
+  background: #f5f5f3;
+  color: #8a8a85;
+  cursor: wait;
+}
+
 .row-actions .text-button--renew {
   border-color: rgba(197, 69, 69, .28);
   color: #c54545;
@@ -332,6 +340,13 @@ q {
   border-color: #0b93c7;
   background: #0b93c7;
   color: #fff;
+}
+
+.dark-mode .row-actions .text-button:disabled,
+.dark-mode .row-actions .text-button:disabled:hover {
+  border-color: #2a3442;
+  background: #111923;
+  color: #7d8794;
 }
 
 .dark-mode .row-actions .text-button--renew {

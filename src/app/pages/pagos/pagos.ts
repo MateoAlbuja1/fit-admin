@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { finalize, timeout } from 'rxjs';
 import { Pago, PedidoTienda, Suplemento } from '../../core/modelos/modelos-administracion';
 import { AccionPaginaAdminService } from '../../core/servicios/accion-pagina-admin.service';
 import { DatosGimnasioService } from '../../core/servicios/datos-gimnasio.service';
@@ -29,6 +30,7 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
   editPayment = { member: '', concept: '', method: 'Efectivo' as FiltroPagoMetodo, amount: 0, status: 'Pagado' as Pago['status'] };
   supplementSaleItems: ItemVentaSuplemento[] = [this.emptySupplementSaleItem()];
   private noticeTimer?: ReturnType<typeof setTimeout>;
+  private readonly requestTimeoutMs = 12000;
 
   readonly statusFilters: FiltroPagoEstado[] = ['Todos', 'Pagado', 'Pendiente', 'Anulado'];
   readonly methodFilters: FiltroPagoMetodo[] = ['Todos', 'Efectivo', 'Transferencia', 'Tarjeta'];
@@ -174,24 +176,29 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
     }
 
     this.isSavingEdit = true;
-    this.data.actualizarPago(payment.id, {
+    const request$ = this.data.actualizarPago(payment.id, {
       member: this.editPayment.member.trim(),
       concept: this.editPayment.concept.trim() || 'Otro',
       method: this.editPayment.method as Pago['method'],
       amount: this.editPayment.amount,
       status: this.editPayment.status
-    }).subscribe({
+    }).pipe(
+      timeout(this.requestTimeoutMs),
+      finalize(() => this.isSavingEdit = false)
+    );
+
+    request$.subscribe({
       next: updated => {
-        this.isSavingEdit = false;
         Object.assign(payment, updated);
         payment.member = this.editPayment.member.trim();
         this.editingPaymentId = null;
         this.showNotice('Pago actualizado correctamente.');
         this.data.refrescar();
       },
-      error: () => {
-        this.isSavingEdit = false;
-        this.showNotice('No se pudo actualizar el pago en el backend.');
+      error: error => {
+        this.showNotice(error.name === 'TimeoutError'
+          ? 'La actualizacion esta tardando demasiado. Intenta nuevamente.'
+          : 'No se pudo actualizar el pago en el backend.');
       }
     });
   }
@@ -210,15 +217,19 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
     }
 
     this.isSavingPayment = true;
-    this.data.crearPago({
+    const request$ = this.data.crearPago({
       member: this.newPayment.member.trim(),
       concept: this.newPayment.concept,
       method: this.newPayment.method,
       amount: this.newPayment.amount,
       status: 'Pagado'
-    }).subscribe({
+    }).pipe(
+      timeout(this.requestTimeoutMs),
+      finalize(() => this.isSavingPayment = false)
+    );
+
+    request$.subscribe({
       next: created => {
-        this.isSavingPayment = false;
         created.member = this.newPayment.member.trim();
         this.data.pagos.unshift(created);
         this.newPayment = this.emptyPaymentForm();
@@ -226,9 +237,10 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
         this.showNotice('Pago registrado correctamente.');
         this.data.refrescar();
       },
-      error: () => {
-        this.isSavingPayment = false;
-        this.showNotice('No se pudo registrar el pago en el backend.');
+      error: error => {
+        this.showNotice(error.name === 'TimeoutError'
+          ? 'El registro esta tardando demasiado. Intenta nuevamente.'
+          : 'No se pudo registrar el pago en el backend.');
       }
     });
   }
@@ -323,7 +335,7 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
     }
 
     this.isSavingSupplementSale = true;
-    this.data.crearPedidoManualTienda({
+    const request$ = this.data.crearPedidoManualTienda({
       customerName: this.newPayment.member.trim(),
       customerPhone: this.newPayment.customerPhone.trim(),
       customerEmail: this.newPayment.customerEmail.trim(),
@@ -332,9 +344,13 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
       channel: 'presencial',
       status: 'Pagado' as PedidoTienda['status'],
       items
-    }).subscribe({
+    }).pipe(
+      timeout(this.requestTimeoutMs),
+      finalize(() => this.isSavingSupplementSale = false)
+    );
+
+    request$.subscribe({
       next: order => {
-        this.isSavingSupplementSale = false;
         this.showForm = false;
         this.newPayment = this.emptyPaymentForm();
         this.supplementSaleItems = [this.emptySupplementSaleItem()];
@@ -343,8 +359,9 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
         this.data.refrescar();
       },
       error: error => {
-        this.isSavingSupplementSale = false;
-        this.showNotice(error.status === 409
+        this.showNotice(error.name === 'TimeoutError'
+          ? 'La venta esta tardando demasiado. Intenta nuevamente.'
+          : error.status === 409
           ? 'No hay stock suficiente para completar la venta.'
           : 'No se pudo registrar la venta de suplementos.');
       }
