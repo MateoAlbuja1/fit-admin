@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { finalize, timeout } from 'rxjs';
 import { Membresia } from '../../core/modelos/modelos-administracion';
@@ -24,7 +24,7 @@ export class PaginaMembresiasComponent implements OnDestroy {
   readonly statusFilters: FiltroMembresiaEstado[] = ['Todos', 'Activa', 'Por vencer', 'Vencida'];
   readonly planFilters: FiltroMembresiaPlan[] = ['Todos', 'Mensual', 'Trimestral', 'Anual'];
 
-  constructor(public data: DatosGimnasioService) {}
+  constructor(public data: DatosGimnasioService, private cdr: ChangeDetectorRef) {}
 
   ngOnDestroy(): void {
     this.clearNoticeTimer();
@@ -53,10 +53,10 @@ export class PaginaMembresiasComponent implements OnDestroy {
       return;
     }
 
-    this.renewingIds.add(item.id);
+    this.setRenewing(item.id, true);
     this.data.renovarMembresia(item.id, 30).pipe(
       timeout(this.requestTimeoutMs),
-      finalize(() => this.renewingIds.delete(item.id))
+      finalize(() => this.setRenewing(item.id, false))
     ).subscribe({
       next: updated => {
         Object.assign(item, updated);
@@ -99,9 +99,20 @@ export class PaginaMembresiasComponent implements OnDestroy {
     }
 
     this.isSavingEdit = true;
-    this.data.actualizarMembresia(item.id, { status: this.editMembership.status }).pipe(
+    this.cdr.detectChanges();
+    const payload = {
+      plan: this.editMembership.plan,
+      startDate: this.editMembership.start,
+      endDate: this.editMembership.end,
+      status: this.editMembership.status
+    } as Record<string, unknown>;
+
+    this.data.actualizarMembresia(item.id, payload).pipe(
       timeout(this.requestTimeoutMs),
-      finalize(() => this.isSavingEdit = false)
+      finalize(() => {
+        this.isSavingEdit = false;
+        this.cdr.detectChanges();
+      })
     ).subscribe({
       next: updated => {
         Object.assign(item, updated);
@@ -138,12 +149,25 @@ export class PaginaMembresiasComponent implements OnDestroy {
     this.noticeTimer = setTimeout(() => {
       this.notice = '';
       this.noticeTimer = undefined;
+      this.cdr.detectChanges();
     }, 3600);
+    this.cdr.detectChanges();
   }
 
   private clearNoticeTimer(): void {
     if (!this.noticeTimer) return;
     clearTimeout(this.noticeTimer);
     this.noticeTimer = undefined;
+  }
+
+  private setRenewing(id: number, active: boolean): void {
+    const next = new Set(this.renewingIds);
+    if (active) {
+      next.add(id);
+    } else {
+      next.delete(id);
+    }
+    this.renewingIds = next;
+    this.cdr.detectChanges();
   }
 }

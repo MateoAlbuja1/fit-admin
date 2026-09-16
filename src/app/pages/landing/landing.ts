@@ -849,7 +849,7 @@ export class LandingComponent implements OnInit, OnDestroy {
         const isActive = (product.status ?? 'Activo') === 'Activo';
         return isVisible && isActive && product.stock > 0;
       })
-      .map(product => ({
+      .map(product => this.productWithActivePromotion({
         id: product.id,
         name: product.name,
         price: this.formatCurrency(this.priceWithActiveVat(product.price)),
@@ -916,6 +916,15 @@ export class LandingComponent implements OnInit, OnDestroy {
 
   get promotionPriceLabel(): string {
     return this.webPromotion.priceLabel || this.promotionProduct?.price || '$35';
+  }
+
+  get activePromotionPrice(): string | null {
+    if (!this.promotionSettingsLoaded || !this.webPromotion.enabled) {
+      return null;
+    }
+
+    const price = this.priceToNumber(this.webPromotion.priceLabel);
+    return price > 0 ? this.formatCurrency(price) : null;
   }
 
   get promotionTags(): string[] {
@@ -1846,10 +1855,33 @@ export class LandingComponent implements OnInit, OnDestroy {
   }
 
   private productWithActiveVat(product: FitnessProduct): FitnessProduct {
-    return {
+    return this.productWithActivePromotion({
       ...product,
       price: this.formatCurrency(this.priceWithActiveVat(this.priceToNumber(product.price)))
+    });
+  }
+
+  private productWithActivePromotion(product: FitnessProduct): FitnessProduct {
+    const promotionPrice = this.activePromotionPrice;
+    if (!promotionPrice || !this.isPromotionProduct(product)) {
+      return product;
+    }
+
+    return {
+      ...product,
+      price: promotionPrice,
+      discount: product.discount || this.text(this.webPromotion.badge, 'Promo')
     };
+  }
+
+  private isPromotionProduct(product: FitnessProduct): boolean {
+    const productId = Number(this.webPromotion.productId || 0);
+    if (productId > 0 && Number(product.id || 0) === productId) {
+      return true;
+    }
+
+    const title = this.normalize(this.webPromotion.title);
+    return Boolean(title && title.includes(this.normalize(product.name)));
   }
 
   private priceWithActiveVat(price: number): number {
