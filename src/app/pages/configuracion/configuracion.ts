@@ -88,6 +88,7 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
   systemStatus: Record<string, unknown> | null = null;
   private noticeTimer?: ReturnType<typeof setTimeout>;
   private savingFallbackTimer?: ReturnType<typeof setTimeout>;
+  private passwordFallbackTimer?: ReturnType<typeof setTimeout>;
   private scheduleSaveTimer?: ReturnType<typeof setTimeout>;
 
   readonly panels: Array<{ id: PanelConfiguracion; label: string; description: string; icon: string }> = [
@@ -181,6 +182,7 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
     this.actions.limpiar();
     this.clearNoticeTimer();
     this.clearSavingFallbackTimer();
+    this.clearPasswordFallbackTimer();
     this.clearScheduleSaveTimer();
   }
 
@@ -242,15 +244,14 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.isChangingPassword = true;
+    this.startPasswordChange();
     this.data.cambiarPassword({
       currentPassword: this.password.actual,
       newPassword: this.password.nueva
     }).pipe(
       timeout(12000),
       finalize(() => {
-        this.isChangingPassword = false;
-        this.cdr.detectChanges();
+        this.finishPasswordChange();
       })
     ).subscribe({
       next: () => {
@@ -258,9 +259,12 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
         this.showNotice('Contrasena actualizada correctamente.');
       },
       error: error => {
-        this.showNotice(error.status === 401
-          ? 'La contrasena actual no es correcta.'
-          : 'No se pudo cambiar la contrasena. Inicia sesion de nuevo e intenta otra vez.');
+        const message = error.name === 'TimeoutError'
+          ? 'La respuesta tardo demasiado. Intenta iniciar sesion con la nueva contrasena.'
+          : error.status === 401
+            ? 'La contrasena actual no es correcta.'
+            : 'No se pudo cambiar la contrasena. Inicia sesion de nuevo e intenta otra vez.';
+        this.showNotice(message);
       }
     });
   }
@@ -699,6 +703,34 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
     }
     clearTimeout(this.savingFallbackTimer);
     this.savingFallbackTimer = undefined;
+  }
+
+  private startPasswordChange(): void {
+    this.isChangingPassword = true;
+    this.clearPasswordFallbackTimer();
+    this.passwordFallbackTimer = setTimeout(() => {
+      if (!this.isChangingPassword) {
+        return;
+      }
+      this.isChangingPassword = false;
+      this.showNotice('La respuesta tardo demasiado. Intenta iniciar sesion con la nueva contrasena.');
+      this.cdr.detectChanges();
+    }, 14000);
+    this.cdr.detectChanges();
+  }
+
+  private finishPasswordChange(): void {
+    this.isChangingPassword = false;
+    this.clearPasswordFallbackTimer();
+    this.cdr.detectChanges();
+  }
+
+  private clearPasswordFallbackTimer(): void {
+    if (!this.passwordFallbackTimer) {
+      return;
+    }
+    clearTimeout(this.passwordFallbackTimer);
+    this.passwordFallbackTimer = undefined;
   }
 
   private scheduleGymAutoSave(): void {
