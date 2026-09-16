@@ -91,14 +91,14 @@
 }
 
 @if (showForm) {
-  <div class="form-overlay" (click)="showForm = false">
+  <div class="form-overlay" (click)="!isSavingClient && (showForm = false)">
     <section class="form-drawer" (click)="$event.stopPropagation()">
-      <header><div><span>NUEVO REGISTRO</span><h2>Cliente</h2></div><button type="button" (click)="showForm = false">×</button></header>
+      <header><div><span>NUEVO REGISTRO</span><h2>Cliente</h2></div><button type="button" (click)="showForm = false" [disabled]="isSavingClient">×</button></header>
       <form (ngSubmit)="addClient()">
-        <label><span>Nombre completo *</span><input [(ngModel)]="newClient.name" name="name" required /></label>
-        <label><span>Cédula *</span><input [(ngModel)]="newClient.document" name="document" required /></label>
-        <label><span>Teléfono</span><input [(ngModel)]="newClient.phone" name="phone" /></label>
-        <label><span>Plan inicial</span><select [(ngModel)]="newClient.plan" name="plan"><option>Plan mensual</option><option>Plan trimestral</option><option>Plan anual</option></select></label>
+        <label><span>Nombre completo *</span><input [(ngModel)]="newClient.name" name="name" required [disabled]="isSavingClient" /></label>
+        <label><span>Cédula *</span><input [(ngModel)]="newClient.document" name="document" required [disabled]="isSavingClient" /></label>
+        <label><span>Teléfono</span><input [(ngModel)]="newClient.phone" name="phone" [disabled]="isSavingClient" /></label>
+        <label><span>Plan inicial</span><select [(ngModel)]="newClient.plan" name="plan" [disabled]="isSavingClient"><option>Plan mensual</option><option>Plan trimestral</option><option>Plan anual</option></select></label>
         <button class="primary-button form-submit" type="submit" [disabled]="isSavingClient">{{ isSavingClient ? 'Guardando...' : 'Guardar cliente' }}</button>
       </form>
     </section>

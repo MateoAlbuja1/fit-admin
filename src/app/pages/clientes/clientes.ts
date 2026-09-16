@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { finalize, timeout } from 'rxjs';
 import { Cliente, DetalleRegistro } from '../../core/modelos/modelos-administracion';
@@ -28,7 +28,11 @@ export class PaginaClientesComponent implements OnInit, OnDestroy {
   readonly statusFilters: FiltroClienteEstado[] = ['Todos', 'Activo', 'Inactivo'];
   readonly planFilters: FiltroClientePlan[] = ['Todos', 'Plan mensual', 'Plan trimestral', 'Plan anual'];
 
-  constructor(public data: DatosGimnasioService, private actions: AccionPaginaAdminService) {}
+  constructor(
+    public data: DatosGimnasioService,
+    private actions: AccionPaginaAdminService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.actions.registrar('+ Nuevo cliente', () => this.openForm());
@@ -162,21 +166,25 @@ export class PaginaClientesComponent implements OnInit, OnDestroy {
     };
 
     this.isSavingClient = true;
-    this.showForm = false;
-    this.showNotice('Guardando cliente y membresia...', 'warning');
+    this.cdr.detectChanges();
 
     this.data.crearCliente(payload).pipe(
       timeout(10000),
       finalize(() => {
         this.isSavingClient = false;
+        this.cdr.detectChanges();
       })
     ).subscribe({
       next: created => {
-        this.data.clientes.unshift(created);
+        this.data.clientes = [created, ...this.data.clientes.filter(client => client.id !== created.id)];
         this.newClient = { name: '', document: '', phone: '', plan: 'Plan mensual' };
+        this.statusFilter = 'Todos';
+        this.planFilter = 'Todos';
+        this.search = '';
+        this.page = 1;
         this.showForm = false;
         this.showNotice('Cliente registrado con membresia inicial.');
-        this.data.refrescar();
+        this.cdr.detectChanges();
       },
       error: error => {
         this.newClient = draft;
@@ -200,7 +208,9 @@ export class PaginaClientesComponent implements OnInit, OnDestroy {
     this.noticeTimer = setTimeout(() => {
       this.notice = '';
       this.noticeTimer = undefined;
+      this.cdr.detectChanges();
     }, 3800);
+    this.cdr.detectChanges();
   }
 
   private clearNoticeTimer(): void {
