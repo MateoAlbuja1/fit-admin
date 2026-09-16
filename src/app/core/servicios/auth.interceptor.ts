@@ -4,7 +4,7 @@ import { timeout } from 'rxjs';
 import { isApiUrl } from '../config/api.config';
 import { AuthService } from './auth.service';
 
-const API_TIMEOUT_MS = 15000;
+const API_TIMEOUT_MS = 30000;
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const token = inject(AuthService).token;

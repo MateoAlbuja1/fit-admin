@@ -21,7 +21,7 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
   isSavingEdit = false;
   savingStatusIds = new Set<number>();
   private noticeTimer?: ReturnType<typeof setTimeout>;
-  private readonly requestTimeoutMs = 12000;
+  private readonly requestTimeoutMs = 25000;
   newItem = { name: '', type: '', location: '', status: 'Operativa' as Maquina['status'], nextMaintenance: '', photo: '' };
   editItem = { name: '', type: '', location: '', status: 'Operativa' as Maquina['status'], nextMaintenance: '', photo: '' };
 
@@ -194,7 +194,7 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
     }
     const reader = new FileReader();
     reader.onload = () => this.updateView(() => {
-      this.newItem.photo = String(reader.result);
+      this.newItem = { ...this.newItem, photo: String(reader.result) };
       input.value = '';
     });
     reader.onerror = () => this.showNotice('No se pudo cargar la imagen.', 'error');
@@ -211,7 +211,7 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
     }
     const reader = new FileReader();
     reader.onload = () => this.updateView(() => {
-      this.editItem.photo = String(reader.result);
+      this.editItem = { ...this.editItem, photo: String(reader.result) };
       input.value = '';
     });
     reader.onerror = () => this.showNotice('No se pudo cargar la imagen.', 'error');

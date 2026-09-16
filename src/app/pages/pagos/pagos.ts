@@ -150,7 +150,7 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
     this.supplementProductSearch = '';
     this.supplementSaleItems = [this.emptySupplementSaleItem()];
     this.showForm = true;
-    if (concept === 'Venta de suplemento' && !this.data.suplementos.length) {
+    if (concept === 'Venta de suplemento') {
       this.data.refrescar();
     }
   }
@@ -162,7 +162,7 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
 
   onPaymentConceptChange(): void {
     this.clearNotice();
-    if (this.isSupplementSale && !this.data.suplementos.length) {
+    if (this.isSupplementSale) {
       this.data.refrescar();
     }
   }

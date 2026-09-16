@@ -34,7 +34,7 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
   private noticeTimer?: ReturnType<typeof setTimeout>;
   private stockRequestVersions = new Map<number, number>();
   private stockDrafts = new Map<number, number | null>();
-  private readonly requestTimeoutMs = 12000;
+  private readonly requestTimeoutMs = 25000;
 
   readonly stockFilters: FiltroStock[] = ['Todos', 'Stock bajo', 'Disponibles', 'Agotados'];
 
@@ -312,19 +312,19 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
   }
 
   handlePhoto(event: Event): void {
-    this.readImageFile(event, value => this.newItem.photo = value);
+    this.readImageFile(event, value => this.newItem = { ...this.newItem, photo: value });
   }
 
   handleFactsPhoto(event: Event): void {
-    this.readImageFile(event, value => this.newItem.factsPhoto = value);
+    this.readImageFile(event, value => this.newItem = { ...this.newItem, factsPhoto: value });
   }
 
   handleEditPhoto(event: Event): void {
-    this.readImageFile(event, value => this.editItem.photo = value);
+    this.readImageFile(event, value => this.editItem = { ...this.editItem, photo: value });
   }
 
   handleEditFactsPhoto(event: Event): void {
-    this.readImageFile(event, value => this.editItem.factsPhoto = value);
+    this.readImageFile(event, value => this.editItem = { ...this.editItem, factsPhoto: value });
   }
 
   setNewCategorySelection(value: string): void {
