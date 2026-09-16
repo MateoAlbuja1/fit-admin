@@ -47,31 +47,31 @@
   }
 </nav>
 
-@if (showPromo) {
+@if (shouldShowPromotion) {
   <section class="promo-modal" role="dialog" aria-modal="true" aria-labelledby="promo-title">
     <button class="promo-backdrop" type="button" tabindex="-1" aria-hidden="true"></button>
     <article class="promo-dialog" aria-describedby="promo-copy">
       <button class="promo-close" type="button" aria-label="Cerrar promocion" (click)="closePromo()">&times;</button>
       <div class="promo-media" aria-hidden="true">
-        <img src="/assets/img/creatine-dragon-pharma.png" alt="" />
+        <img [src]="promotionImage" alt="" />
         <span>Disponible en {{ gymName }}</span>
       </div>
       <div class="promo-content">
-        <span class="promo-kicker">Promo fitness</span>
-        <h2 id="promo-title" class="ui-title"><span class="title-accent">Creatina</span> Dragon Pharma en <span class="title-accent">oferta</span>.</h2>
-        <p id="promo-copy">300 g, 60 servicios y compra directa por WhatsApp.</p>
+        <span class="promo-kicker">{{ webPromotion.kicker }}</span>
+        <h2 id="promo-title" class="ui-title">{{ webPromotion.title }}</h2>
+        <p id="promo-copy">{{ webPromotion.description }}</p>
         <div class="promo-offer">
           <span>Ahora</span>
-          <strong>$35</strong>
-          <small>promo</small>
+          <strong>{{ promotionPriceLabel }}</strong>
+          <small>{{ webPromotion.badge }}</small>
         </div>
         <div class="promo-benefits">
-          <small>5 g por toma</small>
-          <small>60 servicios</small>
-          <small>stock limitado</small>
+          @for (tag of promotionTags; track tag) {
+            <small>{{ tag }}</small>
+          }
         </div>
         <div class="promo-actions">
-          <button type="button" (click)="acceptPromo()">Comprar creatina</button>
+          <button type="button" (click)="acceptPromo()">{{ webPromotion.ctaLabel }}</button>
           <button type="button" (click)="closePromo()">Explorar {{ gymName }}</button>
         </div>
       </div>

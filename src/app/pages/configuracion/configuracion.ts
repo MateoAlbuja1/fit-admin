@@ -3,6 +3,7 @@ import { catchError, finalize, forkJoin, of, timeout } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { AccionPaginaAdminService } from '../../core/servicios/accion-pagina-admin.service';
 import { DatosGimnasioService } from '../../core/servicios/datos-gimnasio.service';
+import { Suplemento } from '../../core/modelos/modelos-administracion';
 
 interface HorarioAtencion {
   dia: string;
@@ -22,6 +23,7 @@ interface GymSettingsPayload {
   schedules?: HorarioAtencion[];
   currency?: string;
   temporaryVat?: TemporaryVatSettings;
+  webPromotion?: WebPromotionSettings;
 }
 
 interface AdminSettingsPayload {
@@ -47,6 +49,18 @@ interface TemporaryVatSettings {
   startsAt: string;
   endsAt: string;
   reason: string;
+}
+
+interface WebPromotionSettings {
+  enabled: boolean;
+  productId: number | null;
+  kicker: string;
+  title: string;
+  description: string;
+  priceLabel: string;
+  badge: string;
+  ctaLabel: string;
+  tags: string[];
 }
 
 interface LoginHistoryEntry {
@@ -161,6 +175,9 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
     reason: 'Feriado nacional'
   };
 
+  promocionWeb: WebPromotionSettings = this.defaultWebPromotion();
+  promotionTagsText = this.promocionWeb.tags.join(', ');
+
   loginHistory: LoginHistoryEntry[] = [
     { date: '02/07/2026, 09:22', user: 'admin', device: 'Chrome en Windows', ip: '192.168.1.24', status: 'Exitoso' },
     { date: '01/07/2026, 18:40', user: 'admin', device: 'Edge en Windows', ip: '192.168.1.24', status: 'Exitoso' },
@@ -191,6 +208,9 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
     this.activePanel = panel;
     this.notice = '';
     this.clearNoticeTimer();
+    if (panel === 'administrador') {
+      this.data.refrescar();
+    }
     if (panel === 'sistema') {
       this.loadSystemStatus();
     }
@@ -421,6 +441,56 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
     return `Activo: aplica ${this.ivaTemporal.rate}% desde ${this.ivaTemporal.startsAt} hasta ${this.ivaTemporal.endsAt}.`;
   }
 
+  get promotionSupplementOptions(): Suplemento[] {
+    return [...this.data.suplementos]
+      .filter(product => (product.status ?? 'Activo') === 'Activo')
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  get selectedPromotionSupplement(): Suplemento | null {
+    const selectedId = Number(this.promocionWeb.productId || 0);
+    return this.promotionSupplementOptions.find(product => product.id === selectedId) || null;
+  }
+
+  get promotionPreviewImage(): string {
+    return this.selectedPromotionSupplement?.photo || '/assets/img/creatine-dragon-pharma.png';
+  }
+
+  get promotionPreviewName(): string {
+    return this.selectedPromotionSupplement?.name || 'Selecciona un suplemento';
+  }
+
+  selectPromotionProduct(productId: number | null): void {
+    const selectedId = productId === null ? null : Number(productId);
+    const product = this.promotionSupplementOptions.find(item => item.id === selectedId);
+    this.promocionWeb.productId = product ? product.id : null;
+
+    if (!product) {
+      return;
+    }
+
+    const price = Number(product.price || 0);
+    this.promocionWeb = {
+      ...this.promocionWeb,
+      productId: product.id,
+      title: `${product.name} en oferta.`,
+      description: product.description || 'Compra directa por WhatsApp.',
+      priceLabel: price > 0 ? `$${price.toFixed(price % 1 === 0 ? 0 : 2)}` : this.promocionWeb.priceLabel,
+      ctaLabel: `Comprar ${this.shortProductName(product.name)}`,
+      tags: [
+        product.category || 'Promo fitness',
+        product.stock > 0 ? `${product.stock} disponibles` : 'Stock limitado',
+        'Compra por WhatsApp'
+      ]
+    };
+    this.promotionTagsText = this.promocionWeb.tags.join(', ');
+  }
+
+  refreshPromotionProducts(): void {
+    this.data.refrescar();
+    this.showNotice('Lista de suplementos actualizada.');
+  }
+
   private saveWithPasswordChange(): void {
     if (!this.validateTemporaryVat()) {
       return;
@@ -470,7 +540,7 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
   }
 
   private persistSettings(successMessage: string): void {
-    const shouldSaveGym = this.activePanel === 'gimnasio' || this.activePanel === 'tributacion';
+    const shouldSaveGym = this.activePanel === 'gimnasio' || this.activePanel === 'tributacion' || this.activePanel === 'administrador';
     const shouldSaveAdmin = this.activePanel === 'administrador' || this.activePanel === 'seguridad';
 
     this.startSaving();
@@ -538,7 +608,8 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
         startsAt: this.ivaTemporal.startsAt,
         endsAt: this.ivaTemporal.endsAt,
         reason: this.ivaTemporal.reason.trim() || 'Feriado nacional'
-      }
+      },
+      webPromotion: this.normalizeWebPromotion(this.promocionWeb)
     };
   }
 
@@ -572,6 +643,8 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
     this.horarios = this.normalizeSchedules(settings.schedules);
 
     this.ivaTemporal = this.normalizeTemporaryVat(settings.temporaryVat);
+    this.promocionWeb = this.normalizeWebPromotion(settings.webPromotion);
+    this.promotionTagsText = this.promocionWeb.tags.join(', ');
   }
 
   private applyAdminSettings(settings: AdminSettingsPayload = {}): void {
@@ -634,6 +707,48 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
       endsAt: this.text(settings.endsAt, ''),
       reason: this.text(settings.reason, 'Feriado nacional')
     };
+  }
+
+  private defaultWebPromotion(): WebPromotionSettings {
+    return {
+      enabled: true,
+      productId: null,
+      kicker: 'Promo fitness',
+      title: 'Creatina Dragon Pharma en oferta.',
+      description: '300 g, 60 servicios y compra directa por WhatsApp.',
+      priceLabel: '$35',
+      badge: 'promo',
+      ctaLabel: 'Comprar creatina',
+      tags: ['5 g por toma', '60 servicios', 'stock limitado']
+    };
+  }
+
+  private normalizeWebPromotion(value: unknown): WebPromotionSettings {
+    const defaults = this.defaultWebPromotion();
+    const settings = typeof value === 'object' && value !== null ? value as Partial<WebPromotionSettings> : {};
+    const rawProductId = Number(settings.productId ?? 0);
+    const textTags = value === this.promocionWeb
+      ? this.promotionTagsText.split(',').map(tag => tag.trim()).filter(Boolean).slice(0, 4)
+      : [];
+    const savedTags = Array.isArray(settings.tags)
+      ? settings.tags.map(tag => String(tag).trim()).filter(Boolean).slice(0, 4)
+      : [];
+
+    return {
+      enabled: Boolean(settings.enabled ?? defaults.enabled),
+      productId: Number.isFinite(rawProductId) && rawProductId > 0 ? rawProductId : null,
+      kicker: this.text(settings.kicker, defaults.kicker),
+      title: this.text(settings.title, defaults.title),
+      description: this.text(settings.description, defaults.description),
+      priceLabel: this.text(settings.priceLabel, defaults.priceLabel),
+      badge: this.text(settings.badge, defaults.badge),
+      ctaLabel: this.text(settings.ctaLabel, defaults.ctaLabel),
+      tags: textTags.length ? textTags : (savedTags.length ? savedTags : defaults.tags)
+    };
+  }
+
+  private shortProductName(name: string): string {
+    return name.split(/\s+/).filter(Boolean).slice(0, 2).join(' ') || 'producto';
   }
 
   private validateTemporaryVat(): boolean {

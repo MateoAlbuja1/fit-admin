@@ -68,6 +68,7 @@ interface PublicGymSettings {
   openingHours: string;
   schedules: PublicSchedule[];
   temporaryVat: TemporaryVatSettings;
+  webPromotion: WebPromotionSettings;
 }
 
 interface PublicSchedule {
@@ -83,6 +84,18 @@ interface TemporaryVatSettings {
   startsAt: string;
   endsAt: string;
   reason: string;
+}
+
+interface WebPromotionSettings {
+  enabled: boolean;
+  productId: number | null;
+  kicker: string;
+  title: string;
+  description: string;
+  priceLabel: string;
+  badge: string;
+  ctaLabel: string;
+  tags: string[];
 }
 
 const ECUADOR_STANDARD_VAT_RATE = 15;
@@ -203,6 +216,17 @@ export class LandingComponent implements OnInit, OnDestroy {
       startsAt: '',
       endsAt: '',
       reason: 'Feriado nacional'
+    },
+    webPromotion: {
+      enabled: true,
+      productId: null,
+      kicker: 'Promo fitness',
+      title: 'Creatina Dragon Pharma en oferta.',
+      description: '300 g, 60 servicios y compra directa por WhatsApp.',
+      priceLabel: '$35',
+      badge: 'promo',
+      ctaLabel: 'Comprar creatina',
+      tags: ['5 g por toma', '60 servicios', 'stock limitado']
     }
   };
   clientProfile: Cliente | null = null;
@@ -857,6 +881,39 @@ export class LandingComponent implements OnInit, OnDestroy {
     return vat;
   }
 
+  get webPromotion(): WebPromotionSettings {
+    return this.publicGymSettings.webPromotion;
+  }
+
+  get shouldShowPromotion(): boolean {
+    const selectedProductId = Number(this.webPromotion.productId || 0);
+    return this.showPromo && this.webPromotion.enabled && (selectedProductId <= 0 || Boolean(this.promotionProduct));
+  }
+
+  get promotionProduct(): FitnessProduct | undefined {
+    const productId = Number(this.webPromotion.productId || 0);
+    if (productId > 0) {
+      const selected = this.products.find(product => product.id === productId);
+      if (selected) {
+        return selected;
+      }
+    }
+
+    return this.products.find(product => product.name === 'Creatina Dragon Pharma');
+  }
+
+  get promotionImage(): string {
+    return this.promotionProduct?.image || '/assets/img/creatine-dragon-pharma.png';
+  }
+
+  get promotionPriceLabel(): string {
+    return this.webPromotion.priceLabel || this.promotionProduct?.price || '$35';
+  }
+
+  get promotionTags(): string[] {
+    return this.webPromotion.tags.filter(Boolean).slice(0, 4);
+  }
+
   get searchResults(): SearchResult[] {
     const term = this.normalize(this.searchTerm);
     if (!term) return [];
@@ -1047,11 +1104,13 @@ export class LandingComponent implements OnInit, OnDestroy {
 
   acceptPromo(): void {
     this.closePromo();
-    this.navigateTo('tienda:Creatinas');
-    const creatine = this.products.find(product => product.name === 'Creatina Dragon Pharma');
-    if (creatine) {
-      this.addToCart(creatine);
+    const product = this.promotionProduct;
+    if (product) {
+      this.navigateTo(`tienda:${product.category}`);
+      this.addToCart(product);
+      return;
     }
+    this.navigateTo('tienda');
   }
 
   navigateTo(anchor: string): void {
@@ -1591,7 +1650,8 @@ export class LandingComponent implements OnInit, OnDestroy {
         address: this.text(settings['address'], this.publicGymSettings.address),
         openingHours: this.formatOpeningHours(this.text(settings['openingHours'], this.publicGymSettings.openingHours)),
         schedules: this.normalizeSchedules(settings['schedules']),
-        temporaryVat: this.normalizeTemporaryVat(settings['temporaryVat'])
+        temporaryVat: this.normalizeTemporaryVat(settings['temporaryVat']),
+        webPromotion: this.normalizeWebPromotion(settings['webPromotion'])
       };
       const location = [this.publicGymSettings.city, this.publicGymSettings.sector].filter(Boolean).join(' - ') || this.publicGymSettings.city;
       this.resultCards = [
@@ -1799,6 +1859,27 @@ export class LandingComponent implements OnInit, OnDestroy {
       startsAt: this.text(settings.startsAt, ''),
       endsAt: this.text(settings.endsAt, ''),
       reason: this.text(settings.reason, 'Feriado nacional')
+    };
+  }
+
+  private normalizeWebPromotion(value: unknown): WebPromotionSettings {
+    const defaults = this.publicGymSettings.webPromotion;
+    const settings = typeof value === 'object' && value !== null ? value as Partial<WebPromotionSettings> : {};
+    const rawProductId = Number(settings.productId ?? 0);
+    const tags = Array.isArray(settings.tags)
+      ? settings.tags.map(tag => String(tag).trim()).filter(Boolean).slice(0, 4)
+      : [];
+
+    return {
+      enabled: Boolean(settings.enabled ?? defaults.enabled),
+      productId: Number.isFinite(rawProductId) && rawProductId > 0 ? rawProductId : null,
+      kicker: this.text(settings.kicker, defaults.kicker),
+      title: this.text(settings.title, defaults.title),
+      description: this.text(settings.description, defaults.description),
+      priceLabel: this.text(settings.priceLabel, defaults.priceLabel),
+      badge: this.text(settings.badge, defaults.badge),
+      ctaLabel: this.text(settings.ctaLabel, defaults.ctaLabel),
+      tags: tags.length ? tags : defaults.tags
     };
   }
 

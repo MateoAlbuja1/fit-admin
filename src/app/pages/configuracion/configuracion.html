@@ -94,6 +94,56 @@
           <div class="settings-divider"></div>
 
           <header class="settings-subheader">
+            <div><span>PROMOCION WEB</span><h3>Mensaje del inicio</h3></div>
+          </header>
+
+          <div class="toggle-list">
+            <label>
+              <span>
+                <strong>Mostrar promocion</strong>
+                <small>Activa o apaga el anuncio que aparece al entrar a la web.</small>
+              </span>
+              <input type="checkbox" [(ngModel)]="promocionWeb.enabled" name="promotionEnabled" />
+            </label>
+          </div>
+
+          <div class="promotion-editor">
+            <article class="promotion-preview-card">
+              <img [src]="promotionPreviewImage" alt="" />
+              <div>
+                <span>Producto seleccionado</span>
+                <strong>{{ promotionPreviewName }}</strong>
+                <small>{{ selectedPromotionSupplement ? selectedPromotionSupplement.category : 'La imagen saldra del suplemento elegido.' }}</small>
+              </div>
+            </article>
+
+            <div class="settings-form promotion-form">
+              <label class="settings-form__full">
+                <span>Suplemento de la promocion</span>
+                <select [ngModel]="promocionWeb.productId" (ngModelChange)="selectPromotionProduct($event)" name="promotionProduct">
+                  <option [ngValue]="null">Selecciona un suplemento</option>
+                  @for (product of promotionSupplementOptions; track product.id) {
+                    <option [ngValue]="product.id">{{ product.name }}</option>
+                  }
+                </select>
+              </label>
+              <label><span>Etiqueta superior</span><input [(ngModel)]="promocionWeb.kicker" name="promotionKicker" /></label>
+              <label><span>Precio visible</span><input [(ngModel)]="promocionWeb.priceLabel" name="promotionPrice" placeholder="$35" /></label>
+              <label class="settings-form__full"><span>Titulo</span><input [(ngModel)]="promocionWeb.title" name="promotionTitle" /></label>
+              <label class="settings-form__full"><span>Descripcion</span><textarea [(ngModel)]="promocionWeb.description" name="promotionDescription" rows="3"></textarea></label>
+              <label><span>Texto pequeno del precio</span><input [(ngModel)]="promocionWeb.badge" name="promotionBadge" placeholder="promo" /></label>
+              <label><span>Boton principal</span><input [(ngModel)]="promocionWeb.ctaLabel" name="promotionCta" /></label>
+              <label class="settings-form__full"><span>Etiquetas separadas por coma</span><input [(ngModel)]="promotionTagsText" name="promotionTags" placeholder="5 g por toma, 60 servicios, stock limitado" /></label>
+            </div>
+          </div>
+
+          <div class="promotion-actions">
+            <button type="button" class="secondary-button" (click)="refreshPromotionProducts()">Actualizar productos</button>
+          </div>
+
+          <div class="settings-divider"></div>
+
+          <header class="settings-subheader">
             <div><span>PERMISOS</span><h3>Acceso administrativo</h3></div>
           </header>
 
