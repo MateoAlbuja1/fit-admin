@@ -19,6 +19,7 @@ export class PaginaMembresiasComponent implements OnDestroy {
   renewingIds = new Set<number>();
   editMembership = { member: '', plan: 'Mensual' as FiltroMembresiaPlan, start: '', end: '', days: 30, status: 'Activa' as Membresia['status'] };
   private noticeTimer?: ReturnType<typeof setTimeout>;
+  private renewingTimers = new Map<number, ReturnType<typeof setTimeout>>();
   private readonly requestTimeoutMs = 12000;
 
   readonly statusFilters: FiltroMembresiaEstado[] = ['Todos', 'Activa', 'Por vencer', 'Vencida'];
@@ -28,6 +29,8 @@ export class PaginaMembresiasComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     this.clearNoticeTimer();
+    this.renewingTimers.forEach(timer => clearTimeout(timer));
+    this.renewingTimers.clear();
   }
 
   get filtered(): Membresia[] {
@@ -54,12 +57,13 @@ export class PaginaMembresiasComponent implements OnDestroy {
     }
 
     this.setRenewing(item.id, true);
+    this.startRenewingFallback(item.id);
     this.data.renovarMembresia(item.id, 30).pipe(
       timeout(this.requestTimeoutMs),
-      finalize(() => this.setRenewing(item.id, false))
+      finalize(() => this.finishRenewing(item.id))
     ).subscribe({
       next: updated => {
-        Object.assign(item, updated);
+        this.applyMembershipUpdate(item, updated);
         this.showNotice(`Membresia de ${item.member} renovada por 30 dias.`);
       },
       error: error => {
@@ -168,6 +172,39 @@ export class PaginaMembresiasComponent implements OnDestroy {
       next.delete(id);
     }
     this.renewingIds = next;
+    this.cdr.detectChanges();
+  }
+
+  private finishRenewing(id: number): void {
+    const timer = this.renewingTimers.get(id);
+    if (timer) {
+      clearTimeout(timer);
+      this.renewingTimers.delete(id);
+    }
+    this.setRenewing(id, false);
+  }
+
+  private startRenewingFallback(id: number): void {
+    const current = this.renewingTimers.get(id);
+    if (current) {
+      clearTimeout(current);
+    }
+
+    const timer = setTimeout(() => {
+      if (!this.renewingIds.has(id)) {
+        return;
+      }
+      this.renewingTimers.delete(id);
+      this.setRenewing(id, false);
+      this.showNotice('La renovacion tardo en responder. Recarga la lista si no ves el cambio.', 'warning');
+      this.data.refrescar();
+    }, 5000);
+    this.renewingTimers.set(id, timer);
+  }
+
+  private applyMembershipUpdate(item: Membresia, updated: Membresia): void {
+    Object.assign(item, updated);
+    this.data.membresias = this.data.membresias.map(current => current.id === item.id ? { ...current, ...updated } : current);
     this.cdr.detectChanges();
   }
 }
