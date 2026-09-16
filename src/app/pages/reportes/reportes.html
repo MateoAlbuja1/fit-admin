@@ -21,7 +21,7 @@
     </div>
 
     @if (notice) {
-      <p class="form-alert">{{ notice }}</p>
+      <p class="form-alert" [class.form-alert--error]="noticeType === 'error'" [class.form-alert--warning]="noticeType === 'warning'">{{ notice }}</p>
     }
 
     <button class="primary-button" type="button" (click)="generate()" [disabled]="isGenerating">

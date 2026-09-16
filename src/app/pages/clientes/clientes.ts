@@ -12,6 +12,7 @@ type FiltroClientePlan = 'Todos' | 'Plan mensual' | 'Plan trimestral' | 'Plan an
 export class PaginaClientesComponent implements OnInit, OnDestroy {
   search = '';
   notice = '';
+  noticeType: 'success' | 'warning' | 'error' = 'success';
   showForm = false;
   detail: DetalleRegistro | null = null;
   page = 1;
@@ -22,6 +23,7 @@ export class PaginaClientesComponent implements OnInit, OnDestroy {
   isSavingClient = false;
   newClient = { name: '', document: '', phone: '', plan: 'Plan mensual' };
   editClient = { name: '', document: '', phone: '', status: 'Activo' as Cliente['status'] };
+  private noticeTimer?: ReturnType<typeof setTimeout>;
 
   readonly statusFilters: FiltroClienteEstado[] = ['Todos', 'Activo', 'Inactivo'];
   readonly planFilters: FiltroClientePlan[] = ['Todos', 'Plan mensual', 'Plan trimestral', 'Plan anual'];
@@ -34,6 +36,7 @@ export class PaginaClientesComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.actions.limpiar();
+    this.clearNoticeTimer();
   }
 
   get activeClients(): number {
@@ -69,7 +72,7 @@ export class PaginaClientesComponent implements OnInit, OnDestroy {
   }
 
   openForm(): void {
-    this.notice = '';
+    this.clearNotice();
     this.showForm = true;
   }
 
@@ -82,10 +85,10 @@ export class PaginaClientesComponent implements OnInit, OnDestroy {
     this.data.actualizarCliente(client.id, { status: nextStatus }).subscribe({
       next: updated => {
         Object.assign(client, updated);
-        this.notice = `${client.name}: estado actualizado.`;
+        this.showNotice(`${client.name}: estado actualizado.`);
       },
       error: () => {
-        this.notice = 'No se pudo actualizar el estado en el backend.';
+        this.showNotice('No se pudo actualizar el estado en el backend.', 'error');
       }
     });
   }
@@ -117,7 +120,7 @@ export class PaginaClientesComponent implements OnInit, OnDestroy {
   saveEdit(): void {
     const client = this.data.clientes.find(item => item.id === this.editingClientId);
     if (!client || !this.editClient.name.trim() || !this.editClient.document.trim()) {
-      this.notice = 'Completa nombre y cedula para guardar.';
+      this.showNotice('Completa nombre y cedula para guardar.', 'warning');
       return;
     }
 
@@ -130,10 +133,10 @@ export class PaginaClientesComponent implements OnInit, OnDestroy {
       next: updated => {
         Object.assign(client, updated);
         this.editingClientId = null;
-        this.notice = 'Cliente actualizado correctamente.';
+        this.showNotice('Cliente actualizado correctamente.');
       },
       error: () => {
-        this.notice = 'No se pudo guardar el cliente en el backend.';
+        this.showNotice('No se pudo guardar el cliente en el backend.', 'error');
       }
     });
   }
@@ -143,9 +146,9 @@ export class PaginaClientesComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.notice = '';
+    this.clearNotice();
     if (!this.newClient.name.trim() || !this.newClient.document.trim()) {
-      this.notice = 'Completa el nombre y la cedula.';
+      this.showNotice('Completa el nombre y la cedula.', 'warning');
       return;
     }
 
@@ -160,7 +163,7 @@ export class PaginaClientesComponent implements OnInit, OnDestroy {
 
     this.isSavingClient = true;
     this.showForm = false;
-    this.notice = 'Guardando cliente y membresia...';
+    this.showNotice('Guardando cliente y membresia...', 'warning');
 
     this.data.crearCliente(payload).pipe(
       timeout(10000),
@@ -172,16 +175,37 @@ export class PaginaClientesComponent implements OnInit, OnDestroy {
         this.data.clientes.unshift(created);
         this.newClient = { name: '', document: '', phone: '', plan: 'Plan mensual' };
         this.showForm = false;
-        this.notice = 'Cliente registrado con membresia inicial.';
+        this.showNotice('Cliente registrado con membresia inicial.');
         this.data.refrescar();
       },
       error: error => {
         this.newClient = draft;
         this.showForm = true;
-        this.notice = error.name === 'TimeoutError'
+        this.showNotice(error.name === 'TimeoutError'
           ? 'El registro esta tardando demasiado. Revisa la conexion e intenta nuevamente.'
-          : 'No se pudo registrar el cliente en el backend.';
+          : 'No se pudo registrar el cliente en el backend.', 'error');
       }
     });
+  }
+
+  clearNotice(): void {
+    this.notice = '';
+    this.clearNoticeTimer();
+  }
+
+  private showNotice(message: string, type: 'success' | 'warning' | 'error' = 'success'): void {
+    this.notice = message;
+    this.noticeType = type;
+    this.clearNoticeTimer();
+    this.noticeTimer = setTimeout(() => {
+      this.notice = '';
+      this.noticeTimer = undefined;
+    }, 3800);
+  }
+
+  private clearNoticeTimer(): void {
+    if (!this.noticeTimer) return;
+    clearTimeout(this.noticeTimer);
+    this.noticeTimer = undefined;
   }
 }

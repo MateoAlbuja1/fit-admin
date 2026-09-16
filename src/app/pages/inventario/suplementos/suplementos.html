@@ -1,6 +1,6 @@
 @if (notice) {
-  <div class="notice">
-    <span>✓</span>{{ notice }}
+  <div class="notice" [class.notice--error]="noticeType === 'error'" [class.notice--warning]="noticeType === 'warning'">
+    <span>{{ noticeType === 'success' ? '✓' : '!' }}</span>{{ notice }}
     <button type="button" (click)="clearNotice()">×</button>
   </div>
 }

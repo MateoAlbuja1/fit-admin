@@ -10,6 +10,7 @@ type FiltroMembresiaPlan = 'Todos' | 'Mensual' | 'Trimestral' | 'Anual';
 @Component({ selector: 'app-pagina-membresias', standalone: true, imports: [FormsModule], templateUrl: './membresias.html' })
 export class PaginaMembresiasComponent implements OnDestroy {
   notice = '';
+  noticeType: 'success' | 'warning' | 'error' = 'success';
   search = '';
   statusFilter: FiltroMembresiaEstado = 'Todos';
   planFilter: FiltroMembresiaPlan = 'Todos';
@@ -64,7 +65,7 @@ export class PaginaMembresiasComponent implements OnDestroy {
       error: error => {
         this.showNotice(error.name === 'TimeoutError'
           ? 'La renovacion esta tardando demasiado. Intenta nuevamente.'
-          : 'No se pudo renovar la membresia en el backend.');
+          : 'No se pudo renovar la membresia en el backend.', 'error');
       }
     });
   }
@@ -93,7 +94,7 @@ export class PaginaMembresiasComponent implements OnDestroy {
 
     const item = this.data.membresias.find(current => current.id === this.editingMembershipId);
     if (!item || !this.editMembership.member.trim()) {
-      this.showNotice('Completa el nombre del cliente.');
+      this.showNotice('Completa el nombre del cliente.', 'warning');
       return;
     }
 
@@ -116,7 +117,7 @@ export class PaginaMembresiasComponent implements OnDestroy {
       error: error => {
         this.showNotice(error.name === 'TimeoutError'
           ? 'La actualizacion esta tardando demasiado. Intenta nuevamente.'
-          : 'No se pudo actualizar la membresia en el backend.');
+          : 'No se pudo actualizar la membresia en el backend.', 'error');
       }
     });
   }
@@ -130,8 +131,9 @@ export class PaginaMembresiasComponent implements OnDestroy {
     this.clearNoticeTimer();
   }
 
-  private showNotice(message: string): void {
+  private showNotice(message: string, type: 'success' | 'warning' | 'error' = 'success'): void {
     this.notice = message;
+    this.noticeType = type;
     this.clearNoticeTimer();
     this.noticeTimer = setTimeout(() => {
       this.notice = '';

@@ -1,4 +1,4 @@
-@if (notice) { <div class="notice"><span>✓</span>{{ notice }}<button type="button" (click)="notice = ''">×</button></div> }
+@if (notice) { <div class="notice" [class.notice--error]="noticeType === 'error'" [class.notice--warning]="noticeType === 'warning'"><span>{{ noticeType === 'success' ? '✓' : '!' }}</span>{{ notice }}<button type="button" (click)="clearNotice()">×</button></div> }
 
 <section class="metric-grid">
   <article><span>Clientes totales</span><strong>{{ data.clientes.length }}</strong><small>Base registrada</small></article>

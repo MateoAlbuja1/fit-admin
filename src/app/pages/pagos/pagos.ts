@@ -15,6 +15,7 @@ type ItemVentaSuplemento = { supplementId: number | null; quantity: number };
 export class PaginaPagosComponent implements OnInit, OnDestroy {
   search = '';
   notice = '';
+  noticeType: 'success' | 'warning' | 'error' = 'success';
   showForm = false;
   page = 1;
   readonly pageSize = 3;
@@ -171,7 +172,7 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
 
     const payment = this.data.pagos.find(item => item.id === this.editingPaymentId);
     if (!payment || !this.editPayment.member.trim() || this.editPayment.amount <= 0) {
-      this.showNotice('Completa el cliente y un monto valido.');
+      this.showNotice('Completa el cliente y un monto valido.', 'warning');
       return;
     }
 
@@ -198,7 +199,7 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
       error: error => {
         this.showNotice(error.name === 'TimeoutError'
           ? 'La actualizacion esta tardando demasiado. Intenta nuevamente.'
-          : 'No se pudo actualizar el pago en el backend.');
+          : 'No se pudo actualizar el pago en el backend.', 'error');
       }
     });
   }
@@ -212,7 +213,7 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
     if (this.isSavingPayment) return;
 
     if (!this.newPayment.member.trim() || this.newPayment.amount <= 0) {
-      this.showNotice('Completa el cliente y un monto valido.');
+      this.showNotice('Completa el cliente y un monto valido.', 'warning');
       return;
     }
 
@@ -240,7 +241,7 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
       error: error => {
         this.showNotice(error.name === 'TimeoutError'
           ? 'El registro esta tardando demasiado. Intenta nuevamente.'
-          : 'No se pudo registrar el pago en el backend.');
+          : 'No se pudo registrar el pago en el backend.', 'error');
       }
     });
   }
@@ -314,11 +315,11 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
       .filter(item => item.supplementId && item.quantity > 0);
 
     if (!this.newPayment.member.trim() || !this.newPayment.customerPhone.trim()) {
-      this.showNotice('Completa nombre y telefono del cliente.');
+      this.showNotice('Completa nombre y telefono del cliente.', 'warning');
       return;
     }
     if (!items.length) {
-      this.showNotice('Selecciona al menos un suplemento.');
+      this.showNotice('Selecciona al menos un suplemento.', 'warning');
       return;
     }
 
@@ -330,7 +331,7 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
       const product = this.productById(invalidStock.supplementId);
       this.showNotice(product
         ? `${product.name} solo tiene ${product.stock} unidad(es) disponibles.`
-        : 'Uno de los productos seleccionados ya no esta disponible.');
+        : 'Uno de los productos seleccionados ya no esta disponible.', 'warning');
       return;
     }
 
@@ -363,7 +364,7 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
           ? 'La venta esta tardando demasiado. Intenta nuevamente.'
           : error.status === 409
           ? 'No hay stock suficiente para completar la venta.'
-          : 'No se pudo registrar la venta de suplementos.');
+          : 'No se pudo registrar la venta de suplementos.', error.status === 409 ? 'warning' : 'error');
       }
     });
   }
@@ -403,8 +404,9 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
     return Math.min(quantity, Math.max(1, max));
   }
 
-  private showNotice(message: string): void {
+  private showNotice(message: string, type: 'success' | 'warning' | 'error' = 'success'): void {
     this.notice = message;
+    this.noticeType = type;
     this.clearNoticeTimer();
     this.noticeTimer = setTimeout(() => {
       this.notice = '';

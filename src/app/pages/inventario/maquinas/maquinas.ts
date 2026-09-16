@@ -10,6 +10,7 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
   search = '';
   view: 'grid' | 'list' = 'grid';
   notice = '';
+  noticeType: 'success' | 'warning' | 'error' = 'success';
   showForm = false;
   formStep = 1;
   detail: DetalleRegistro | null = null;
@@ -81,7 +82,7 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
       },
       error: () => {
         this.updateView(() => item.status = previousStatus);
-        this.showNotice('No se pudo actualizar la máquina. Intenta otra vez.');
+        this.showNotice('No se pudo actualizar la maquina. Intenta otra vez.', 'error');
       }
     });
   }
@@ -111,7 +112,7 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
         this.showNotice(`${item.name} eliminada del inventario.`);
       },
       error: () => {
-        this.showNotice('No se pudo eliminar la maquina en el backend.');
+        this.showNotice('No se pudo eliminar la maquina en el backend.', 'error');
       }
     });
   }
@@ -154,7 +155,7 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
 
     const item = this.data.maquinas.find(current => current.id === this.editingItemId);
     if (!item || !this.editItem.name.trim() || !this.editItem.type.trim()) {
-      this.showNotice('Completa el nombre y tipo de equipo.');
+      this.showNotice('Completa el nombre y tipo de equipo.', 'warning');
       return;
     }
 
@@ -178,7 +179,7 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
         this.showNotice('Ficha de máquina actualizada correctamente.');
       },
       error: () => {
-        this.showNotice('No se pudo actualizar la máquina. Intenta otra vez.');
+        this.showNotice('No se pudo actualizar la maquina. Intenta otra vez.', 'error');
       }
     });
   }
@@ -187,7 +188,7 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file || file.size > 4 * 1024 * 1024) {
-      this.showNotice('Selecciona una imagen menor a 4 MB.');
+      this.showNotice('Selecciona una imagen menor a 4 MB.', 'warning');
       input.value = '';
       return;
     }
@@ -196,7 +197,7 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
       this.newItem.photo = String(reader.result);
       input.value = '';
     });
-    reader.onerror = () => this.showNotice('No se pudo cargar la imagen.');
+    reader.onerror = () => this.showNotice('No se pudo cargar la imagen.', 'error');
     reader.readAsDataURL(file);
   }
 
@@ -204,7 +205,7 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file || file.size > 4 * 1024 * 1024) {
-      this.showNotice('Selecciona una imagen menor a 4 MB.');
+      this.showNotice('Selecciona una imagen menor a 4 MB.', 'warning');
       input.value = '';
       return;
     }
@@ -213,7 +214,7 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
       this.editItem.photo = String(reader.result);
       input.value = '';
     });
-    reader.onerror = () => this.showNotice('No se pudo cargar la imagen.');
+    reader.onerror = () => this.showNotice('No se pudo cargar la imagen.', 'error');
     reader.readAsDataURL(file);
   }
 
@@ -223,7 +224,7 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
     }
 
     if (!this.newItem.name.trim() || !this.newItem.type.trim()) {
-      this.showNotice('Completa el nombre y tipo de equipo.');
+      this.showNotice('Completa el nombre y tipo de equipo.', 'warning');
       return;
     }
 
@@ -242,7 +243,7 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
         this.showNotice('Máquina agregada correctamente.');
       },
       error: () => {
-        this.showNotice('No se pudo crear la máquina. Intenta otra vez.');
+        this.showNotice('No se pudo crear la maquina. Intenta otra vez.', 'error');
       }
     });
   }
@@ -252,8 +253,11 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
     this.updateView(() => this.notice = '');
   }
 
-  private showNotice(message: string): void {
-    this.updateView(() => this.notice = message);
+  private showNotice(message: string, type: 'success' | 'warning' | 'error' = 'success'): void {
+    this.updateView(() => {
+      this.notice = message;
+      this.noticeType = type;
+    });
     this.clearNoticeTimer();
     this.noticeTimer = setTimeout(() => {
       this.updateView(() => this.notice = '');

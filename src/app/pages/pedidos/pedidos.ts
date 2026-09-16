@@ -11,6 +11,7 @@ type FiltroPedidoEstado = 'Todos' | PedidoTienda['status'];
 export class PaginaPedidosComponent implements OnInit, OnDestroy {
   pedidos: PedidoTienda[] = [];
   notice = '';
+  noticeType: 'success' | 'warning' | 'error' = 'success';
   search = '';
   statusFilter: FiltroPedidoEstado = 'Todos';
   page = 1;
@@ -95,7 +96,7 @@ export class PaginaPedidosComponent implements OnInit, OnDestroy {
         this.updateView(() => {
           this.pedidos = this.data.pedidosTienda;
           this.isLoading = false;
-          this.showNotice('No se pudieron cargar los pedidos de tienda.');
+          this.showNotice('No se pudieron cargar los pedidos de tienda.', 'error');
         });
       }
     });
@@ -119,7 +120,7 @@ export class PaginaPedidosComponent implements OnInit, OnDestroy {
       },
       error: () => {
         this.updateView(() => {
-          this.notice = 'No se pudo cargar el detalle del pedido.';
+          this.showNotice('No se pudo cargar el detalle del pedido.', 'error');
         });
       }
     });
@@ -149,7 +150,7 @@ export class PaginaPedidosComponent implements OnInit, OnDestroy {
       error: () => {
         this.updateView(() => {
           this.updatingOrderIds.delete(order.id);
-          this.showNotice('No se pudo actualizar el estado del pedido.');
+          this.showNotice('No se pudo actualizar el estado del pedido.', 'error');
         });
       }
     });
@@ -181,8 +182,14 @@ export class PaginaPedidosComponent implements OnInit, OnDestroy {
     });
   }
 
-  private showNotice(message: string): void {
+  clearNotice(): void {
+    this.notice = '';
+    this.clearNoticeTimer();
+  }
+
+  private showNotice(message: string, type: 'success' | 'warning' | 'error' = 'success'): void {
     this.notice = message;
+    this.noticeType = type;
     this.clearNoticeTimer();
     this.noticeTimer = setTimeout(() => {
       this.notice = '';

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { catchError, forkJoin, Observable, of, switchMap } from 'rxjs';
@@ -58,7 +58,7 @@ interface DashboardSummary {
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   drawerCollapsed = false;
   mobileNavOpen = false;
   showAlerts = false;
@@ -69,11 +69,13 @@ export class DashboardComponent implements OnInit {
   selectedDay = 'Jue';
   lastUpdated = new Date();
   notice = '';
+  noticeType: 'success' | 'warning' | 'error' = 'success';
   dashboardSummary: DashboardSummary | null = null;
   dashboardSales: Array<Record<string, unknown>> = [];
   dashboardAttendance: Array<Record<string, unknown>> = [];
   dashboardMemberships: Array<Record<string, unknown>> = [];
   readonly role$: Observable<ApiUserRole | null>;
+  private noticeTimer?: ReturnType<typeof setTimeout>;
 
   readonly adminUser: DashboardUser = {
     role: 'admin',
@@ -171,6 +173,10 @@ export class DashboardComponent implements OnInit {
 
   get unreadAlertCount(): number {
     return this.alertsRead ? 0 : this.alerts.filter(alert => !alert.read).length;
+  }
+
+  ngOnDestroy(): void {
+    this.clearNoticeTimer();
   }
 
   get paidIncome(): number {
@@ -393,7 +399,7 @@ export class DashboardComponent implements OnInit {
           this.alertsRead = !alertas.some(alert => !alert.read);
         },
         error: () => {
-          this.notice = 'No se pudieron sincronizar las alertas.';
+          this.showNotice('No se pudieron sincronizar las alertas.', 'error');
         }
       });
     }
@@ -425,7 +431,7 @@ export class DashboardComponent implements OnInit {
         this.alertsRead = true;
       },
       error: () => {
-        this.notice = 'No se pudieron marcar las alertas como revisadas.';
+        this.showNotice('No se pudieron marcar las alertas como revisadas.', 'error');
       }
     });
   }
@@ -458,7 +464,7 @@ export class DashboardComponent implements OnInit {
   quickCheckIn(): void {
     const client = this.data.clientes.find(item => item.status === 'Activo');
     if (!client) {
-      this.notice = 'No hay clientes activos para registrar asistencia rapida.';
+      this.showNotice('No hay clientes activos para registrar asistencia rapida.', 'warning');
       return;
     }
 
@@ -469,7 +475,7 @@ export class DashboardComponent implements OnInit {
         this.refreshDashboard(`Asistencia registrada para ${record.member}.`);
       },
       error: () => {
-        this.notice = 'No se pudo registrar la asistencia rapida en el backend.';
+        this.showNotice('No se pudo registrar la asistencia rapida en el backend.', 'error');
       }
     });
   }
@@ -477,7 +483,7 @@ export class DashboardComponent implements OnInit {
   quickSale(): void {
     const product = this.data.suplementos.find(item => item.stock > 0);
     if (!product) {
-      this.notice = 'No hay suplementos disponibles para vender.';
+      this.showNotice('No hay suplementos disponibles para vender.', 'warning');
       return;
     }
 
@@ -500,17 +506,30 @@ export class DashboardComponent implements OnInit {
         this.refreshDashboard(`Venta rapida registrada: ${product.name}.`);
       },
       error: () => {
-        this.notice = 'No se pudo registrar la venta rapida en el backend.';
+        this.showNotice('No se pudo registrar la venta rapida en el backend.', 'error');
       }
     });
   }
 
   refreshDashboard(message = 'Dashboard actualizado con los datos más recientes.'): void {
     this.lastUpdated = new Date();
+    this.showNotice(message);
+  }
+
+  private showNotice(message: string, type: 'success' | 'warning' | 'error' = 'success'): void {
     this.notice = message;
-    window.setTimeout(() => {
+    this.noticeType = type;
+    this.clearNoticeTimer();
+    this.noticeTimer = setTimeout(() => {
       if (this.notice === message) this.notice = '';
+      this.noticeTimer = undefined;
     }, 3200);
+  }
+
+  private clearNoticeTimer(): void {
+    if (!this.noticeTimer) return;
+    clearTimeout(this.noticeTimer);
+    this.noticeTimer = undefined;
   }
 
   formatCurrency(value: number): string {

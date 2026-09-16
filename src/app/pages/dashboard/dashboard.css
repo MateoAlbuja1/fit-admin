@@ -101,6 +101,10 @@ svg { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: 
 .welcome-row { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin: 24px 0 18px; padding: 20px 22px; border: 1px solid #e1e1df; border-radius: 13px; background: #fff; box-shadow: var(--soft-shadow); }
 .dashboard-toast { position: fixed; z-index: 120; top: 18px; right: 24px; display: flex; align-items: center; gap: 9px; padding: 12px 16px; border: 1px solid rgba(37,143,98,.22); border-radius: 12px; background: #fff; color: #1d6f4b; box-shadow: 0 18px 46px rgba(0,0,0,.16); font-size: 13px; font-weight: 800; animation: alertIn .2s ease both; }
 .dashboard-toast span { display: grid; width: 22px; height: 22px; place-items: center; border-radius: 50%; background: rgba(37,143,98,.1); color: var(--positive); }
+.dashboard-toast--warning { border-color: rgba(183,122,18,.24); color: #9b6509; }
+.dashboard-toast--warning span { background: rgba(183,122,18,.12); color: #b77a12; }
+.dashboard-toast--error { border-color: rgba(197,69,69,.24); color: #9f3030; }
+.dashboard-toast--error span { background: rgba(197,69,69,.12); color: var(--danger); }
 .welcome-row p { margin: 0 0 6px; font-size: 19px; font-weight: 900; letter-spacing: -.35px; }
 .welcome-row > div > span { color: #888; font-size: 11px; }
 .welcome-meta { display: flex; align-items: center; gap: 16px; }
@@ -441,6 +445,10 @@ svg { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: 
 .dark-mode .search-results small,
 .dark-mode .quick-actions small { color: #8f9aa8; }
 .dark-mode .dashboard-toast { color: #93e0b8; }
+.dark-mode .dashboard-toast--warning { border-color: rgba(255,190,90,.32); color: #ffc875; }
+.dark-mode .dashboard-toast--warning span { background: rgba(255,190,90,.14); color: #ffc875; }
+.dark-mode .dashboard-toast--error { border-color: rgba(255,100,100,.3); color: #ff9a9a; }
+.dark-mode .dashboard-toast--error span { background: rgba(255,100,100,.14); color: #ff9a9a; }
 .dark-mode .quick-actions span { background: #e8edf4; color: #11161d; }
 .dark-mode .search-box input { color: #e8edf4; }
 .dark-mode .search-box input::placeholder { color: #687280; }

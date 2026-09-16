@@ -1,5 +1,5 @@
 @if (notice) {
-  <div class="notice"><span>✓</span>{{ notice }}<button type="button" (click)="resetNotice()">×</button></div>
+  <div class="notice" [class.notice--error]="noticeType === 'error'" [class.notice--warning]="noticeType === 'warning'"><span>{{ noticeType === 'success' ? '✓' : '!' }}</span>{{ notice }}<button type="button" (click)="resetNotice()">×</button></div>
 }
 
 <section class="settings-shell">

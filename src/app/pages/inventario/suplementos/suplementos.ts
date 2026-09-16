@@ -12,6 +12,7 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
   search = '';
   view: 'grid' | 'list' = 'grid';
   notice = '';
+  noticeType: 'success' | 'warning' | 'error' = 'success';
   showForm = false;
   formStep = 1;
   detail: DetalleRegistro | null = null;
@@ -120,7 +121,7 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
   applyStockDraft(item: Suplemento): void {
     const draft = this.stockDraftValue(item);
     if (draft === null) {
-      this.showNotice('Ingresa una cantidad de stock valida.');
+      this.showNotice('Ingresa una cantidad de stock valida.', 'warning');
       return;
     }
 
@@ -160,7 +161,7 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
       error: () => {
         if (this.stockRequestVersions.get(item.id) === requestVersion) {
           this.data.refrescar();
-          this.showNotice('No se pudo confirmar el stock. Se actualizará desde el backend.');
+          this.showNotice('No se pudo confirmar el stock. Se actualizara desde el backend.', 'error');
         }
       }
     });
@@ -218,7 +219,7 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
 
     const item = this.data.suplementos.find(current => current.id === this.editingItemId);
     if (!item || !this.editItem.name.trim() || !this.editItem.category.trim()) {
-      this.showNotice('Completa nombre y categoria.');
+      this.showNotice('Completa nombre y categoria.', 'warning');
       return;
     }
 
@@ -249,7 +250,7 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
       error: error => {
         this.showNotice(error.name === 'TimeoutError'
           ? 'La actualizacion esta tardando demasiado. Intenta nuevamente.'
-          : 'No se pudo actualizar el suplemento en el backend.');
+          : 'No se pudo actualizar el suplemento en el backend.', 'error');
       }
     });
   }
@@ -289,7 +290,7 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
       error: error => {
         this.showNotice(error.name === 'TimeoutError'
           ? 'La eliminacion esta tardando demasiado. Intenta nuevamente.'
-          : 'No se pudo eliminar el suplemento en el backend.');
+          : 'No se pudo eliminar el suplemento en el backend.', 'error');
       }
     });
   }
@@ -354,7 +355,7 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file || file.size > 4 * 1024 * 1024) {
-      this.showNotice('Selecciona una imagen menor a 4 MB.');
+      this.showNotice('Selecciona una imagen menor a 4 MB.', 'warning');
       input.value = '';
       return;
     }
@@ -365,7 +366,7 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
         input.value = '';
       });
     };
-    reader.onerror = () => this.showNotice('No se pudo cargar la imagen.');
+    reader.onerror = () => this.showNotice('No se pudo cargar la imagen.', 'error');
     reader.readAsDataURL(file);
   }
 
@@ -375,7 +376,7 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
     }
 
     if (!this.newItem.name.trim() || !this.newItem.category.trim() || !this.newItem.description.trim()) {
-      this.showNotice('Completa nombre, categoria y descripcion.');
+      this.showNotice('Completa nombre, categoria y descripcion.', 'warning');
       return;
     }
 
@@ -401,7 +402,7 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
       error: error => {
         this.showNotice(error.name === 'TimeoutError'
           ? 'El registro esta tardando demasiado. Intenta nuevamente.'
-          : 'No se pudo crear el suplemento en el backend.');
+          : 'No se pudo crear el suplemento en el backend.', 'error');
       }
     });
   }
@@ -414,11 +415,14 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
     this.notice = '';
   }
 
-  private showNotice(message: string): void {
+  private showNotice(message: string, type: 'success' | 'warning' | 'error' = 'success'): void {
     if (this.noticeTimer) {
       clearTimeout(this.noticeTimer);
     }
-    this.updateView(() => this.notice = message);
+    this.updateView(() => {
+      this.notice = message;
+      this.noticeType = type;
+    });
     this.noticeTimer = setTimeout(() => {
       this.updateView(() => this.notice = '');
       this.noticeTimer = undefined;

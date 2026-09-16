@@ -1,20 +1,25 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
+import { timeout } from 'rxjs';
 import { isApiUrl } from '../config/api.config';
 import { AuthService } from './auth.service';
+
+const API_TIMEOUT_MS = 15000;
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const token = inject(AuthService).token;
 
   const isApiRequest = isApiUrl(req.url);
 
-  if (!token || !isApiRequest) {
+  if (!isApiRequest) {
     return next(req);
   }
 
-  return next(req.clone({
+  const apiRequest = token ? req.clone({
     setHeaders: {
       Authorization: `Bearer ${token}`
     }
-  }));
+  }) : req;
+
+  return next(apiRequest).pipe(timeout(API_TIMEOUT_MS));
 };

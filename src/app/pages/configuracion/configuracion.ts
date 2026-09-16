@@ -66,6 +66,7 @@ interface LoginHistoryEntry {
 })
 export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
   notice = '';
+  noticeType: 'success' | 'warning' | 'error' = 'success';
   activePanel: PanelConfiguracion = 'gimnasio';
   isSaving = false;
   isRestoring = false;
@@ -658,8 +659,9 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
     return true;
   }
 
-  private showNotice(message: string): void {
+  private showNotice(message: string, type = this.noticeTypeFor(message)): void {
     this.notice = message;
+    this.noticeType = type;
     this.clearNoticeTimer();
     this.noticeTimer = setTimeout(() => {
       this.notice = '';
@@ -667,6 +669,17 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
       this.cdr.detectChanges();
     }, 3600);
     this.cdr.detectChanges();
+  }
+
+  private noticeTypeFor(message: string): 'success' | 'warning' | 'error' {
+    const text = message.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    if (text.includes('no se pudo') || text.includes('incorrecta') || text.includes('tardando') || text.includes('tardo') || text.includes('revisa')) {
+      return 'error';
+    }
+    if (text.includes('completa') || text.includes('selecciona') || text.includes('define') || text.includes('debe') || text.includes('no puede')) {
+      return 'warning';
+    }
+    return 'success';
   }
 
   private clearNoticeTimer(): void {

@@ -18,18 +18,21 @@ export class PaginaReportesComponent implements OnDestroy {
   isGenerating = false;
   generatedAt = '';
   notice = '';
+  noticeType: 'success' | 'warning' | 'error' = 'success';
   reportId = '';
   reportMetrics: ReportMetric[] = [];
   reportData: Record<string, unknown> = {};
   private readonly apiUrl = apiBaseUrl();
   private reportAbort?: AbortController;
   private generationTimer?: ReturnType<typeof setTimeout>;
+  private noticeTimer?: ReturnType<typeof setTimeout>;
 
   constructor(public data: DatosGimnasioService, private cdr: ChangeDetectorRef) {}
 
   ngOnDestroy(): void {
     this.reportAbort?.abort();
     this.clearGenerationTimer();
+    this.clearNoticeTimer();
   }
 
   get bars(): number[] {
@@ -44,10 +47,10 @@ export class PaginaReportesComponent implements OnDestroy {
       return;
     }
 
-    this.notice = '';
+    this.clearNotice();
 
     if (this.from && this.to && this.from > this.to) {
-      this.notice = 'La fecha inicial no puede ser mayor que la fecha final.';
+      this.showNotice('La fecha inicial no puede ser mayor que la fecha final.', 'warning');
       return;
     }
 
@@ -114,7 +117,7 @@ export class PaginaReportesComponent implements OnDestroy {
   downloadDetailedCsv(): void {
     const rows = this.reportRows();
     if (!rows.length) {
-      this.notice = 'Este reporte no tiene filas detalladas para exportar.';
+      this.showNotice('Este reporte no tiene filas detalladas para exportar.', 'warning');
       return;
     }
 
@@ -246,7 +249,7 @@ export class PaginaReportesComponent implements OnDestroy {
         return;
       }
       this.isGenerating = false;
-      this.notice = 'El reporte esta tardando demasiado. Verifica el backend e intenta de nuevo.';
+      this.showNotice('El reporte esta tardando demasiado. Verifica el backend e intenta de nuevo.', 'error');
       this.reportAbort?.abort();
       this.generationTimer = undefined;
       this.cdr.detectChanges();
@@ -257,7 +260,7 @@ export class PaginaReportesComponent implements OnDestroy {
     this.isGenerating = false;
     this.clearGenerationTimer();
     if (message) {
-      this.notice = message;
+      this.showNotice(message, 'error');
     }
     this.cdr.detectChanges();
   }
@@ -268,6 +271,31 @@ export class PaginaReportesComponent implements OnDestroy {
     }
     clearTimeout(this.generationTimer);
     this.generationTimer = undefined;
+  }
+
+  private showNotice(message: string, type: 'success' | 'warning' | 'error' = 'success'): void {
+    this.notice = message;
+    this.noticeType = type;
+    this.clearNoticeTimer();
+    this.noticeTimer = setTimeout(() => {
+      this.notice = '';
+      this.noticeTimer = undefined;
+      this.cdr.detectChanges();
+    }, 4200);
+    this.cdr.detectChanges();
+  }
+
+  private clearNotice(): void {
+    this.notice = '';
+    this.clearNoticeTimer();
+  }
+
+  private clearNoticeTimer(): void {
+    if (!this.noticeTimer) {
+      return;
+    }
+    clearTimeout(this.noticeTimer);
+    this.noticeTimer = undefined;
   }
 
   private reportHeaders(): HeadersInit {
