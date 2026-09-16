@@ -103,7 +103,7 @@
                 <strong>Mostrar promocion</strong>
                 <small>Activa o apaga el anuncio que aparece al entrar a la web.</small>
               </span>
-              <input type="checkbox" [(ngModel)]="promocionWeb.enabled" name="promotionEnabled" />
+              <input type="checkbox" [ngModel]="promocionWeb.enabled" (ngModelChange)="updatePromotionEnabled($event)" name="promotionEnabled" />
             </label>
           </div>
 
@@ -138,7 +138,10 @@
           </div>
 
           <div class="promotion-actions">
-            <button type="button" class="secondary-button" (click)="refreshPromotionProducts()">Actualizar productos</button>
+            <button type="button" class="secondary-button" (click)="refreshPromotionProducts()">Recargar productos</button>
+            <button type="button" class="primary-button" (click)="savePromotionSettings()" [disabled]="isSaving || isRestoring">
+              {{ isSaving ? 'Guardando...' : 'Guardar promocion' }}
+            </button>
           </div>
 
           <div class="settings-divider"></div>

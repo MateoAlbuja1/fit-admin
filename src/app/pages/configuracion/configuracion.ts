@@ -486,9 +486,18 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
     this.promotionTagsText = this.promocionWeb.tags.join(', ');
   }
 
+  updatePromotionEnabled(enabled: boolean): void {
+    this.promocionWeb.enabled = enabled;
+    this.savePromotionSettings();
+  }
+
   refreshPromotionProducts(): void {
     this.data.refrescar();
     this.showNotice('Lista de suplementos actualizada.');
+  }
+
+  savePromotionSettings(): void {
+    this.persistGymSettings('Promocion web guardada correctamente.', true);
   }
 
   private saveWithPasswordChange(): void {
