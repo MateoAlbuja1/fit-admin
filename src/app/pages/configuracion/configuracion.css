@@ -422,6 +422,99 @@
   color: var(--danger);
 }
 
+.restore-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #ededeb;
+  border-radius: 14px;
+  background: #fafafa;
+}
+
+.restore-card div {
+  display: grid;
+  gap: 4px;
+}
+
+.restore-card strong {
+  font-size: 15px;
+}
+
+.restore-card small {
+  color: #777;
+  font-size: 12px;
+  line-height: 17px;
+}
+
+.restore-file {
+  display: inline-grid;
+  place-items: center;
+}
+
+.restore-file input {
+  display: none;
+}
+
+.system-grid,
+.system-counts {
+  display: grid;
+  gap: 12px;
+}
+
+.system-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.system-counts {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.system-grid article,
+.system-counts article {
+  display: grid;
+  gap: 7px;
+  min-height: 112px;
+  padding: 16px;
+  border: 1px solid rgba(197, 69, 69, .2);
+  border-radius: 14px;
+  background: rgba(197, 69, 69, .06);
+}
+
+.system-grid article.system-card--ok {
+  border-color: rgba(37, 143, 98, .22);
+  background: rgba(37, 143, 98, .08);
+}
+
+.system-grid span,
+.system-counts span {
+  color: #777;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.system-grid strong {
+  overflow: hidden;
+  font-size: 17px;
+  line-height: 22px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.system-grid small {
+  color: #777;
+  font-size: 12px;
+  line-height: 17px;
+}
+
+.system-counts strong {
+  font-size: 32px;
+  line-height: 38px;
+}
+
 .settings-actions {
   display: flex;
   justify-content: flex-end;
@@ -456,9 +549,21 @@
 .dark-mode .tax-status,
 .dark-mode .schedule-row,
 .dark-mode .admin-profile-card,
+.dark-mode .restore-card,
+.dark-mode .system-counts article,
 .dark-mode .security-head {
   border-color: #2b3542;
   background: #151d28;
+}
+
+.dark-mode .system-grid article {
+  border-color: rgba(255, 113, 113, .26);
+  background: rgba(197, 69, 69, .13);
+}
+
+.dark-mode .system-grid article.system-card--ok {
+  border-color: rgba(74, 222, 128, .24);
+  background: rgba(74, 222, 128, .09);
 }
 
 .dark-mode .tax-status--active {
@@ -487,6 +592,9 @@
   .settings-form,
   .permissions-grid,
   .schedule-row,
+  .restore-card,
+  .system-grid,
+  .system-counts,
   .security-head,
   .security-row {
     grid-template-columns: 1fr;

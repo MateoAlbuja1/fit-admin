@@ -43,7 +43,11 @@
           <h3>{{ reportType }}</h3>
           <small>{{ from }} - {{ to }} - {{ generatedAt }}</small>
         </div>
-        <button class="secondary-button" type="button" (click)="download()">Descargar CSV</button>
+        <div class="report-actions">
+          <button class="secondary-button" type="button" (click)="downloadSummary()">Resumen CSV</button>
+          <button class="primary-button" type="button" (click)="downloadDetailedCsv()">CSV detallado</button>
+          <button class="secondary-button" type="button" (click)="downloadJson()">JSON</button>
+        </div>
       </div>
 
       <div class="report-stats">

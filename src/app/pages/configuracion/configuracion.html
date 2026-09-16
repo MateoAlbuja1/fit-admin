@@ -173,6 +173,26 @@
           <div class="settings-divider"></div>
 
           <header class="settings-subheader">
+            <div><span>RESTAURACION</span><h3>Restaurar backup</h3></div>
+          </header>
+
+          <div class="restore-card">
+            <div>
+              <strong>{{ selectedBackupFileName || 'Ningun backup seleccionado' }}</strong>
+              <small>Restaura datos operativos, inventario, pedidos y configuracion. No modifica usuarios ni contrasenas.</small>
+            </div>
+            <label class="secondary-button restore-file">
+              Elegir JSON
+              <input type="file" accept="application/json,.json" (change)="handleBackupFile($event)" />
+            </label>
+            <button class="primary-button" type="button" (click)="restoreSelectedBackup()" [disabled]="isRestoring || !selectedBackupSnapshot">
+              {{ isRestoring ? 'Restaurando...' : 'Restaurar backup' }}
+            </button>
+          </div>
+
+          <div class="settings-divider"></div>
+
+          <header class="settings-subheader">
             <div><span>CONTRASENA</span><h3>Cambiar contrasena</h3></div>
           </header>
 
@@ -202,14 +222,62 @@
           </div>
         </article>
       }
+
+      @case ('sistema') {
+        <article class="settings-screen">
+          <header>
+            <div><span>DIAGNOSTICO</span><h3>Estado del sistema</h3></div>
+            <b>05</b>
+          </header>
+
+          <div class="system-grid">
+            <article [class.system-card--ok]="statusOk('api.status')">
+              <span>Backend</span>
+              <strong>{{ statusOk('api.status') ? 'Activo' : 'Revisar' }}</strong>
+              <small>{{ statusValue('service', 'gym-service') }} · {{ statusValue('checkedAt', 'Sin lectura') }}</small>
+            </article>
+            <article [class.system-card--ok]="statusOk('database.status')">
+              <span>Base de datos</span>
+              <strong>{{ statusOk('database.status') ? 'OK' : 'Revisar' }}</strong>
+              <small>{{ statusValue('database.engine', 'postgres') }}</small>
+            </article>
+            <article [class.system-card--ok]="statusOk('backup.status')">
+              <span>Ultimo backup</span>
+              <strong>{{ statusValue('backup.lastBackup.fileName', 'Sin backup') }}</strong>
+              <small>{{ statusValue('backup.lastBackup.createdAt', 'Genera uno antes de subir') }} · {{ formatBytes(statusValue('backup.lastBackup.size')) }}</small>
+            </article>
+            <article [class.system-card--ok]="statusOk('paypal.status')">
+              <span>PayPal</span>
+              <strong>{{ statusOk('paypal.status') ? 'Configurado' : 'Pendiente' }}</strong>
+              <small>{{ statusValue('paypal.mode', 'no configurado') }}</small>
+            </article>
+          </div>
+
+          <div class="settings-divider"></div>
+
+          <header class="settings-subheader">
+            <div><span>DATOS</span><h3>Conteo actual</h3></div>
+            <button class="secondary-button" type="button" (click)="loadSystemStatus()" [disabled]="isCheckingSystem">{{ isCheckingSystem ? 'Revisando...' : 'Actualizar' }}</button>
+          </header>
+
+          <div class="system-counts">
+            <article><span>Clientes</span><strong>{{ statusCount('counts.clients') }}</strong></article>
+            <article><span>Suplementos</span><strong>{{ statusCount('counts.supplements') }}</strong></article>
+            <article><span>Maquinas</span><strong>{{ statusCount('counts.machines') }}</strong></article>
+            <article><span>Pedidos</span><strong>{{ statusCount('counts.orders') }}</strong></article>
+          </div>
+
+          <p class="settings-hint">Antes de subir al servidor: backend y base deben estar OK, y conviene generar un backup reciente.</p>
+        </article>
+      }
     }
   </section>
 </section>
 
 <section class="settings-actions">
-  <button class="secondary-button" type="button" (click)="resetFromBackend()" [disabled]="isSaving">Restaurar valores</button>
-  <button class="secondary-button" type="button" (click)="requestBackup()" [disabled]="isSaving">Crear backup</button>
-  <button class="primary-button" type="button" (click)="saveSettings()" [disabled]="isSaving">
+  <button class="secondary-button" type="button" (click)="resetFromBackend()" [disabled]="isSaving || isRestoring">Restaurar valores</button>
+  <button class="secondary-button" type="button" (click)="requestBackup()" [disabled]="isSaving || isRestoring">Crear backup</button>
+  <button class="primary-button" type="button" (click)="saveSettings()" [disabled]="isSaving || isRestoring">
     {{ isSaving ? 'Guardando...' : 'Guardar configuracion' }}
   </button>
 </section>

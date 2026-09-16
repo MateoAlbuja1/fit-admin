@@ -20,6 +20,7 @@ export class PaginaReportesComponent implements OnDestroy {
   notice = '';
   reportId = '';
   reportMetrics: ReportMetric[] = [];
+  reportData: Record<string, unknown> = {};
   private readonly apiUrl = apiBaseUrl();
   private reportAbort?: AbortController;
   private generationTimer?: ReturnType<typeof setTimeout>;
@@ -77,7 +78,8 @@ export class PaginaReportesComponent implements OnDestroy {
       this.ready = true;
       this.reportId = String(report['id'] || '');
       this.generatedAt = this.formatDateTime(report['createdAt']);
-      this.reportMetrics = this.buildMetrics((report['data'] || {}) as Record<string, unknown>);
+      this.reportData = (report['data'] || {}) as Record<string, unknown>;
+      this.reportMetrics = this.buildMetrics(this.reportData);
       this.cdr.detectChanges();
     } catch {
       if (this.isGenerating) {
@@ -90,7 +92,7 @@ export class PaginaReportesComponent implements OnDestroy {
     }
   }
 
-  download(): void {
+  downloadSummary(): void {
     if (!this.reportMetrics.length) {
       return;
     }
@@ -106,11 +108,44 @@ export class PaginaReportesComponent implements OnDestroy {
       ...this.reportMetrics.map(item => [item.label, item.value])
     ];
     const blob = new Blob([rows.map(row => row.map(cell => this.csvCell(cell)).join(',')).join('\n')], { type: 'text/csv' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `reporte-${this.reportCode()}-fit-admin.csv`;
-    link.click();
-    URL.revokeObjectURL(link.href);
+    this.downloadBlob(blob, `resumen-${this.reportCode()}-fit-admin.csv`);
+  }
+
+  downloadDetailedCsv(): void {
+    const rows = this.reportRows();
+    if (!rows.length) {
+      this.notice = 'Este reporte no tiene filas detalladas para exportar.';
+      return;
+    }
+
+    const headers = Array.from(new Set(rows.flatMap(row => Object.keys(row))));
+    const csvRows = [
+      ['Reporte', this.reportType],
+      ['Desde', this.from],
+      ['Hasta', this.to],
+      ['Generado', this.generatedAt],
+      [],
+      headers,
+      ...rows.map(row => headers.map(header => row[header] ?? ''))
+    ];
+    const blob = new Blob([csvRows.map(row => row.map(cell => this.csvCell(cell)).join(',')).join('\n')], { type: 'text/csv' });
+    this.downloadBlob(blob, `detalle-${this.reportCode()}-fit-admin.csv`);
+  }
+
+  downloadJson(): void {
+    if (!Object.keys(this.reportData).length) {
+      return;
+    }
+
+    const blob = new Blob([JSON.stringify({
+      reportType: this.reportType,
+      from: this.from,
+      to: this.to,
+      generatedAt: this.generatedAt,
+      id: this.reportId,
+      data: this.reportData
+    }, null, 2)], { type: 'application/json' });
+    this.downloadBlob(blob, `reporte-${this.reportCode()}-fit-admin.json`);
   }
 
   private reportCode(): string {
@@ -144,7 +179,8 @@ export class PaginaReportesComponent implements OnDestroy {
     if (memberships) metrics.push({ label: 'Membresias', value: String(memberships), numeric: memberships });
     if (attendanceTotal) metrics.push({ label: 'Asistencias', value: String(attendanceTotal), numeric: attendanceTotal });
     if (inventoryTotal) metrics.push({ label: 'Inventario', value: `${inventoryTotal} items`, numeric: inventoryTotal });
-    if (lowStock.length) metrics.push({ label: 'Stock bajo', value: String(lowStock.length), numeric: lowStock.length });
+    const lowStockCount = lowStock.length || this.numberValue(data['lowStock']);
+    if (lowStockCount) metrics.push({ label: 'Stock bajo', value: String(lowStockCount), numeric: lowStockCount });
     if (pendingTotal) metrics.push({ label: 'Pagos por estado', value: String(pendingTotal), numeric: pendingTotal });
 
     return metrics.length ? metrics : [
@@ -157,6 +193,16 @@ export class PaginaReportesComponent implements OnDestroy {
 
   private asRows(value: unknown): Array<Record<string, unknown>> {
     return Array.isArray(value) ? value.filter(item => item && typeof item === 'object') as Array<Record<string, unknown>> : [];
+  }
+
+  private reportRows(): Array<Record<string, unknown>> {
+    const rows = this.asRows(this.reportData['rows']);
+    if (rows.length) {
+      return rows;
+    }
+
+    const possibleRows = ['totals', 'byStatus', 'byPlan', 'byDate', 'supplements', 'machines', 'lowStock'];
+    return possibleRows.flatMap(key => this.asRows(this.reportData[key]).map(row => ({ seccion: key, ...row })));
   }
 
   private numberValue(value: unknown): number {
@@ -176,6 +222,17 @@ export class PaginaReportesComponent implements OnDestroy {
   private csvCell(value: unknown): string {
     const text = String(value ?? '');
     return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+  }
+
+  private downloadBlob(blob: Blob, fileName: string): void {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
   }
 
   private normalize(value: string): string {

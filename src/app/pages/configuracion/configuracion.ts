@@ -39,7 +39,7 @@ interface AdminSettingsPayload {
   alertasCriticas?: boolean;
 }
 
-type PanelConfiguracion = 'gimnasio' | 'tributacion' | 'administrador' | 'seguridad';
+type PanelConfiguracion = 'gimnasio' | 'tributacion' | 'administrador' | 'seguridad' | 'sistema';
 
 interface TemporaryVatSettings {
   enabled: boolean;
@@ -68,6 +68,11 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
   notice = '';
   activePanel: PanelConfiguracion = 'gimnasio';
   isSaving = false;
+  isRestoring = false;
+  isCheckingSystem = false;
+  selectedBackupFileName = '';
+  selectedBackupSnapshot: Record<string, unknown> | null = null;
+  systemStatus: Record<string, unknown> | null = null;
   private noticeTimer?: ReturnType<typeof setTimeout>;
   private savingFallbackTimer?: ReturnType<typeof setTimeout>;
   private scheduleSaveTimer?: ReturnType<typeof setTimeout>;
@@ -76,7 +81,8 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
     { id: 'gimnasio', label: 'Datos del gimnasio', description: 'Sede, contacto y horarios', icon: 'M' },
     { id: 'tributacion', label: 'IVA temporal', description: 'Feriados y rangos especiales', icon: '%' },
     { id: 'administrador', label: 'Administrador', description: 'Cuenta y permisos', icon: 'A' },
-    { id: 'seguridad', label: 'Acceso y respaldo', description: 'Seguridad y copias', icon: 'S' }
+    { id: 'seguridad', label: 'Acceso y respaldo', description: 'Seguridad y copias', icon: 'S' },
+    { id: 'sistema', label: 'Estado del sistema', description: 'Servicios y respaldo', icon: 'OK' }
   ];
 
   readonly timeOptions = [
@@ -155,6 +161,7 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.actions.registrar('Guardar cambios', () => this.saveSettings());
     this.loadSettings();
+    this.loadSystemStatus();
   }
 
   ngOnDestroy(): void {
@@ -168,6 +175,9 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
     this.activePanel = panel;
     this.notice = '';
     this.clearNoticeTimer();
+    if (panel === 'sistema') {
+      this.loadSystemStatus();
+    }
   }
 
   loadSettings(): void {
@@ -230,6 +240,111 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
           : 'Backup generado en el backend, pero no se pudo descargar el archivo.');
       },
       error: () => this.showNotice('No se pudo generar el backup en el backend.')
+    });
+  }
+
+  handleBackupFile(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    if (!file.name.toLowerCase().endsWith('.json')) {
+      this.selectedBackupFileName = '';
+      this.selectedBackupSnapshot = null;
+      input.value = '';
+      this.showNotice('Selecciona un archivo .json de backup.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(String(reader.result || '{}')) as Record<string, unknown>;
+        const snapshot = this.extractBackupSnapshot(parsed);
+        this.selectedBackupFileName = file.name;
+        this.selectedBackupSnapshot = snapshot;
+        this.showNotice(`Backup listo para restaurar: ${file.name}`);
+      } catch {
+        this.selectedBackupFileName = '';
+        this.selectedBackupSnapshot = null;
+        this.showNotice('El archivo seleccionado no parece ser un backup valido.');
+      } finally {
+        input.value = '';
+      }
+    };
+    reader.onerror = () => {
+      this.showNotice('No se pudo leer el archivo de backup.');
+      input.value = '';
+    };
+    reader.readAsText(file);
+  }
+
+  restoreSelectedBackup(): void {
+    if (this.isRestoring || !this.selectedBackupSnapshot) {
+      this.showNotice('Selecciona primero un archivo de backup.');
+      return;
+    }
+
+    this.isRestoring = true;
+    this.data.restaurarBackup(this.selectedBackupSnapshot).pipe(
+      timeout(20000),
+      finalize(() => {
+        this.isRestoring = false;
+        this.cdr.detectChanges();
+      })
+    ).subscribe({
+      next: response => {
+        const records = Number(response['records'] || 0);
+        this.selectedBackupFileName = '';
+        this.selectedBackupSnapshot = null;
+        this.data.refrescar();
+        this.loadSettings();
+        this.loadSystemStatus();
+        this.showNotice(`Backup restaurado correctamente. Registros recuperados: ${records}.`);
+      },
+      error: error => {
+        this.showNotice(error.name === 'TimeoutError'
+          ? 'La restauracion esta tardando demasiado. Revisa el backend.'
+          : 'No se pudo restaurar el backup. Verifica que el archivo corresponda a WX GYM.');
+      }
+    });
+  }
+
+  loadSystemStatus(): void {
+    this.isCheckingSystem = true;
+    forkJoin({
+      status: this.data.obtenerEstadoSistema(),
+      paypal: this.data.obtenerConfiguracionPaypal().pipe(catchError(() => of(null)))
+    }).pipe(
+      timeout(10000),
+      finalize(() => {
+        this.isCheckingSystem = false;
+        this.cdr.detectChanges();
+      })
+    ).subscribe({
+      next: result => {
+        const status = result.status;
+        const paypal = result.paypal;
+        if (paypal) {
+          status['paypal'] = {
+            status: paypal.enabled ? 'ok' : 'warning',
+            mode: paypal.mode || 'no configurado'
+          };
+        }
+        this.systemStatus = status;
+      },
+      error: () => {
+        this.systemStatus = {
+          status: 'warning',
+          api: { status: 'warning' },
+          database: { status: 'warning' },
+          backup: { status: 'warning' },
+          paypal: { status: 'warning' }
+        };
+        this.showNotice('No se pudo consultar el estado completo del sistema.');
+      }
     });
   }
 
@@ -570,6 +685,50 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
     link.remove();
     URL.revokeObjectURL(url);
     return true;
+  }
+
+  private extractBackupSnapshot(value: Record<string, unknown>): Record<string, unknown> {
+    const snapshot = (value['snapshot'] && typeof value['snapshot'] === 'object')
+      ? value['snapshot'] as Record<string, unknown>
+      : value;
+    const tables = snapshot['tables'];
+    if (!tables || typeof tables !== 'object') {
+      throw new Error('Invalid backup');
+    }
+    return snapshot;
+  }
+
+  statusValue(path: string, fallback = ''): string {
+    const value = this.pathValue(this.systemStatus, path);
+    return value === undefined || value === null || value === '' ? fallback : String(value);
+  }
+
+  statusCount(path: string): number {
+    return Number(this.pathValue(this.systemStatus, path) || 0);
+  }
+
+  statusOk(path: string): boolean {
+    return this.statusValue(path).toLowerCase() === 'ok';
+  }
+
+  formatBytes(value: unknown): string {
+    const bytes = Number(value || 0);
+    if (!Number.isFinite(bytes) || bytes <= 0) return 'Sin datos';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  private pathValue(source: Record<string, unknown> | null, pathValue: string): unknown {
+    if (!source) {
+      return undefined;
+    }
+    return pathValue.split('.').reduce<unknown>((current, key) => {
+      if (!current || typeof current !== 'object') {
+        return undefined;
+      }
+      return (current as Record<string, unknown>)[key];
+    }, source);
   }
 
   private normalizeSchedules(value: unknown): HorarioAtencion[] {

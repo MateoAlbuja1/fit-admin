@@ -266,7 +266,15 @@ export class DatosGimnasioService {
   }
 
   solicitarBackup() {
-    return this.http.post<Record<string, unknown>>(`${this.apiUrl}/settings/backup`, {});
+    return this.http.post<Record<string, unknown>>(`${this.apiUrl}/settings/backup`, {}, this.authOptions());
+  }
+
+  restaurarBackup(snapshot: Record<string, unknown>) {
+    return this.http.post<Record<string, unknown>>(`${this.apiUrl}/settings/restore`, { snapshot }, this.authOptions());
+  }
+
+  obtenerEstadoSistema() {
+    return this.http.get<Record<string, unknown>>(`${this.apiUrl}/settings/system-status`, this.authOptions());
   }
 
   cambiarPassword(payload: { currentPassword: string; newPassword: string }) {
