@@ -3,7 +3,7 @@ import { ChangeDetectorRef, Component, Inject, OnDestroy, OnInit, PLATFORM_ID } 
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Router } from '@angular/router';
-import { catchError, firstValueFrom, forkJoin, of } from 'rxjs';
+import { catchError, finalize, firstValueFrom, forkJoin, of } from 'rxjs';
 import { ContactCardComponent } from '../../components/landing/contact-card/contact-card';
 import { DemoFormComponent } from '../../components/landing/demo-form/demo-form';
 import { LandingCarouselComponent, CarouselSlide } from '../../components/landing/landing-carousel/landing-carousel';
@@ -1256,7 +1256,9 @@ export class LandingComponent implements OnInit, OnDestroy {
     }
 
     this.isSubmittingOrder = true;
-    this.data.crearPedidoTienda(this.buildOrderPayload('WhatsApp')).subscribe({
+    this.data.crearPedidoTienda(this.buildOrderPayload('WhatsApp')).pipe(
+      finalize(() => this.isSubmittingOrder = false)
+    ).subscribe({
       next: order => {
         this.lastOrderCode = order.code;
         this.lastOrderWhatsappUrl = this.buildOrderWhatsappUrl(order.code);
@@ -1267,13 +1269,9 @@ export class LandingComponent implements OnInit, OnDestroy {
         }
       },
       error: error => {
-        this.isSubmittingOrder = false;
         this.cartNotice = error.status === 409
           ? 'No hay stock suficiente para uno de los productos del carrito.'
           : 'No se pudo guardar el pedido. Intenta nuevamente.';
-      },
-      complete: () => {
-        this.isSubmittingOrder = false;
       }
     });
   }
@@ -1306,9 +1304,14 @@ export class LandingComponent implements OnInit, OnDestroy {
     }
 
     this.isProcessingPaypal = true;
-    const result = await firstValueFrom(this.data.crearOrdenPaypal(this.buildOrderPayload('PayPal')));
-    this.lastOrderCode = result.order.code;
-    return result.paypalOrderId;
+    try {
+      const result = await firstValueFrom(this.data.crearOrdenPaypal(this.buildOrderPayload('PayPal')));
+      this.lastOrderCode = result.order.code;
+      return result.paypalOrderId;
+    } catch (error) {
+      this.isProcessingPaypal = false;
+      throw error;
+    }
   }
 
   async capturePaypalOrder(paypalOrderId: string): Promise<void> {

@@ -1,5 +1,6 @@
-import { Component, Input } from '@angular/core';
+import { ChangeDetectorRef, Component, Input } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
+import { finalize } from 'rxjs';
 import { DatosGimnasioService } from '../../../core/servicios/datos-gimnasio.service';
 
 @Component({
@@ -28,7 +29,10 @@ export class ContactCardComponent {
     message: ''
   };
 
-  constructor(private data: DatosGimnasioService) {}
+  constructor(
+    private data: DatosGimnasioService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   submit(form: NgForm): void {
     this.submitted = true;
@@ -38,20 +42,28 @@ export class ContactCardComponent {
       return;
     }
 
-    this.isSending = true;
-    this.data.enviarContacto(this.formData).subscribe({
+    this.updateView(() => this.isSending = true);
+    this.data.enviarContacto(this.formData).pipe(
+      finalize(() => this.updateView(() => this.isSending = false))
+    ).subscribe({
       next: () => {
-        this.message = 'Mensaje enviado correctamente. Te contactaremos pronto.';
-        this.submitted = false;
-        this.formData = { name: '', email: '', phone: '', message: '' };
-        form.resetForm(this.formData);
+        this.updateView(() => {
+          this.message = 'Mensaje enviado correctamente. Te contactaremos pronto.';
+          this.submitted = false;
+          this.formData = { name: '', email: '', phone: '', message: '' };
+          form.resetForm(this.formData);
+        });
       },
       error: () => {
-        this.message = 'No se pudo enviar el mensaje. Intenta nuevamente.';
-      },
-      complete: () => {
-        this.isSending = false;
+        this.updateView(() => {
+          this.message = 'No se pudo enviar el mensaje. Intenta nuevamente.';
+        });
       }
     });
+  }
+
+  private updateView(update: () => void): void {
+    update();
+    this.cdr.detectChanges();
   }
 }

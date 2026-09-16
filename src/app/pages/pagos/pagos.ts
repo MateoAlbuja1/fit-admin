@@ -1,13 +1,14 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ApplicationRef, ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { finalize, timeout } from 'rxjs';
+import { finalize, take, timeout } from 'rxjs';
 import { Pago, PedidoTienda, Suplemento } from '../../core/modelos/modelos-administracion';
 import { AccionPaginaAdminService } from '../../core/servicios/accion-pagina-admin.service';
 import { DatosGimnasioService } from '../../core/servicios/datos-gimnasio.service';
 
 type FiltroPagoEstado = 'Todos' | Pago['status'];
-type FiltroPagoMetodo = 'Todos' | 'Efectivo' | 'Transferencia' | 'Tarjeta';
+type MetodoPago = 'Efectivo' | 'Transferencia' | 'Tarjeta' | 'WhatsApp' | 'PayPal';
+type FiltroPagoMetodo = 'Todos' | MetodoPago;
 type FiltroPagoConcepto = 'Todos' | 'Membresia' | 'Suplemento' | 'Tienda';
 type ItemVentaSuplemento = { supplementId: number | null; quantity: number };
 
@@ -28,15 +29,18 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
   isSavingSupplementSale = false;
   supplementProductSearch = '';
   newPayment = this.emptyPaymentForm();
-  editPayment = { member: '', concept: '', method: 'Efectivo' as FiltroPagoMetodo, amount: 0, status: 'Pagado' as Pago['status'] };
+  editPayment = { member: '', concept: '', method: 'Efectivo', amount: 0, status: 'Pagado' as Pago['status'] };
   supplementSaleItems: ItemVentaSuplemento[] = [this.emptySupplementSaleItem()];
   private noticeTimer?: ReturnType<typeof setTimeout>;
   private readonly requestTimeoutMs = 12000;
+  private readonly appRef = inject(ApplicationRef);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   readonly statusFilters: FiltroPagoEstado[] = ['Todos', 'Pagado', 'Pendiente', 'Anulado'];
-  readonly methodFilters: FiltroPagoMetodo[] = ['Todos', 'Efectivo', 'Transferencia', 'Tarjeta'];
+  readonly paymentMethodOptions: MetodoPago[] = ['Efectivo', 'Transferencia', 'Tarjeta', 'WhatsApp', 'PayPal'];
+  readonly methodFilters: FiltroPagoMetodo[] = ['Todos', ...this.paymentMethodOptions];
   readonly conceptFilters: FiltroPagoConcepto[] = ['Todos', 'Membresia', 'Suplemento', 'Tienda'];
-  readonly salePaymentMethods: Array<Exclude<FiltroPagoMetodo, 'Todos'>> = ['Efectivo', 'Transferencia', 'Tarjeta'];
+  readonly salePaymentMethods: MetodoPago[] = this.paymentMethodOptions;
 
   constructor(
     public data: DatosGimnasioService,
@@ -113,6 +117,14 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
     return this.newPayment.concept === 'Venta de suplemento';
   }
 
+  get editPaymentMethodOptions(): string[] {
+    return this.paymentOptionsFor(this.editPayment.method);
+  }
+
+  get newPaymentMethodOptions(): string[] {
+    return this.paymentOptionsFor(this.newPayment.method);
+  }
+
   get showSupplementSearchResults(): boolean {
     return this.isSupplementSale && this.supplementProductSearch.trim().length > 0;
   }
@@ -138,7 +150,7 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
 
   openEdit(payment: Pago): void {
     this.editingPaymentId = payment.id;
-    this.editPayment = { member: payment.member, concept: payment.concept, method: payment.method as FiltroPagoMetodo, amount: payment.amount, status: payment.status };
+    this.editPayment = { member: payment.member, concept: payment.concept, method: payment.method || 'Efectivo', amount: payment.amount, status: payment.status };
   }
 
   cancelEdit(): void {
@@ -176,7 +188,7 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.isSavingEdit = true;
+    this.updateView(() => this.isSavingEdit = true);
     const request$ = this.data.actualizarPago(payment.id, {
       member: this.editPayment.member.trim(),
       concept: this.editPayment.concept.trim() || 'Otro',
@@ -184,17 +196,20 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
       amount: this.editPayment.amount,
       status: this.editPayment.status
     }).pipe(
+      take(1),
       timeout(this.requestTimeoutMs),
-      finalize(() => this.isSavingEdit = false)
+      finalize(() => this.updateView(() => this.isSavingEdit = false))
     );
 
     request$.subscribe({
       next: updated => {
-        Object.assign(payment, updated);
-        payment.member = this.editPayment.member.trim();
-        this.editingPaymentId = null;
+        this.updateView(() => {
+          Object.assign(payment, updated);
+          payment.member = this.editPayment.member.trim();
+          this.editingPaymentId = null;
+        });
         this.showNotice('Pago actualizado correctamente.');
-        this.data.refrescar();
+        this.refreshAfterSave();
       },
       error: error => {
         this.showNotice(error.name === 'TimeoutError'
@@ -217,7 +232,7 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.isSavingPayment = true;
+    this.updateView(() => this.isSavingPayment = true);
     const request$ = this.data.crearPago({
       member: this.newPayment.member.trim(),
       concept: this.newPayment.concept,
@@ -225,18 +240,21 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
       amount: this.newPayment.amount,
       status: 'Pagado'
     }).pipe(
+      take(1),
       timeout(this.requestTimeoutMs),
-      finalize(() => this.isSavingPayment = false)
+      finalize(() => this.updateView(() => this.isSavingPayment = false))
     );
 
     request$.subscribe({
       next: created => {
-        created.member = this.newPayment.member.trim();
-        this.data.pagos.unshift(created);
-        this.newPayment = this.emptyPaymentForm();
-        this.showForm = false;
+        this.updateView(() => {
+          created.member = this.newPayment.member.trim();
+          this.data.pagos.unshift(created);
+          this.newPayment = this.emptyPaymentForm();
+          this.showForm = false;
+        });
         this.showNotice('Pago registrado correctamente.');
-        this.data.refrescar();
+        this.refreshAfterSave();
       },
       error: error => {
         this.showNotice(error.name === 'TimeoutError'
@@ -335,7 +353,7 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.isSavingSupplementSale = true;
+    this.updateView(() => this.isSavingSupplementSale = true);
     const request$ = this.data.crearPedidoManualTienda({
       customerName: this.newPayment.member.trim(),
       customerPhone: this.newPayment.customerPhone.trim(),
@@ -346,18 +364,21 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
       status: 'Pagado' as PedidoTienda['status'],
       items
     }).pipe(
+      take(1),
       timeout(this.requestTimeoutMs),
-      finalize(() => this.isSavingSupplementSale = false)
+      finalize(() => this.updateView(() => this.isSavingSupplementSale = false))
     );
 
     request$.subscribe({
       next: order => {
-        this.showForm = false;
-        this.newPayment = this.emptyPaymentForm();
-        this.supplementSaleItems = [this.emptySupplementSaleItem()];
-        this.supplementProductSearch = '';
+        this.updateView(() => {
+          this.showForm = false;
+          this.newPayment = this.emptyPaymentForm();
+          this.supplementSaleItems = [this.emptySupplementSaleItem()];
+          this.supplementProductSearch = '';
+        });
         this.showNotice(`Venta de suplementos ${order.code} registrada y stock descontado.`);
-        this.data.refrescar();
+        this.refreshAfterSave();
       },
       error: error => {
         this.showNotice(error.name === 'TimeoutError'
@@ -370,7 +391,7 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
   }
 
   clearNotice(): void {
-    this.notice = '';
+    this.updateView(() => this.notice = '');
     this.clearNoticeTimer();
   }
 
@@ -404,14 +425,33 @@ export class PaginaPagosComponent implements OnInit, OnDestroy {
     return Math.min(quantity, Math.max(1, max));
   }
 
+  private paymentOptionsFor(currentMethod: string): string[] {
+    const method = String(currentMethod || '').trim();
+    return method && !this.paymentMethodOptions.includes(method as MetodoPago)
+      ? [method, ...this.paymentMethodOptions]
+      : this.paymentMethodOptions;
+  }
+
+  private refreshAfterSave(): void {
+    setTimeout(() => this.data.refrescar(), 0);
+  }
+
   private showNotice(message: string, type: 'success' | 'warning' | 'error' = 'success'): void {
-    this.notice = message;
-    this.noticeType = type;
+    this.updateView(() => {
+      this.notice = message;
+      this.noticeType = type;
+    });
     this.clearNoticeTimer();
     this.noticeTimer = setTimeout(() => {
-      this.notice = '';
+      this.updateView(() => this.notice = '');
       this.noticeTimer = undefined;
     }, 3600);
+  }
+
+  private updateView(update: () => void): void {
+    update();
+    this.cdr.markForCheck();
+    queueMicrotask(() => this.appRef.tick());
   }
 
   private clearNoticeTimer(): void {

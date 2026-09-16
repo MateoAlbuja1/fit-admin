@@ -1,5 +1,6 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
+import { finalize } from 'rxjs';
 import { DatosGimnasioService } from '../../../core/servicios/datos-gimnasio.service';
 
 interface RegistrationForm {
@@ -42,7 +43,10 @@ export class DemoFormComponent implements OnChanges {
 
   formData: RegistrationForm = this.emptyForm();
 
-  constructor(private data: DatosGimnasioService) {}
+  constructor(
+    private data: DatosGimnasioService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['selectedPlan'] && this.selectedPlan) {
@@ -59,26 +63,34 @@ export class DemoFormComponent implements OnChanges {
       return;
     }
 
-    this.isSending = true;
+    this.updateView(() => this.isSending = true);
     this.data.enviarSolicitudDemo({
       name: this.formData.fullName.trim(),
       email: this.formData.email.trim(),
       phone: this.formData.phone.trim(),
       message: this.buildMessage()
-    }).subscribe({
+    }).pipe(
+      finalize(() => this.updateView(() => this.isSending = false))
+    ).subscribe({
       next: () => {
-        this.successMessage = 'Inscripción enviada correctamente. Pronto nos pondremos en contacto contigo.';
-        this.submitted = false;
-        this.formData = this.emptyForm();
-        form.resetForm(this.formData);
+        this.updateView(() => {
+          this.successMessage = 'Inscripción enviada correctamente. Pronto nos pondremos en contacto contigo.';
+          this.submitted = false;
+          this.formData = this.emptyForm();
+          form.resetForm(this.formData);
+        });
       },
       error: () => {
-        this.errorMessage = 'No se pudo enviar la inscripción. Intenta nuevamente.';
-      },
-      complete: () => {
-        this.isSending = false;
+        this.updateView(() => {
+          this.errorMessage = 'No se pudo enviar la inscripción. Intenta nuevamente.';
+        });
       }
     });
+  }
+
+  private updateView(update: () => void): void {
+    update();
+    this.cdr.detectChanges();
   }
 
   private buildMessage(): string {
