@@ -72,6 +72,14 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
   isCheckingSystem = false;
   selectedBackupFileName = '';
   selectedBackupSnapshot: Record<string, unknown> | null = null;
+
+  get restoreBackupLabel(): string {
+    if (this.isRestoring) {
+      return 'Restaurando...';
+    }
+
+    return this.selectedBackupSnapshot ? 'Restaurar backup' : 'Selecciona JSON';
+  }
   systemStatus: Record<string, unknown> | null = null;
   private noticeTimer?: ReturnType<typeof setTimeout>;
   private savingFallbackTimer?: ReturnType<typeof setTimeout>;

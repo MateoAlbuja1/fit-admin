@@ -185,8 +185,14 @@
               Elegir JSON
               <input type="file" accept="application/json,.json" (change)="handleBackupFile($event)" />
             </label>
-            <button class="primary-button" type="button" (click)="restoreSelectedBackup()" [disabled]="isRestoring || !selectedBackupSnapshot">
-              {{ isRestoring ? 'Restaurando...' : 'Restaurar backup' }}
+            <button
+              class="restore-submit"
+              type="button"
+              (click)="restoreSelectedBackup()"
+              [class.restore-submit--ready]="selectedBackupSnapshot"
+              [disabled]="isRestoring || !selectedBackupSnapshot"
+            >
+              {{ restoreBackupLabel }}
             </button>
           </div>
 

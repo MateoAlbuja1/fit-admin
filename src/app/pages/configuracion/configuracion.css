@@ -457,6 +457,30 @@
   display: none;
 }
 
+.restore-submit {
+  min-height: 42px;
+  border: 1px solid #dededb;
+  border-radius: 8px;
+  padding: 0 18px;
+  background: #f4f4f2;
+  color: #777;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: not-allowed;
+}
+
+.restore-submit--ready {
+  border-color: #111;
+  background: #111;
+  color: #fff;
+  cursor: pointer;
+}
+
+.restore-submit--ready:disabled {
+  opacity: .72;
+  cursor: wait;
+}
+
 .system-grid,
 .system-counts {
   display: grid;
