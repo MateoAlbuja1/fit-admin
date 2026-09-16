@@ -497,6 +497,9 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
   }
 
   savePromotionSettings(): void {
+    if (this.isSaving) {
+      return;
+    }
     this.persistGymSettings('Promocion web guardada correctamente.', true);
   }
 
@@ -595,7 +598,7 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
         this.showNotice(successMessage);
       },
       error: () => {
-        this.showNotice('No se pudo guardar el horario. Revisa si la sesion sigue activa.');
+        this.showNotice('No se pudo guardar la configuracion. Revisa si la sesion sigue activa.');
       }
     });
   }

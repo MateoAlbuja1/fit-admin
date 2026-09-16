@@ -166,6 +166,7 @@ export class LandingComponent implements OnInit, OnDestroy {
 
   sidebarOpen = false;
   showPromo = true;
+  promotionSettingsLoaded = false;
   searchTerm = '';
   activeAnchor = 'inicio';
   cartNotice = '';
@@ -887,7 +888,7 @@ export class LandingComponent implements OnInit, OnDestroy {
 
   get shouldShowPromotion(): boolean {
     const selectedProductId = Number(this.webPromotion.productId || 0);
-    return this.showPromo && this.webPromotion.enabled && (selectedProductId <= 0 || Boolean(this.promotionProduct));
+    return this.showPromo && this.promotionSettingsLoaded && this.webPromotion.enabled && (selectedProductId <= 0 || Boolean(this.promotionProduct));
   }
 
   get promotionProduct(): FitnessProduct | undefined {
@@ -897,6 +898,13 @@ export class LandingComponent implements OnInit, OnDestroy {
       if (selected) {
         return selected;
       }
+
+      const bySavedTitle = this.products.find(product => this.normalize(this.webPromotion.title).includes(this.normalize(product.name)));
+      if (bySavedTitle) {
+        return bySavedTitle;
+      }
+
+      return undefined;
     }
 
     return this.products.find(product => product.name === 'Creatina Dragon Pharma');
@@ -1640,7 +1648,10 @@ export class LandingComponent implements OnInit, OnDestroy {
     this.data.obtenerConfiguracionPublicaGimnasio().pipe(
       catchError(() => of(null))
     ).subscribe(settings => {
-      if (!settings) return;
+      if (!settings) {
+        this.promotionSettingsLoaded = true;
+        return;
+      }
       this.publicGymSettings = {
         name: OFFICIAL_GYM_NAME,
         sector: this.text(settings['sector'], this.publicGymSettings.sector),
@@ -1659,6 +1670,7 @@ export class LandingComponent implements OnInit, OnDestroy {
         { value: location, label: 'ubicacion', detail: this.publicGymSettings.sector ? this.publicGymSettings.city : 'Ecuador.' },
         { value: 'WX', label: 'WX GYM', detail: 'Rutinas, fuerza y bienestar.' }
       ];
+      this.promotionSettingsLoaded = true;
     });
   }
 
