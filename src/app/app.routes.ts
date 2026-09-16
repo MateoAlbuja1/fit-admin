@@ -74,11 +74,13 @@ export const routes: Routes = [
       },
       {
         path: 'reportes',
+        canActivate: [adminOnlyGuard],
         loadComponent: () => import('./pages/reportes/reportes').then(m => m.PaginaReportesComponent),
         data: { meta: { modulo: 'reportes', eyebrow: 'Análisis administrativo', title: 'Reportes' } }
       },
       {
         path: 'configuracion',
+        canActivate: [adminOnlyGuard],
         loadComponent: () => import('./pages/configuracion/configuracion').then(m => m.PaginaConfiguracionComponent),
         data: { meta: { modulo: 'configuracion', eyebrow: 'Preferencias del sistema', title: 'Configuración' } }
       }

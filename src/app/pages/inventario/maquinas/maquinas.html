@@ -50,9 +50,11 @@
             <button class="secondary-button machine-status-button" type="button" (click)="toggleStatus(item)" [disabled]="isStatusSaving(item)">
               {{ isStatusSaving(item) ? 'Actualizando...' : (item.status === 'Mantenimiento' ? 'Activar' : 'Mantenimiento') }}
             </button>
-            <button class="secondary-button danger-action icon-delete" type="button" (click)="remove(item)" aria-label="Eliminar máquina" title="Eliminar">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 15h10l1-15"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
-            </button>
+            @if (canDelete) {
+              <button class="secondary-button danger-action icon-delete" type="button" (click)="remove(item)" aria-label="Eliminar máquina" title="Eliminar">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 15h10l1-15"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+              </button>
+            }
           </div>
         </div>
       </article>
@@ -78,9 +80,11 @@
             <button class="machine-status-action" type="button" (click)="toggleStatus(item)" [disabled]="isStatusSaving(item)">
               {{ isStatusSaving(item) ? 'Actualizando...' : (item.status === 'Mantenimiento' ? 'Activar' : 'Mantenimiento') }}
             </button>
-            <button class="list-delete icon-delete" type="button" (click)="remove(item)" aria-label="Eliminar máquina" title="Eliminar">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 15h10l1-15"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
-            </button>
+            @if (canDelete) {
+              <button class="list-delete icon-delete" type="button" (click)="remove(item)" aria-label="Eliminar máquina" title="Eliminar">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 15h10l1-15"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+              </button>
+            }
           </div>
         </article>
       }

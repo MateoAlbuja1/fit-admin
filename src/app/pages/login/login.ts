@@ -249,7 +249,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     const email = this.email.trim().toLowerCase();
 
     if (!email || !this.password) {
-      this.message = 'Ingresa tu correo y contrasena.';
+      this.message = 'Ingresa tu usuario o correo y contrasena.';
       return;
     }
 

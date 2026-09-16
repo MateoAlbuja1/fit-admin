@@ -1,8 +1,15 @@
+@if (notice) {
+  <div class="notice" [class.notice--error]="noticeType === 'error'" [class.notice--warning]="noticeType === 'warning'">
+    <span>{{ noticeType === 'success' ? '✓' : '!' }}</span>{{ notice }}
+    <button type="button" (click)="clearNotice()">×</button>
+  </div>
+}
+
 <section class="metric-grid">
   <article><span>Usuarios totales</span><strong>{{ usuarios.length }}</strong><small>Cuentas registradas</small></article>
   <article><span>Usuarios activos</span><strong>{{ usuariosActivos }}</strong><small>Con acceso habilitado</small></article>
   <article><span>Administradores</span><strong>{{ administradores }}</strong><small>Acceso administrativo</small></article>
-  <article><span>Clientes vinculados</span><strong>{{ clientesVinculados }}</strong><small>Con perfil de cliente</small></article>
+  <article><span>Recepción</span><strong>{{ recepcionistas }}</strong><small>Operación diaria</small></article>
 </section>
 
 <section class="content-card">
@@ -19,7 +26,7 @@
       <span>Rol</span>
       <div class="select-filter__control">
         <select [(ngModel)]="roleFilter" name="userRoleFilter" aria-label="Filtrar usuarios por rol">
-          @for (role of roleFilters; track role) { <option [ngValue]="role">{{ role }}</option> }
+          @for (role of roleFilters; track role) { <option [ngValue]="role">{{ etiquetaFiltroRol(role) }}</option> }
         </select>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>
       </div>
@@ -84,3 +91,28 @@
 
   <div class="table-footer"><span>Mostrando {{ usuariosFiltrados.length }} de {{ usuarios.length }} usuarios</span></div>
 </section>
+
+@if (showCreateReceptionForm) {
+  <div class="form-overlay" (click)="closeCreateReceptionForm()">
+    <section class="form-drawer" (click)="$event.stopPropagation()">
+      <header>
+        <div><span>NUEVO ACCESO</span><h2>Recepción</h2></div>
+        <button type="button" (click)="closeCreateReceptionForm()" [disabled]="isCreatingReception">×</button>
+      </header>
+
+      <form (ngSubmit)="createReceptionUser()">
+        <p class="permission-note">Este usuario entra por el mismo login y queda limitado a operación diaria sin permisos de borrado.</p>
+        <label><span>Nombre completo *</span><input [(ngModel)]="newReceptionUser.fullName" name="receptionFullName" required [disabled]="isCreatingReception" autocomplete="name" /></label>
+        <label><span>Usuario *</span><input [(ngModel)]="newReceptionUser.username" name="receptionUsername" required [disabled]="isCreatingReception" autocomplete="username" placeholder="recepcion1" /></label>
+        <label><span>Correo *</span><input type="email" [(ngModel)]="newReceptionUser.email" name="receptionEmail" required [disabled]="isCreatingReception" autocomplete="email" placeholder="recepcion@wxgym.local" /></label>
+        <label><span>Teléfono</span><input [(ngModel)]="newReceptionUser.phone" name="receptionPhone" [disabled]="isCreatingReception" autocomplete="tel" /></label>
+        <label><span>Contraseña *</span><input type="password" [(ngModel)]="newReceptionUser.password" name="receptionPassword" required minlength="6" [disabled]="isCreatingReception" autocomplete="new-password" /></label>
+        <label><span>Confirmar contraseña *</span><input type="password" [(ngModel)]="newReceptionUser.confirmPassword" name="receptionConfirmPassword" required minlength="6" [disabled]="isCreatingReception" autocomplete="new-password" /></label>
+        <div class="form-navigation">
+          <button class="secondary-button" type="button" (click)="closeCreateReceptionForm()" [disabled]="isCreatingReception">Cancelar</button>
+          <button class="primary-button" type="submit" [disabled]="isCreatingReception">{{ isCreatingReception ? 'Creando...' : 'Crear recepción' }}</button>
+        </div>
+      </form>
+    </section>
+  </div>
+}

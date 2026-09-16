@@ -79,22 +79,26 @@
       </a>
     </section>
 
-    <section class="nav-section">
-      <p class="nav-label">Análisis</p>
-      <a class="nav-item" routerLink="/reportes" routerLinkActive="active" title="Reportes" (click)="closeMobileNav.emit()">
-        <svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg>
-        <span>Reportes</span>
-        <i></i>
-      </a>
-    </section>
+    @if ((role$ | async) === 'ADMIN') {
+      <section class="nav-section">
+        <p class="nav-label">Análisis</p>
+        <a class="nav-item" routerLink="/reportes" routerLinkActive="active" title="Reportes" (click)="closeMobileNav.emit()">
+          <svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg>
+          <span>Reportes</span>
+          <i></i>
+        </a>
+      </section>
+    }
 
     <section class="nav-section nav-section--system">
       <p class="nav-label">Sistema</p>
+      @if ((role$ | async) === 'ADMIN') {
       <a class="nav-item" routerLink="/configuracion" routerLinkActive="active" title="Configuración" (click)="closeMobileNav.emit()">
         <svg viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8a3.5 3.5 0 0 0 0 7.5Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.05.05a2 2 0 1 1-2.83 2.83l-.05-.05a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.07A1.7 1.7 0 0 0 8.97 19.4a1.7 1.7 0 0 0-1.88.34l-.05.05a2 2 0 1 1-2.83-2.83l.05-.05A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.07A1.7 1.7 0 0 0 4.6 8.94a1.7 1.7 0 0 0-.34-1.88l-.05-.05a2 2 0 1 1 2.83-2.83l.05.05a1.7 1.7 0 0 0 1.88.34H9a1.7 1.7 0 0 0 1-1.56V3a2 2 0 1 1 4 0v.07a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.88-.34l.05-.05a2 2 0 1 1 2.83 2.83l-.05.05a1.7 1.7 0 0 0-.34 1.88v.03A1.7 1.7 0 0 0 21 10h.07a2 2 0 1 1 0 4H21a1.7 1.7 0 0 0-1.6 1Z"/></svg>
         <span>Configuración</span>
         <i></i>
       </a>
+      }
       <button class="nav-item nav-item--button" type="button" title="Salir" (click)="logoutRequested.emit()">
         <svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5M15 12H3M21 4v16a2 2 0 0 1-2 2h-6M13 2h6a2 2 0 0 1 2 2" /></svg>
         <span>Salir</span>

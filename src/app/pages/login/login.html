@@ -55,14 +55,14 @@
         <p class="box-subtitle">Ingresa a tu cuenta</p>
 
         <form (ngSubmit)="handleSubmit()">
-          <label for="email">Correo</label>
+          <label for="email">Usuario o correo</label>
           <input
             id="email"
-            type="email"
+            type="text"
             [(ngModel)]="email"
             name="email"
-            autocomplete="email"
-            placeholder="tu@correo.com"
+            autocomplete="username"
+            placeholder="admin o tu@correo.com"
             required
           />
 

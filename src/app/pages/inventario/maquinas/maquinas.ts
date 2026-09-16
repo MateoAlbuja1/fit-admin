@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { finalize, timeout } from 'rxjs';
 import { DetalleRegistro, Maquina } from '../../../core/modelos/modelos-administracion';
 import { AccionPaginaAdminService } from '../../../core/servicios/accion-pagina-admin.service';
+import { AuthService } from '../../../core/servicios/auth.service';
 import { DatosGimnasioService } from '../../../core/servicios/datos-gimnasio.service';
 
 type PreviewKey = 'newPhotoPreview' | 'editPhotoPreview';
@@ -33,6 +34,7 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
   constructor(
     public data: DatosGimnasioService,
     private actions: AccionPaginaAdminService,
+    private auth: AuthService,
     private cdr: ChangeDetectorRef,
     private zone: NgZone
   ) {}
@@ -72,6 +74,10 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
     return this.imageReadsInProgress > 0;
   }
 
+  get canDelete(): boolean {
+    return this.auth.currentUser?.apiRole === 'ADMIN';
+  }
+
   toggleStatus(item: Maquina): void {
     if (this.savingStatusIds.has(item.id)) {
       return;
@@ -104,6 +110,10 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
   }
 
   remove(item: Maquina): void {
+    if (!this.canDelete) {
+      this.showNotice('Solo el administrador puede eliminar maquinas.', 'warning');
+      return;
+    }
     this.maquinaAEliminar = item;
   }
 
@@ -123,6 +133,11 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
   confirmarEliminacion(): void {
     const item = this.maquinaAEliminar;
     if (!item) return;
+    if (!this.canDelete) {
+      this.maquinaAEliminar = null;
+      this.showNotice('Solo el administrador puede eliminar maquinas.', 'warning');
+      return;
+    }
 
     this.data.eliminarMaquina(item.id).subscribe({
       next: () => {

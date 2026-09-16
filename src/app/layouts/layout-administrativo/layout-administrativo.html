@@ -4,7 +4,7 @@
     [drawerCollapsed]="drawerCollapsed"
     [mobileNavOpen]="mobileNavOpen"
     [role$]="role$"
-    [user]="adminUser"
+    [user]="currentUser"
     (toggleDrawer)="toggleDrawer()"
     (closeMobileNav)="closeMobileNav()"
     (logoutRequested)="logout()"
@@ -23,7 +23,7 @@
             <aside class="alert-center"><header><div><span>CENTRO DE ALERTAS</span><h2>Atención requerida</h2></div><button type="button" aria-label="Cerrar alertas" (click)="showAlerts = false">×</button></header><div class="alert-list">@for (alert of data.alertas; track alert.title) { <a class="alert-item" [class.alert-item--danger]="alert.type === 'danger'" [class.alert-item--stock]="alert.type === 'stock'" [routerLink]="alert.route" (click)="showAlerts = false"><i>@if (alert.type === 'stock') { S } @else if (alert.type === 'danger') { ! } @else { ⏱ }</i><span><strong>{{ alert.title }}</strong><small>{{ alert.detail }}</small></span><b>›</b></a> }</div><footer><span>{{ data.alertas.length }} alertas activas</span><button type="button" (click)="markAlertsRead()" [disabled]="alertasLeidas">{{ alertasLeidas ? 'Revisadas' : 'Marcar revisadas' }}</button></footer></aside>
           }
         </div>
-        <div class="admin-chip"><span>MA</span><div><strong>Mateo Admin</strong><small>Administrador</small></div></div>
+        <div class="admin-chip"><span>{{ currentUser.initials }}</span><div><strong>{{ currentUser.name }}</strong><small>{{ currentUser.subtitle }}</small></div></div>
       </div>
     </header>
 

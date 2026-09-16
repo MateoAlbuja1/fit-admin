@@ -294,6 +294,16 @@ export class DatosGimnasioService {
     return this.http.get<UsuarioRegistrado[]>(`${this.apiUrl}/auth/users`, this.authOptions());
   }
 
+  crearUsuarioRecepcion(payload: {
+    fullName: string;
+    username: string;
+    email: string;
+    phone?: string;
+    password: string;
+  }): Observable<UsuarioRegistrado> {
+    return this.http.post<UsuarioRegistrado>(`${this.apiUrl}/auth/reception-users`, payload, this.authOptions());
+  }
+
   private authOptions() {
     const token = this.readToken();
     return token ? { headers: new HttpHeaders({ Authorization: `Bearer ${token}` }) } : {};

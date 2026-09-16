@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { finalize, timeout } from 'rxjs';
 import { DetalleRegistro, Suplemento } from '../../../core/modelos/modelos-administracion';
 import { AccionPaginaAdminService } from '../../../core/servicios/accion-pagina-admin.service';
+import { AuthService } from '../../../core/servicios/auth.service';
 import { DatosGimnasioService } from '../../../core/servicios/datos-gimnasio.service';
 
 type FiltroStock = 'Todos' | 'Stock bajo' | 'Disponibles' | 'Agotados';
@@ -47,6 +48,7 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
   constructor(
     public data: DatosGimnasioService,
     private actions: AccionPaginaAdminService,
+    private auth: AuthService,
     private cdr: ChangeDetectorRef,
     private zone: NgZone
   ) {}
@@ -106,6 +108,10 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
 
   get isPreparingImages(): boolean {
     return this.imageReadsInProgress > 0;
+  }
+
+  get canDelete(): boolean {
+    return this.auth.currentUser?.apiRole === 'ADMIN';
   }
 
   displayPrice(item: Suplemento): number {
@@ -199,6 +205,10 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
   }
 
   remove(item: Suplemento): void {
+    if (!this.canDelete) {
+      this.showNotice('Solo el administrador puede eliminar suplementos.', 'warning');
+      return;
+    }
     this.suplementoAEliminar = item;
   }
 
@@ -285,6 +295,11 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
 
     const item = this.suplementoAEliminar;
     if (!item) return;
+    if (!this.canDelete) {
+      this.suplementoAEliminar = null;
+      this.showNotice('Solo el administrador puede eliminar suplementos.', 'warning');
+      return;
+    }
 
     this.isDeletingSupplement = true;
     const request$ = this.data.eliminarSuplemento(item.id).pipe(

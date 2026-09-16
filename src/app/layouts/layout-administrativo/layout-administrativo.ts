@@ -22,7 +22,7 @@ export class LayoutAdministrativoComponent implements OnInit, OnDestroy {
   showAlerts = false;
   alertasLeidas = false;
   readonly role$: Observable<ApiUserRole | null>;
-  readonly adminUser: AdminSidebarUser = {
+  private readonly fallbackUser: AdminSidebarUser = {
     initials: 'MA',
     name: 'Mateo Admin',
     subtitle: 'Administrador'
@@ -60,6 +60,17 @@ export class LayoutAdministrativoComponent implements OnInit, OnDestroy {
 
   get unreadAlertCount(): number {
     return this.alertasLeidas ? 0 : this.data.alertas.length;
+  }
+
+  get currentUser(): AdminSidebarUser {
+    const session = this.auth.currentUser;
+    return session
+      ? {
+          initials: session.initials,
+          name: session.name,
+          subtitle: session.subtitle
+        }
+      : this.fallbackUser;
   }
 
   toggleDrawer(): void {

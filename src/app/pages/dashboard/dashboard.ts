@@ -158,7 +158,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   get welcomeTitle(): string {
-    return this.isMember ? `Bienvenido, ${this.currentUser.name}` : 'Buenos dias, Mateo';
+    return this.isMember ? `Bienvenido, ${this.currentUser.name}` : `Buenos dias, ${this.currentUser.name}`;
   }
 
   get welcomeSubtitle(): string {

@@ -146,6 +146,23 @@
   text-decoration: none;
 }
 
+.permission-note {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+:host-context(.dark-mode) .permission-note {
+  border-color: rgba(65, 194, 139, .22);
+  background: rgba(65, 194, 139, .08);
+  color: #aab6c5;
+}
+
 @keyframes users-spin {
   to { transform: rotate(360deg); }
 }
