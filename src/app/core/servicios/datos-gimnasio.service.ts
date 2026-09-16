@@ -42,15 +42,20 @@ export class DatosGimnasioService {
   }
 
   cargarDesdeBackend(): void {
+    const hasToken = Boolean(this.readToken());
+    const suplementosUrl = hasToken
+      ? `${this.apiUrl}/inventory/supplements`
+      : `${this.apiUrl}/public/supplements`;
+
     forkJoin({
-      clientes: this.http.get<Cliente[]>(`${this.apiUrl}/clients`).pipe(catchError(() => of(this.clientes))),
-      membresias: this.http.get<Membresia[]>(`${this.apiUrl}/memberships`).pipe(catchError(() => of(this.membresias))),
-      asistencias: this.http.get<RegistroAsistencia[]>(`${this.apiUrl}/attendance`).pipe(catchError(() => of(this.asistencias))),
-      pagos: this.http.get<Pago[]>(`${this.apiUrl}/payments`).pipe(catchError(() => of(this.pagos))),
-      pedidos: this.http.get<PedidoTienda[]>(`${this.apiUrl}/inventory/store-orders`, this.authOptions()).pipe(catchError(() => of(this.pedidosTienda))),
-      suplementos: this.http.get<Suplemento[]>(`${this.apiUrl}/inventory/supplements`).pipe(catchError(() => of(this.suplementos))),
-      maquinas: this.http.get<Maquina[]>(`${this.apiUrl}/inventory/machines`).pipe(catchError(() => of(this.maquinas))),
-      alertas: this.http.get<AlertaAdministrativa[]>(`${this.apiUrl}/alerts`).pipe(catchError(() => of(this.alertas))),
+      clientes: hasToken ? this.http.get<Cliente[]>(`${this.apiUrl}/clients`).pipe(catchError(() => of(this.clientes))) : of(this.clientes),
+      membresias: hasToken ? this.http.get<Membresia[]>(`${this.apiUrl}/memberships`).pipe(catchError(() => of(this.membresias))) : of(this.membresias),
+      asistencias: hasToken ? this.http.get<RegistroAsistencia[]>(`${this.apiUrl}/attendance`).pipe(catchError(() => of(this.asistencias))) : of(this.asistencias),
+      pagos: hasToken ? this.http.get<Pago[]>(`${this.apiUrl}/payments`).pipe(catchError(() => of(this.pagos))) : of(this.pagos),
+      pedidos: hasToken ? this.http.get<PedidoTienda[]>(`${this.apiUrl}/inventory/store-orders`, this.authOptions()).pipe(catchError(() => of(this.pedidosTienda))) : of(this.pedidosTienda),
+      suplementos: this.http.get<Suplemento[]>(suplementosUrl).pipe(catchError(() => of(this.suplementos))),
+      maquinas: hasToken ? this.http.get<Maquina[]>(`${this.apiUrl}/inventory/machines`).pipe(catchError(() => of(this.maquinas))) : of(this.maquinas),
+      alertas: hasToken ? this.http.get<AlertaAdministrativa[]>(`${this.apiUrl}/alerts`).pipe(catchError(() => of(this.alertas))) : of(this.alertas),
       settings: this.http.get<Record<string, unknown>>(`${this.apiUrl}/public/gym-settings`).pipe(catchError(() => of({} as Record<string, unknown>)))
     }).subscribe(data => {
       this.clientes = data.clientes;

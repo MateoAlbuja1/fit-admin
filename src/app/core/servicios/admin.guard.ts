@@ -1,12 +1,14 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from './auth.service';
+import { DatosGimnasioService } from './datos-gimnasio.service';
 
 export const adminGuard: CanActivateFn = () => {
   const router = inject(Router);
   const auth = inject(AuthService);
 
   if (auth.token && auth.currentUser?.role === 'admin') {
+    inject(DatosGimnasioService).refrescar();
     return true;
   }
 
