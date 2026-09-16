@@ -166,6 +166,13 @@ export class PaginaClientesComponent implements OnInit, OnDestroy {
     };
 
     this.isSavingClient = true;
+    this.showForm = false;
+    this.statusFilter = 'Todos';
+    this.planFilter = 'Todos';
+    this.search = '';
+    this.page = 1;
+    const tempClient = this.optimisticClient(payload);
+    this.data.clientes = [tempClient, ...this.data.clientes];
     this.cdr.detectChanges();
 
     this.data.crearCliente(payload).pipe(
@@ -176,17 +183,17 @@ export class PaginaClientesComponent implements OnInit, OnDestroy {
       })
     ).subscribe({
       next: created => {
-        this.data.clientes = [created, ...this.data.clientes.filter(client => client.id !== created.id)];
+        this.data.clientes = [
+          created,
+          ...this.data.clientes.filter(client => client.id !== created.id && client.id !== tempClient.id)
+        ];
         this.newClient = { name: '', document: '', phone: '', plan: 'Plan mensual' };
-        this.statusFilter = 'Todos';
-        this.planFilter = 'Todos';
-        this.search = '';
-        this.page = 1;
         this.showForm = false;
-        this.showNotice('Cliente registrado con membresia inicial.');
+        this.showNotice('Cliente creado correctamente.');
         this.cdr.detectChanges();
       },
       error: error => {
+        this.data.clientes = this.data.clientes.filter(client => client.id !== tempClient.id);
         this.newClient = draft;
         this.showForm = true;
         this.showNotice(error.name === 'TimeoutError'
@@ -217,5 +224,23 @@ export class PaginaClientesComponent implements OnInit, OnDestroy {
     if (!this.noticeTimer) return;
     clearTimeout(this.noticeTimer);
     this.noticeTimer = undefined;
+  }
+
+  private optimisticClient(payload: { name: string; document: string; phone: string; plan: string; status: Cliente['status'] }): Cliente {
+    return {
+      id: -Date.now(),
+      name: payload.name,
+      document: payload.document,
+      phone: payload.phone,
+      plan: payload.plan,
+      joined: this.todayLabel(),
+      status: payload.status
+    };
+  }
+
+  private todayLabel(): string {
+    return new Date()
+      .toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+      .replace(',', '');
   }
 }
