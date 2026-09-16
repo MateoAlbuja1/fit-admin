@@ -5,6 +5,8 @@ import { DetalleRegistro, Maquina } from '../../../core/modelos/modelos-administ
 import { AccionPaginaAdminService } from '../../../core/servicios/accion-pagina-admin.service';
 import { DatosGimnasioService } from '../../../core/servicios/datos-gimnasio.service';
 
+type PreviewKey = 'newPhotoPreview' | 'editPhotoPreview';
+
 @Component({ selector: 'app-pagina-maquinas', standalone: true, imports: [FormsModule], templateUrl: './maquinas.html' })
 export class PaginaMaquinasComponent implements OnInit, OnDestroy {
   search = '';
@@ -20,6 +22,9 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
   isCreating = false;
   isSavingEdit = false;
   savingStatusIds = new Set<number>();
+  newPhotoPreview = '';
+  editPhotoPreview = '';
+  imageReadsInProgress = 0;
   private noticeTimer?: ReturnType<typeof setTimeout>;
   private readonly requestTimeoutMs = 25000;
   newItem = { name: '', type: '', location: '', status: 'Operativa' as Maquina['status'], nextMaintenance: '', photo: '' };
@@ -34,6 +39,8 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.actions.registrar('+ Nueva maquina', () => {
+      this.clearNewPreview();
+      this.newItem = { name: '', type: '', location: '', status: 'Operativa', nextMaintenance: '', photo: '' };
       this.formStep = 1;
       this.showForm = true;
     });
@@ -42,6 +49,7 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.actions.limpiar();
     this.clearNoticeTimer();
+    this.clearImagePreviews();
   }
 
   get operational(): number {
@@ -58,6 +66,10 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
     return this.data.maquinas
       .filter(item => `${item.name} ${item.type} ${item.location}`.toLowerCase().includes(q))
       .sort((a, b) => rank[a.status] - rank[b.status]);
+  }
+
+  get isPreparingImages(): boolean {
+    return this.imageReadsInProgress > 0;
   }
 
   toggleStatus(item: Maquina): void {
@@ -99,6 +111,15 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
     this.maquinaAEliminar = null;
   }
 
+  closeCreate(): void {
+    if (this.isCreating) {
+      return;
+    }
+    this.showForm = false;
+    this.formStep = 1;
+    this.clearNewPreview();
+  }
+
   confirmarEliminacion(): void {
     const item = this.maquinaAEliminar;
     if (!item) return;
@@ -133,6 +154,7 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
   }
 
   openEdit(item: Maquina): void {
+    this.clearEditPreview();
     this.editingItemId = item.id;
     this.editItem = {
       name: item.name,
@@ -145,6 +167,7 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
   }
 
   cancelEdit(): void {
+    this.clearEditPreview();
     this.editingItemId = null;
   }
 
@@ -174,6 +197,7 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
       next: updated => {
         this.updateView(() => {
           Object.assign(item, updated);
+          this.clearEditPreview();
           this.editingItemId = null;
         });
         this.showNotice('Ficha de máquina actualizada correctamente.');
@@ -185,23 +209,14 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
   }
 
   handlePhoto(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file || file.size > 4 * 1024 * 1024) {
-      this.showNotice('Selecciona una imagen menor a 4 MB.', 'warning');
-      input.value = '';
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => this.updateView(() => {
-      this.newItem = { ...this.newItem, photo: String(reader.result) };
-      input.value = '';
-    });
-    reader.onerror = () => this.showNotice('No se pudo cargar la imagen.', 'error');
-    reader.readAsDataURL(file);
+    this.readImageFile(event, 'newPhotoPreview', value => this.newItem = { ...this.newItem, photo: value });
   }
 
   handleEditPhoto(event: Event): void {
+    this.readImageFile(event, 'editPhotoPreview', value => this.editItem = { ...this.editItem, photo: value });
+  }
+
+  private readImageFile(event: Event, previewKey: PreviewKey, onLoad: (value: string) => void): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file || file.size > 4 * 1024 * 1024) {
@@ -209,17 +224,27 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
       input.value = '';
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => this.updateView(() => {
-      this.editItem = { ...this.editItem, photo: String(reader.result) };
+    this.setPreview(previewKey, URL.createObjectURL(file));
+    this.imageReadsInProgress += 1;
+    this.cdr.detectChanges();
+
+    this.compressImageFile(file).then(value => {
+      this.updateView(() => {
+        onLoad(value);
+        input.value = '';
+      });
+    }).catch(() => {
+      this.showNotice('No se pudo cargar la imagen.', 'error');
       input.value = '';
+    }).finally(() => {
+      this.updateView(() => {
+        this.imageReadsInProgress = Math.max(0, this.imageReadsInProgress - 1);
+      });
     });
-    reader.onerror = () => this.showNotice('No se pudo cargar la imagen.', 'error');
-    reader.readAsDataURL(file);
   }
 
   add(): void {
-    if (this.isCreating) {
+    if (this.isCreating || this.isPreparingImages) {
       return;
     }
 
@@ -239,6 +264,7 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
           this.newItem = { name: '', type: '', location: '', status: 'Operativa', nextMaintenance: '', photo: '' };
           this.showForm = false;
           this.formStep = 1;
+          this.clearNewPreview();
         });
         this.showNotice('Máquina agregada correctamente.');
       },
@@ -278,6 +304,63 @@ export class PaginaMaquinasComponent implements OnInit, OnDestroy {
       update();
       this.cdr.detectChanges();
     });
+  }
+
+  private compressImageFile(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      const objectUrl = URL.createObjectURL(file);
+      image.onload = () => {
+        try {
+          const maxSize = 1280;
+          const scale = Math.min(1, maxSize / Math.max(image.width, image.height));
+          const width = Math.max(1, Math.round(image.width * scale));
+          const height = Math.max(1, Math.round(image.height * scale));
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const context = canvas.getContext('2d');
+          if (!context) {
+            reject(new Error('Canvas not available'));
+            return;
+          }
+          context.drawImage(image, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.82));
+        } catch (error) {
+          reject(error);
+        } finally {
+          URL.revokeObjectURL(objectUrl);
+        }
+      };
+      image.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        reject(new Error('Image load failed'));
+      };
+      image.src = objectUrl;
+    });
+  }
+
+  private setPreview(key: PreviewKey, value: string): void {
+    const current = this[key];
+    if (current?.startsWith('blob:')) {
+      URL.revokeObjectURL(current);
+    }
+    this.updateView(() => {
+      this[key] = value;
+    });
+  }
+
+  private clearNewPreview(): void {
+    this.setPreview('newPhotoPreview', '');
+  }
+
+  private clearEditPreview(): void {
+    this.setPreview('editPhotoPreview', '');
+  }
+
+  private clearImagePreviews(): void {
+    this.clearNewPreview();
+    this.clearEditPreview();
   }
 
   private toDateInputValue(value: string | undefined): string {

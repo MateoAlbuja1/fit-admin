@@ -127,7 +127,7 @@
       <form (ngSubmit)="saveEdit()">
         <label class="photo-upload">
           <input type="file" accept="image/*" (change)="handleEditPhoto($event)" />
-          @if (editItem.photo) { <img [src]="editItem.photo" alt="Vista previa" /> }
+          @if (editPhotoPreview || editItem.photo) { <img [src]="editPhotoPreview || editItem.photo" alt="Vista previa" /> }
           @else { <strong>Actualizar fotografía</strong><span>PNG o JPG · máximo 4 MB</span> }
         </label>
         <label><span>Nombre *</span><input [(ngModel)]="editItem.name" name="editMachineName" required /></label>
@@ -137,27 +137,27 @@
           <label><span>Estado</span><select [(ngModel)]="editItem.status" name="editMachineStatus"><option>Operativa</option><option>Mantenimiento</option><option>Fuera de servicio</option></select></label>
           <label><span>Próximo mantenimiento</span><input type="date" [(ngModel)]="editItem.nextMaintenance" name="editMachineMaintenance" /></label>
         </div>
-        <div class="form-navigation"><button class="secondary-button" type="button" (click)="cancelEdit()" [disabled]="isSavingEdit">Cancelar</button><button class="primary-button" type="submit" [disabled]="isSavingEdit">{{ isSavingEdit ? 'Guardando...' : 'Guardar cambios' }}</button></div>
+        <div class="form-navigation"><button class="secondary-button" type="button" (click)="cancelEdit()" [disabled]="isSavingEdit">Cancelar</button><button class="primary-button" type="submit" [disabled]="isSavingEdit || isPreparingImages">{{ isPreparingImages ? 'Preparando imagen...' : (isSavingEdit ? 'Guardando...' : 'Guardar cambios') }}</button></div>
       </form>
     </section>
   </div>
 }
 
 @if (showForm) {
-  <div class="form-overlay" (click)="showForm = false">
+  <div class="form-overlay" (click)="closeCreate()">
     <section class="form-drawer" (click)="$event.stopPropagation()">
-      <header><div><span>NUEVO REGISTRO</span><h2>Máquina</h2></div><button type="button" (click)="showForm = false">×</button></header>
+      <header><div><span>NUEVO REGISTRO</span><h2>Máquina</h2></div><button type="button" (click)="closeCreate()">×</button></header>
       <div class="form-progress"><button type="button" [class.active]="formStep === 1" (click)="formStep = 1"><b>1</b><span>Identificación</span></button><i></i><button type="button" [class.active]="formStep === 2" (click)="formStep = 2"><b>2</b><span>Detalles</span></button></div>
       <form (ngSubmit)="add()">
         @if (formStep === 1) {
-          <label class="photo-upload"><input type="file" accept="image/*" (change)="handlePhoto($event)" />@if (newItem.photo) { <img [src]="newItem.photo" alt="Vista previa" /> } @else { <strong>Agregar fotografía</strong><span>PNG o JPG · máximo 4 MB</span> }</label>
+          <label class="photo-upload"><input type="file" accept="image/*" (change)="handlePhoto($event)" />@if (newPhotoPreview || newItem.photo) { <img [src]="newPhotoPreview || newItem.photo" alt="Vista previa" /> } @else { <strong>Agregar fotografía</strong><span>PNG o JPG · máximo 4 MB</span> }</label>
           <label><span>Nombre *</span><input [(ngModel)]="newItem.name" name="name" /></label>
           <label><span>Tipo *</span><input [(ngModel)]="newItem.type" name="type" /></label>
           <label><span>Ubicación</span><input [(ngModel)]="newItem.location" name="location" /></label>
-          <button class="primary-button form-submit" type="button" (click)="formStep = 2">Continuar</button>
+          <button class="primary-button form-submit" type="button" (click)="formStep = 2" [disabled]="isPreparingImages">{{ isPreparingImages ? 'Preparando imagen...' : 'Continuar' }}</button>
         } @else {
           <div class="form-row"><label><span>Estado</span><select [(ngModel)]="newItem.status" name="status"><option>Operativa</option><option>Mantenimiento</option><option>Fuera de servicio</option></select></label><label><span>Próximo mantenimiento</span><input type="date" [(ngModel)]="newItem.nextMaintenance" name="maintenance" /></label></div>
-          <div class="form-navigation"><button class="secondary-button" type="button" (click)="formStep = 1" [disabled]="isCreating">Atrás</button><button class="primary-button" type="submit" [disabled]="isCreating">{{ isCreating ? 'Guardando...' : 'Guardar máquina' }}</button></div>
+          <div class="form-navigation"><button class="secondary-button" type="button" (click)="formStep = 1" [disabled]="isCreating">Atrás</button><button class="primary-button" type="submit" [disabled]="isCreating || isPreparingImages">{{ isPreparingImages ? 'Preparando imagen...' : (isCreating ? 'Guardando...' : 'Guardar máquina') }}</button></div>
         }
       </form>
     </section>

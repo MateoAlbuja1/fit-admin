@@ -6,6 +6,7 @@ import { AccionPaginaAdminService } from '../../../core/servicios/accion-pagina-
 import { DatosGimnasioService } from '../../../core/servicios/datos-gimnasio.service';
 
 type FiltroStock = 'Todos' | 'Stock bajo' | 'Disponibles' | 'Agotados';
+type PreviewKey = 'newPhotoPreview' | 'newFactsPhotoPreview' | 'editPhotoPreview' | 'editFactsPhotoPreview';
 
 @Component({ selector: 'app-pagina-suplementos', standalone: true, imports: [FormsModule], templateUrl: './suplementos.html' })
 export class PaginaSuplementosComponent implements OnInit, OnDestroy {
@@ -29,6 +30,11 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
   newCategoryText = '';
   editCategorySelection = '';
   editCategoryText = '';
+  newPhotoPreview = '';
+  newFactsPhotoPreview = '';
+  editPhotoPreview = '';
+  editFactsPhotoPreview = '';
+  imageReadsInProgress = 0;
   newItem = this.emptySupplementForm();
   editItem = this.emptySupplementForm();
   private noticeTimer?: ReturnType<typeof setTimeout>;
@@ -53,6 +59,7 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
     if (this.noticeTimer) {
       clearTimeout(this.noticeTimer);
     }
+    this.clearImagePreviews();
     this.actions.limpiar();
   }
 
@@ -95,6 +102,10 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
 
   get ivaTemporalLabel(): string {
     return this.data.etiquetaIvaTemporal;
+  }
+
+  get isPreparingImages(): boolean {
+    return this.imageReadsInProgress > 0;
   }
 
   displayPrice(item: Suplemento): number {
@@ -168,6 +179,7 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
   }
 
   openCreate(): void {
+    this.clearNewPreviews();
     this.newItem = this.emptySupplementForm();
     this.newCategorySelection = '';
     this.newCategoryText = '';
@@ -183,6 +195,7 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
     this.formStep = 1;
     this.newCategorySelection = '';
     this.newCategoryText = '';
+    this.clearNewPreviews();
   }
 
   remove(item: Suplemento): void {
@@ -190,6 +203,7 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
   }
 
   openEdit(item: Suplemento): void {
+    this.clearEditPreviews();
     this.editingItemId = item.id;
     this.editCategorySelection = this.categoryOptions.includes(item.category) ? item.category : this.newCategoryOption;
     this.editCategoryText = this.editCategorySelection === this.newCategoryOption ? item.category : '';
@@ -209,6 +223,7 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
     if (this.isSavingEdit) {
       return;
     }
+    this.clearEditPreviews();
     this.editingItemId = null;
   }
 
@@ -243,6 +258,7 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
         this.updateView(() => {
           Object.assign(item, updated);
           this.stockDrafts.set(item.id, item.stock);
+          this.clearEditPreviews();
           this.editingItemId = null;
         });
         this.showNotice('Suplemento actualizado correctamente.');
@@ -312,19 +328,19 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
   }
 
   handlePhoto(event: Event): void {
-    this.readImageFile(event, value => this.newItem = { ...this.newItem, photo: value });
+    this.readImageFile(event, 'newPhotoPreview', value => this.newItem = { ...this.newItem, photo: value });
   }
 
   handleFactsPhoto(event: Event): void {
-    this.readImageFile(event, value => this.newItem = { ...this.newItem, factsPhoto: value });
+    this.readImageFile(event, 'newFactsPhotoPreview', value => this.newItem = { ...this.newItem, factsPhoto: value });
   }
 
   handleEditPhoto(event: Event): void {
-    this.readImageFile(event, value => this.editItem = { ...this.editItem, photo: value });
+    this.readImageFile(event, 'editPhotoPreview', value => this.editItem = { ...this.editItem, photo: value });
   }
 
   handleEditFactsPhoto(event: Event): void {
-    this.readImageFile(event, value => this.editItem = { ...this.editItem, factsPhoto: value });
+    this.readImageFile(event, 'editFactsPhotoPreview', value => this.editItem = { ...this.editItem, factsPhoto: value });
   }
 
   setNewCategorySelection(value: string): void {
@@ -351,7 +367,7 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
     }
   }
 
-  private readImageFile(event: Event, onLoad: (value: string) => void): void {
+  private readImageFile(event: Event, previewKey: PreviewKey, onLoad: (value: string) => void): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file || file.size > 4 * 1024 * 1024) {
@@ -359,19 +375,27 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
       input.value = '';
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => {
+    this.setPreview(previewKey, URL.createObjectURL(file));
+    this.imageReadsInProgress += 1;
+    this.cdr.detectChanges();
+
+    this.compressImageFile(file).then(value => {
       this.updateView(() => {
-        onLoad(String(reader.result));
+        onLoad(value);
         input.value = '';
       });
-    };
-    reader.onerror = () => this.showNotice('No se pudo cargar la imagen.', 'error');
-    reader.readAsDataURL(file);
+    }).catch(() => {
+      this.showNotice('No se pudo cargar la imagen.', 'error');
+      input.value = '';
+    }).finally(() => {
+      this.updateView(() => {
+        this.imageReadsInProgress = Math.max(0, this.imageReadsInProgress - 1);
+      });
+    });
   }
 
   add(): void {
-    if (this.isCreating) {
+    if (this.isCreating || this.isPreparingImages) {
       return;
     }
 
@@ -396,6 +420,7 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
           this.formStep = 1;
           this.newCategorySelection = '';
           this.newCategoryText = '';
+          this.clearNewPreviews();
         });
         this.showNotice('Suplemento agregado correctamente.');
       },
@@ -434,6 +459,65 @@ export class PaginaSuplementosComponent implements OnInit, OnDestroy {
       update();
       this.cdr.detectChanges();
     });
+  }
+
+  private compressImageFile(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      const objectUrl = URL.createObjectURL(file);
+      image.onload = () => {
+        try {
+          const maxSize = 1280;
+          const scale = Math.min(1, maxSize / Math.max(image.width, image.height));
+          const width = Math.max(1, Math.round(image.width * scale));
+          const height = Math.max(1, Math.round(image.height * scale));
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const context = canvas.getContext('2d');
+          if (!context) {
+            reject(new Error('Canvas not available'));
+            return;
+          }
+          context.drawImage(image, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.82));
+        } catch (error) {
+          reject(error);
+        } finally {
+          URL.revokeObjectURL(objectUrl);
+        }
+      };
+      image.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        reject(new Error('Image load failed'));
+      };
+      image.src = objectUrl;
+    });
+  }
+
+  private setPreview(key: PreviewKey, value: string): void {
+    const current = this[key];
+    if (current?.startsWith('blob:')) {
+      URL.revokeObjectURL(current);
+    }
+    this.updateView(() => {
+      this[key] = value;
+    });
+  }
+
+  private clearNewPreviews(): void {
+    this.setPreview('newPhotoPreview', '');
+    this.setPreview('newFactsPhotoPreview', '');
+  }
+
+  private clearEditPreviews(): void {
+    this.setPreview('editPhotoPreview', '');
+    this.setPreview('editFactsPhotoPreview', '');
+  }
+
+  private clearImagePreviews(): void {
+    this.clearNewPreviews();
+    this.clearEditPreviews();
   }
 
   private emptySupplementForm() {

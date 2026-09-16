@@ -171,12 +171,12 @@
         <div class="form-row">
           <label class="photo-upload">
             <input type="file" accept="image/*" (change)="handleEditPhoto($event)" />
-            @if (editItem.photo) { <img [src]="editItem.photo" alt="Vista previa del producto" /> }
+            @if (editPhotoPreview || editItem.photo) { <img [src]="editPhotoPreview || editItem.photo" alt="Vista previa del producto" /> }
             @else { <strong>Foto del producto</strong><span>PNG o JPG · máximo 4 MB</span> }
           </label>
           <label class="photo-upload">
             <input type="file" accept="image/*" (change)="handleEditFactsPhoto($event)" />
-            @if (editItem.factsPhoto) { <img [src]="editItem.factsPhoto" alt="Vista previa de tabla nutricional" /> }
+            @if (editFactsPhotoPreview || editItem.factsPhoto) { <img [src]="editFactsPhotoPreview || editItem.factsPhoto" alt="Vista previa de tabla nutricional" /> }
             @else { <strong>Tabla nutricional</strong><span>Se muestra al pasar el mouse</span> }
           </label>
         </div>
@@ -197,7 +197,7 @@
           <label><span>Stock mínimo</span><input type="number" min="0" [(ngModel)]="editItem.minStock" name="editMinStock" /></label>
         </div>
         <label><span>Precio</span><input type="number" min="0" step="0.01" [(ngModel)]="editItem.price" name="editPrice" /></label>
-        <div class="form-navigation"><button class="secondary-button" type="button" (click)="cancelEdit()" [disabled]="isSavingEdit">Cancelar</button><button class="primary-button" type="submit" [disabled]="isSavingEdit">{{ isSavingEdit ? 'Guardando...' : 'Guardar cambios' }}</button></div>
+        <div class="form-navigation"><button class="secondary-button" type="button" (click)="cancelEdit()" [disabled]="isSavingEdit">Cancelar</button><button class="primary-button" type="submit" [disabled]="isSavingEdit || isPreparingImages">{{ isPreparingImages ? 'Preparando imagen...' : (isSavingEdit ? 'Guardando...' : 'Guardar cambios') }}</button></div>
       </form>
     </section>
   </div>
@@ -211,8 +211,8 @@
       <form (ngSubmit)="add()">
         @if (formStep === 1) {
           <div class="form-row">
-            <label class="photo-upload"><input type="file" accept="image/*" (change)="handlePhoto($event)" />@if (newItem.photo) { <img [src]="newItem.photo" alt="Vista previa del producto" /> } @else { <strong>Foto del producto</strong><span>PNG o JPG · máximo 4 MB</span> }</label>
-            <label class="photo-upload"><input type="file" accept="image/*" (change)="handleFactsPhoto($event)" />@if (newItem.factsPhoto) { <img [src]="newItem.factsPhoto" alt="Vista previa de tabla nutricional" /> } @else { <strong>Tabla nutricional</strong><span>Se muestra al pasar el mouse</span> }</label>
+            <label class="photo-upload"><input type="file" accept="image/*" (change)="handlePhoto($event)" />@if (newPhotoPreview || newItem.photo) { <img [src]="newPhotoPreview || newItem.photo" alt="Vista previa del producto" /> } @else { <strong>Foto del producto</strong><span>PNG o JPG · máximo 4 MB</span> }</label>
+            <label class="photo-upload"><input type="file" accept="image/*" (change)="handleFactsPhoto($event)" />@if (newFactsPhotoPreview || newItem.factsPhoto) { <img [src]="newFactsPhotoPreview || newItem.factsPhoto" alt="Vista previa de tabla nutricional" /> } @else { <strong>Tabla nutricional</strong><span>Se muestra al pasar el mouse</span> }</label>
           </div>
           <label><span>Nombre *</span><input [(ngModel)]="newItem.name" name="name" required /></label>
           <label>
@@ -226,12 +226,12 @@
           @if (newCategorySelection === newCategoryOption) {
             <label><span>Nueva categoría *</span><input [ngModel]="newCategoryText" (ngModelChange)="setNewCategoryText($event)" name="customCategory" required placeholder="Ej. Aminoácidos" /></label>
           }
-          <button class="primary-button form-submit" type="button" (click)="formStep = 2">Continuar</button>
+          <button class="primary-button form-submit" type="button" (click)="formStep = 2" [disabled]="isPreparingImages">{{ isPreparingImages ? 'Preparando imagen...' : 'Continuar' }}</button>
         } @else {
           <label><span>Descripción *</span><textarea [(ngModel)]="newItem.description" name="description" rows="4" required></textarea></label>
           <div class="form-row"><label><span>Stock</span><input type="number" [(ngModel)]="newItem.stock" name="stock" /></label><label><span>Stock mínimo</span><input type="number" [(ngModel)]="newItem.minStock" name="minStock" /></label></div>
           <label><span>Precio</span><input type="number" step="0.01" [(ngModel)]="newItem.price" name="price" /></label>
-          <div class="form-navigation"><button class="secondary-button" type="button" (click)="formStep = 1" [disabled]="isCreating">Atrás</button><button class="primary-button" type="submit" [disabled]="isCreating">{{ isCreating ? 'Guardando...' : 'Guardar suplemento' }}</button></div>
+          <div class="form-navigation"><button class="secondary-button" type="button" (click)="formStep = 1" [disabled]="isCreating">Atrás</button><button class="primary-button" type="submit" [disabled]="isCreating || isPreparingImages">{{ isPreparingImages ? 'Preparando imagen...' : (isCreating ? 'Guardando...' : 'Guardar suplemento') }}</button></div>
         }
       </form>
     </section>
