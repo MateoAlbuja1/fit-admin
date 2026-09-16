@@ -156,6 +156,12 @@ export class PaginaClientesComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const duplicate = this.findDuplicateClient(this.newClient.document, this.newClient.phone);
+    if (duplicate) {
+      this.showNotice(`Ya existe un cliente con esa ${duplicate.field}: ${duplicate.client.name}.`, 'warning');
+      return;
+    }
+
     const draft = { ...this.newClient };
     const payload = {
       name: draft.name.trim(),
@@ -194,9 +200,14 @@ export class PaginaClientesComponent implements OnInit, OnDestroy {
       error: error => {
         this.newClient = draft;
         this.showForm = true;
+        const backendMessage = String(error?.error?.error || '');
         this.showNotice(error.name === 'TimeoutError'
           ? 'El registro esta tardando demasiado. Revisa la conexion e intenta nuevamente.'
-          : 'No se pudo registrar el cliente en el backend.', 'error');
+          : backendMessage.includes('document')
+            ? 'Ya existe un cliente con esa cedula.'
+            : backendMessage.includes('phone')
+              ? 'Ya existe un cliente con ese telefono.'
+              : 'No se pudo registrar el cliente en el backend.', 'error');
       }
     });
   }
@@ -222,6 +233,33 @@ export class PaginaClientesComponent implements OnInit, OnDestroy {
     if (!this.noticeTimer) return;
     clearTimeout(this.noticeTimer);
     this.noticeTimer = undefined;
+  }
+
+  private findDuplicateClient(document: string, phone: string): { field: 'cedula' | 'telefono'; client: Cliente } | null {
+    const documentKey = this.normalizeDocument(document);
+    const phoneKey = this.normalizePhone(phone);
+
+    const byDocument = this.data.clientes.find(client => this.normalizeDocument(client.document) === documentKey);
+    if (byDocument) {
+      return { field: 'cedula', client: byDocument };
+    }
+
+    if (phoneKey.length >= 7) {
+      const byPhone = this.data.clientes.find(client => this.normalizePhone(client.phone) === phoneKey);
+      if (byPhone) {
+        return { field: 'telefono', client: byPhone };
+      }
+    }
+
+    return null;
+  }
+
+  private normalizeDocument(value: string): string {
+    return value.trim().toLowerCase();
+  }
+
+  private normalizePhone(value: string): string {
+    return value.replace(/\D/g, '');
   }
 
 }
