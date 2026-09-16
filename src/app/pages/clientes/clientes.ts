@@ -187,6 +187,7 @@ export class PaginaClientesComponent implements OnInit, OnDestroy {
           created,
           ...this.data.clientes.filter(client => client.id !== created.id && client.id !== tempClient.id)
         ];
+        this.data.refrescar();
         this.newClient = { name: '', document: '', phone: '', plan: 'Plan mensual' };
         this.showForm = false;
         this.showNotice('Cliente creado correctamente.');

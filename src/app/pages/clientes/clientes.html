@@ -45,7 +45,7 @@
       <tbody>
         @for (client of pagedClients; track client.id) {
           <tr>
-            <td><div class="person-cell"><span>{{ client.name.slice(0,2).toUpperCase() }}</span><div><strong>{{ client.name }}</strong><small>#{{ client.id }}</small></div></div></td>
+            <td><div class="person-cell"><span>{{ client.name.slice(0,2).toUpperCase() }}</span><div><strong>{{ client.name }}</strong><small>{{ client.id < 0 ? 'Creando...' : '#' + client.id }}</small></div></div></td>
             <td>{{ client.document }}</td>
             <td>{{ client.phone }}</td>
             <td>{{ client.plan }}</td>
