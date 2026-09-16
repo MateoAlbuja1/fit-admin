@@ -208,6 +208,13 @@
             <label><span>Confirmar contrasena</span><input type="password" [(ngModel)]="password.confirmar" name="confirmPassword" /></label>
           </div>
 
+          <div class="password-actions">
+            <small>Cambia solo la contrasena de la cuenta con la sesion activa.</small>
+            <button class="primary-button" type="button" (click)="changePasswordOnly()" [disabled]="isSaving || isChangingPassword">
+              {{ changePasswordLabel }}
+            </button>
+          </div>
+
           <div class="settings-divider"></div>
 
           <header class="settings-subheader">

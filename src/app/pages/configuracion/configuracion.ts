@@ -69,9 +69,14 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
   activePanel: PanelConfiguracion = 'gimnasio';
   isSaving = false;
   isRestoring = false;
+  isChangingPassword = false;
   isCheckingSystem = false;
   selectedBackupFileName = '';
   selectedBackupSnapshot: Record<string, unknown> | null = null;
+
+  get changePasswordLabel(): string {
+    return this.isChangingPassword ? 'Cambiando...' : 'Cambiar contrasena';
+  }
 
   get restoreBackupLabel(): string {
     if (this.isRestoring) {
@@ -232,6 +237,34 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
     this.loadSettings();
   }
 
+  changePasswordOnly(): void {
+    if (!this.validatePasswordChange()) {
+      return;
+    }
+
+    this.isChangingPassword = true;
+    this.data.cambiarPassword({
+      currentPassword: this.password.actual,
+      newPassword: this.password.nueva
+    }).pipe(
+      timeout(12000),
+      finalize(() => {
+        this.isChangingPassword = false;
+        this.cdr.detectChanges();
+      })
+    ).subscribe({
+      next: () => {
+        this.password = { actual: '', nueva: '', confirmar: '' };
+        this.showNotice('Contrasena actualizada correctamente.');
+      },
+      error: error => {
+        this.showNotice(error.status === 401
+          ? 'La contrasena actual no es correcta.'
+          : 'No se pudo cambiar la contrasena. Inicia sesion de nuevo e intenta otra vez.');
+      }
+    });
+  }
+
   requestBackup(): void {
     this.startSaving();
     this.data.solicitarBackup().pipe(
@@ -388,18 +421,7 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (!this.password.actual || !this.password.nueva || !this.password.confirmar) {
-      this.showNotice('Completa los tres campos de contrasena para cambiarla.');
-      return;
-    }
-
-    if (this.password.nueva !== this.password.confirmar) {
-      this.showNotice('La nueva contrasena no coincide con la confirmacion.');
-      return;
-    }
-
-    if (this.password.nueva.length < 5) {
-      this.showNotice('La nueva contrasena debe tener al menos 5 caracteres.');
+    if (!this.validatePasswordChange()) {
       return;
     }
 
@@ -421,6 +443,25 @@ export class PaginaConfiguracionComponent implements OnInit, OnDestroy {
           : 'No se pudo cambiar la contrasena. Inicia sesion de nuevo e intenta otra vez.');
       }
     });
+  }
+
+  private validatePasswordChange(): boolean {
+    if (!this.password.actual || !this.password.nueva || !this.password.confirmar) {
+      this.showNotice('Completa los tres campos de contrasena para cambiarla.');
+      return false;
+    }
+
+    if (this.password.nueva !== this.password.confirmar) {
+      this.showNotice('La nueva contrasena no coincide con la confirmacion.');
+      return false;
+    }
+
+    if (this.password.nueva.length < 5) {
+      this.showNotice('La nueva contrasena debe tener al menos 5 caracteres.');
+      return false;
+    }
+
+    return true;
   }
 
   private persistSettings(successMessage: string): void {

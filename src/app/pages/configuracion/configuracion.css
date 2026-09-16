@@ -422,6 +422,24 @@
   color: var(--danger);
 }
 
+.password-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.password-actions small {
+  color: #777;
+  font-size: 12px;
+  line-height: 17px;
+}
+
+.password-actions .primary-button {
+  min-width: 178px;
+}
+
 .restore-card {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
@@ -641,6 +659,15 @@
 
   .schedule-row small {
     justify-self: start;
+  }
+
+  .password-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .password-actions .primary-button {
+    width: 100%;
   }
 }
 
