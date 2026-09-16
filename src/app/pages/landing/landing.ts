@@ -1,5 +1,5 @@
 import { isPlatformBrowser } from '@angular/common';
-import { Component, Inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Router } from '@angular/router';
@@ -824,7 +824,8 @@ export class LandingComponent implements OnInit, OnDestroy {
     @Inject(PLATFORM_ID) private platformId: object,
     private sanitizer: DomSanitizer,
     private data: DatosGimnasioService,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -1659,6 +1660,7 @@ export class LandingComponent implements OnInit, OnDestroy {
     ).subscribe(settings => {
       if (!settings) {
         this.promotionSettingsLoaded = true;
+        this.refreshPromotionView();
         return;
       }
       this.publicGymSettings = {
@@ -1680,7 +1682,18 @@ export class LandingComponent implements OnInit, OnDestroy {
         { value: 'WX', label: 'WX GYM', detail: 'Rutinas, fuerza y bienestar.' }
       ];
       this.promotionSettingsLoaded = true;
+      this.refreshPromotionView();
     });
+  }
+
+  private refreshPromotionView(): void {
+    this.cdr.detectChanges();
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    window.setTimeout(() => this.cdr.detectChanges(), 120);
+    window.setTimeout(() => this.cdr.detectChanges(), 500);
   }
 
   private loadPaypalConfig(): void {
