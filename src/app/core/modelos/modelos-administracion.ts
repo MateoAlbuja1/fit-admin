@@ -49,6 +49,8 @@ export interface Membresia {
   plan: string;
   start: string;
   end: string;
+  startDate?: string;
+  endDate?: string;
   days: number;
   status: 'Activa' | 'Por vencer' | 'Vencida';
 }

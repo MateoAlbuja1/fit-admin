@@ -86,8 +86,8 @@ export class DatosGimnasioService {
     return this.http.post<RegistroAsistencia>(`${this.apiUrl}/attendance/check-in`, { code });
   }
 
-  renovarMembresia(id: number, durationDays = 30) {
-    return this.http.patch<Membresia>(`${this.apiUrl}/memberships/${id}/renew`, { durationDays });
+  renovarMembresia(id: number) {
+    return this.http.patch<Membresia>(`${this.apiUrl}/memberships/${id}/renew`, {});
   }
 
   actualizarMembresia(id: number, payload: Partial<Membresia>) {

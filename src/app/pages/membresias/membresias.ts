@@ -5,7 +5,8 @@ import { Membresia } from '../../core/modelos/modelos-administracion';
 import { DatosGimnasioService } from '../../core/servicios/datos-gimnasio.service';
 
 type FiltroMembresiaEstado = 'Todos' | Membresia['status'];
-type FiltroMembresiaPlan = 'Todos' | 'Mensual' | 'Trimestral' | 'Anual';
+type PlanMembresia = 'Mensual' | 'Trimestral' | 'Anual';
+type FiltroMembresiaPlan = 'Todos' | PlanMembresia;
 
 @Component({ selector: 'app-pagina-membresias', standalone: true, imports: [FormsModule], templateUrl: './membresias.html' })
 export class PaginaMembresiasComponent implements OnDestroy {
@@ -17,13 +18,18 @@ export class PaginaMembresiasComponent implements OnDestroy {
   editingMembershipId: number | null = null;
   isSavingEdit = false;
   renewingIds = new Set<number>();
-  editMembership = { member: '', plan: 'Mensual' as FiltroMembresiaPlan, start: '', end: '', days: 30, status: 'Activa' as Membresia['status'] };
+  editMembership = { member: '', plan: 'Mensual' as PlanMembresia, start: '', end: '', days: 30, status: 'Activa' as Membresia['status'] };
   private noticeTimer?: ReturnType<typeof setTimeout>;
   private renewingTimers = new Map<number, ReturnType<typeof setTimeout>>();
   private readonly requestTimeoutMs = 12000;
 
   readonly statusFilters: FiltroMembresiaEstado[] = ['Todos', 'Activa', 'Por vencer', 'Vencida'];
   readonly planFilters: FiltroMembresiaPlan[] = ['Todos', 'Mensual', 'Trimestral', 'Anual'];
+  private readonly planDurations: Record<PlanMembresia, number> = {
+    Mensual: 30,
+    Trimestral: 90,
+    Anual: 365
+  };
 
   constructor(public data: DatosGimnasioService, private cdr: ChangeDetectorRef) {}
 
@@ -58,13 +64,13 @@ export class PaginaMembresiasComponent implements OnDestroy {
 
     this.setRenewing(item.id, true);
     this.startRenewingFallback(item.id);
-    this.data.renovarMembresia(item.id, 30).pipe(
+    this.data.renovarMembresia(item.id).pipe(
       timeout(this.requestTimeoutMs),
       finalize(() => this.finishRenewing(item.id))
     ).subscribe({
       next: updated => {
         this.applyMembershipUpdate(item, updated);
-        this.showNotice(`Membresia de ${item.member} renovada por 30 dias.`);
+        this.showNotice(`Membresia de ${updated.member} renovada por ${updated.days} dias.`);
       },
       error: error => {
         this.showNotice(error.name === 'TimeoutError'
@@ -80,7 +86,14 @@ export class PaginaMembresiasComponent implements OnDestroy {
     }
 
     this.editingMembershipId = item.id;
-    this.editMembership = { member: item.member, plan: item.plan as FiltroMembresiaPlan, start: item.start, end: item.end, days: item.days, status: item.status };
+    this.editMembership = {
+      member: item.member,
+      plan: this.toPlanMembership(item.plan),
+      start: this.toDateInputValue(item.startDate || item.start) || this.todayInputValue(),
+      end: this.toDateInputValue(item.endDate || item.end),
+      days: item.days,
+      status: item.status
+    };
   }
 
   cancelEdit(): void {
@@ -104,11 +117,14 @@ export class PaginaMembresiasComponent implements OnDestroy {
 
     this.isSavingEdit = true;
     this.cdr.detectChanges();
+    const startDate = this.toDateInputValue(this.editMembership.start) || this.todayInputValue();
+    const endDate = this.toDateInputValue(this.editMembership.end) || this.addDays(startDate, this.planDurations[this.editMembership.plan]);
     const payload = {
       plan: this.editMembership.plan,
-      startDate: this.editMembership.start,
-      endDate: this.editMembership.end,
-      status: this.editMembership.status
+      startDate,
+      endDate,
+      status: this.editMembership.status,
+      recalculateEndDate: false
     } as Record<string, unknown>;
 
     this.data.actualizarMembresia(item.id, payload).pipe(
@@ -119,13 +135,7 @@ export class PaginaMembresiasComponent implements OnDestroy {
       })
     ).subscribe({
       next: updated => {
-        Object.assign(item, updated);
-        item.member = this.editMembership.member.trim();
-        item.plan = this.editMembership.plan;
-        item.start = this.editMembership.start;
-        item.end = this.editMembership.end;
-        item.days = Math.max(0, Number(this.editMembership.days) || 0);
-        item.status = this.editMembership.status;
+        this.applyMembershipUpdate(item, updated);
         this.editingMembershipId = null;
         this.showNotice('Membresia actualizada correctamente.');
       },
@@ -139,6 +149,20 @@ export class PaginaMembresiasComponent implements OnDestroy {
 
   isRenewing(item: Membresia): boolean {
     return this.renewingIds.has(item.id);
+  }
+
+  onEditPlanChange(): void {
+    this.recalculateEditEndDate();
+  }
+
+  onEditStartChange(): void {
+    this.recalculateEditEndDate();
+  }
+
+  onEditEndChange(): void {
+    this.editMembership.end = this.toDateInputValue(this.editMembership.end);
+    this.editMembership.days = this.daysUntil(this.editMembership.end);
+    this.editMembership.status = this.statusFromDays(this.editMembership.days);
   }
 
   clearNotice(): void {
@@ -206,5 +230,85 @@ export class PaginaMembresiasComponent implements OnDestroy {
     Object.assign(item, updated);
     this.data.membresias = this.data.membresias.map(current => current.id === item.id ? { ...current, ...updated } : current);
     this.cdr.detectChanges();
+  }
+
+  private recalculateEditEndDate(): void {
+    const startDate = this.toDateInputValue(this.editMembership.start) || this.todayInputValue();
+    const duration = this.planDurations[this.editMembership.plan];
+    const endDate = this.addDays(startDate, duration);
+    this.editMembership.start = startDate;
+    this.editMembership.end = endDate;
+    this.editMembership.days = this.daysUntil(endDate);
+    this.editMembership.status = this.statusFromDays(this.editMembership.days);
+  }
+
+  private toPlanMembership(value: string): PlanMembresia {
+    return value === 'Trimestral' || value === 'Anual' ? value : 'Mensual';
+  }
+
+  private toDateInputValue(value?: string | null): string {
+    if (!value) {
+      return '';
+    }
+
+    const raw = String(value).slice(0, 10);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+      return raw;
+    }
+
+    const match = String(value).match(/^(\d{1,2})\s+([A-Za-zÁÉÍÓÚáéíóú]{3})\s+(\d{4})$/);
+    if (match) {
+      const months: Record<string, string> = {
+        ene: '01',
+        feb: '02',
+        mar: '03',
+        abr: '04',
+        may: '05',
+        jun: '06',
+        jul: '07',
+        ago: '08',
+        sep: '09',
+        oct: '10',
+        nov: '11',
+        dic: '12'
+      };
+      const month = months[match[2].toLowerCase()];
+      if (month) {
+        return `${match[3]}-${month}-${match[1].padStart(2, '0')}`;
+      }
+    }
+
+    return '';
+  }
+
+  private todayInputValue(): string {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  private addDays(value: string, days: number): string {
+    const date = new Date(`${value}T00:00:00Z`);
+    date.setUTCDate(date.getUTCDate() + days);
+    return date.toISOString().slice(0, 10);
+  }
+
+  private daysUntil(value: string): number {
+    if (!value) {
+      return 0;
+    }
+    const today = new Date();
+    const start = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
+    const endDate = new Date(`${value}T00:00:00Z`);
+    if (Number.isNaN(endDate.getTime())) {
+      return 0;
+    }
+    const end = Date.UTC(endDate.getUTCFullYear(), endDate.getUTCMonth(), endDate.getUTCDate());
+    return Math.max(0, Math.ceil((end - start) / 86400000));
+  }
+
+  private statusFromDays(days: number): Membresia['status'] {
+    if (days <= 0) {
+      return 'Vencida';
+    }
+    return days <= 7 ? 'Por vencer' : 'Activa';
   }
 }
