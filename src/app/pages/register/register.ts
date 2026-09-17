@@ -172,7 +172,8 @@ export class RegisterComponent implements OnInit, OnDestroy {
     });
   }
 
-  private registerErrorMessage(error: { status?: number; name?: string }): string {
+  private registerErrorMessage(error: { status?: number; name?: string; error?: { error?: string } }): string {
+    const backendMessage = String(error.error?.error || '').toLowerCase();
     if (error.name === 'TimeoutError') {
       return 'El backend tardo demasiado en responder. Revisa que Docker este levantado e intenta de nuevo.';
     }
@@ -180,6 +181,9 @@ export class RegisterComponent implements OnInit, OnDestroy {
       return 'No se pudo conectar con el backend. Levanta Docker y vuelve a intentar.';
     }
     if (error.status === 409) {
+      if (backendMessage.includes('document')) {
+        return 'Esa cedula ya esta registrada. Inicia sesion con tu correo.';
+      }
       return 'Ese correo ya esta registrado. Inicia sesion con tu correo.';
     }
     if (error.status === 400) {

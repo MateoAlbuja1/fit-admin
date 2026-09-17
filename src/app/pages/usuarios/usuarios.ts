@@ -81,7 +81,7 @@ export class PaginaUsuariosComponent implements OnInit, OnDestroy {
     const query = this.search.toLowerCase().trim();
 
     return this.usuarios.filter(usuario => {
-      const coincideBusqueda = `${usuario.fullName} ${usuario.username} ${usuario.email ?? ''}`
+      const coincideBusqueda = `${usuario.fullName} ${usuario.username} ${usuario.email ?? ''} ${usuario.document ?? ''}`
         .toLowerCase()
         .includes(query);
       const coincideRol = this.roleFilter === 'Todos' || usuario.role === this.roleFilter;
@@ -101,8 +101,8 @@ export class PaginaUsuariosComponent implements OnInit, OnDestroy {
     return this.usuarios.filter(usuario => usuario.role === 'RECEPCION').length;
   }
 
-  get clientesVinculados(): number {
-    return this.usuarios.filter(usuario => usuario.clientId !== null).length;
+  get clientesWeb(): number {
+    return this.usuarios.filter(usuario => usuario.role === 'CLIENTE').length;
   }
 
   etiquetaRol(role: UsuarioRegistrado['role']): string {

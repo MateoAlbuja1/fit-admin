@@ -8,17 +8,17 @@
 <section class="metric-grid">
   <article><span>Cuentas totales</span><strong>{{ usuarios.length }}</strong><small>Logins registrados</small></article>
   <article><span>Cuentas activas</span><strong>{{ usuariosActivos }}</strong><small>Con acceso habilitado</small></article>
-  <article><span>Vinculadas a cliente</span><strong>{{ clientesVinculados }}</strong><small>Login conectado a ficha</small></article>
+  <article><span>Clientes web</span><strong>{{ clientesWeb }}</strong><small>Creados desde registro público</small></article>
   <article><span>Administradores</span><strong>{{ administradores }}</strong><small>Acceso administrativo</small></article>
   <article><span>Recepción</span><strong>{{ recepcionistas }}</strong><small>Operación diaria</small></article>
 </section>
 
 <section class="content-card">
   <div class="card-toolbar">
-    <div><h3>Cuentas de acceso</h3><span>Login, permisos y ficha vinculada del cliente</span></div>
+    <div><h3>Cuentas de acceso</h3><span>Logins del portal web y del personal administrativo</span></div>
     <label class="search-field">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4" /></svg>
-      <input [(ngModel)]="search" placeholder="Buscar por nombre, usuario o correo" aria-label="Buscar usuarios" />
+      <input [(ngModel)]="search" placeholder="Buscar por nombre, usuario, cédula o correo" aria-label="Buscar usuarios" />
     </label>
   </div>
 
@@ -40,8 +40,8 @@
         <tr>
           <th scope="col">ID</th>
           <th scope="col">Nombre</th>
+          <th scope="col">Cédula</th>
           <th scope="col">Correo</th>
-          <th scope="col">Ficha vinculada</th>
           <th scope="col">Fecha de registro</th>
           <th scope="col">Rol</th>
         </tr>
@@ -79,8 +79,8 @@
             <tr>
               <td class="user-id">#{{ usuario.id }}</td>
               <td><div class="person-cell"><span>{{ iniciales(usuario.fullName) }}</span><div><strong>{{ usuario.fullName }}</strong><small>&#64;{{ usuario.username }}</small></div></div></td>
+              <td>{{ usuario.document || 'No registrada' }}</td>
               <td>{{ usuario.email || 'Sin correo registrado' }}</td>
-              <td>{{ usuario.clientId ? 'Cliente #' + usuario.clientId : 'No aplica' }}</td>
               <td>{{ usuario.createdAt | date:'dd MMM yyyy, HH:mm' }}</td>
               <td><span class="badge" [class.badge--warning]="usuario.role === 'RECEPCION'" [class.badge--muted]="usuario.role === 'CLIENTE'">{{ etiquetaRol(usuario.role) }}</span></td>
             </tr>
