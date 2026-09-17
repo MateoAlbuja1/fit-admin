@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { finalize, timeout } from 'rxjs';
 import { Cliente, DetalleRegistro } from '../../core/modelos/modelos-administracion';
 import { AccionPaginaAdminService } from '../../core/servicios/accion-pagina-admin.service';
+import { AuthService } from '../../core/servicios/auth.service';
 import { DatosGimnasioService } from '../../core/servicios/datos-gimnasio.service';
 
 type FiltroClienteEstado = 'Todos' | Cliente['status'];
@@ -15,6 +16,7 @@ export class PaginaClientesComponent implements OnInit, OnDestroy {
   noticeType: 'success' | 'warning' | 'error' = 'success';
   showForm = false;
   detail: DetalleRegistro | null = null;
+  clienteAEliminar: Cliente | null = null;
   page = 1;
   readonly pageSize = 3;
   statusFilter: FiltroClienteEstado = 'Todos';
@@ -31,6 +33,7 @@ export class PaginaClientesComponent implements OnInit, OnDestroy {
   constructor(
     public data: DatosGimnasioService,
     private actions: AccionPaginaAdminService,
+    private auth: AuthService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -65,6 +68,10 @@ export class PaginaClientesComponent implements OnInit, OnDestroy {
     return this.filteredClients.slice((this.page - 1) * this.pageSize, this.page * this.pageSize);
   }
 
+  get canDelete(): boolean {
+    return this.auth.currentUser?.apiRole === 'ADMIN';
+  }
+
   setStatusFilter(filter: FiltroClienteEstado): void {
     this.statusFilter = filter;
     this.page = 1;
@@ -93,6 +100,42 @@ export class PaginaClientesComponent implements OnInit, OnDestroy {
       },
       error: () => {
         this.showNotice('No se pudo actualizar el estado en el backend.', 'error');
+      }
+    });
+  }
+
+  remove(client: Cliente): void {
+    if (!this.canDelete) {
+      this.showNotice('Solo el administrador puede eliminar clientes.', 'warning');
+      return;
+    }
+    this.clienteAEliminar = client;
+  }
+
+  cancelarEliminacion(): void {
+    this.clienteAEliminar = null;
+  }
+
+  confirmarEliminacion(): void {
+    const client = this.clienteAEliminar;
+    if (!client) return;
+    if (!this.canDelete) {
+      this.clienteAEliminar = null;
+      this.showNotice('Solo el administrador puede eliminar clientes.', 'warning');
+      return;
+    }
+
+    this.data.eliminarCliente(client.id).subscribe({
+      next: () => {
+        this.data.clientes = this.data.clientes.filter(current => current.id !== client.id);
+        this.data.refrescar();
+        this.clienteAEliminar = null;
+        this.detail = null;
+        this.page = Math.min(this.page, this.pageCount);
+        this.showNotice(`${client.name} eliminado correctamente.`);
+      },
+      error: () => {
+        this.showNotice('No se pudo eliminar el cliente en el backend.', 'error');
       }
     });
   }

@@ -330,6 +330,33 @@ q {
   color: #6f6f6f;
 }
 
+.row-actions .text-button--danger-icon {
+  display: inline-flex;
+  width: 32px;
+  min-width: 32px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-color: rgba(197, 69, 69, .34);
+  color: #c54545;
+}
+
+.row-actions .text-button--danger-icon svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.row-actions .text-button--danger-icon:hover {
+  border-color: #c54545;
+  background: rgba(197, 69, 69, .08);
+  color: #c54545;
+}
+
 .dark-mode .row-actions .text-button {
   border-color: #2a3442;
   background: #151d28;
@@ -352,6 +379,17 @@ q {
 .dark-mode .row-actions .text-button--renew {
   border-color: rgba(255, 113, 113, .32);
   color: #ff8a8a;
+}
+
+.dark-mode .row-actions .text-button--danger-icon {
+  border-color: rgba(255, 113, 113, .34);
+  color: #ff8a8a;
+}
+
+.dark-mode .row-actions .text-button--danger-icon:hover {
+  border-color: #ff6464;
+  background: rgba(197, 69, 69, .14);
+  color: #ff9a9a;
 }
 
 .inventory-edit-actions {

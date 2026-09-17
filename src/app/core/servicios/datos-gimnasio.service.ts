@@ -82,6 +82,10 @@ export class DatosGimnasioService {
     return this.http.put<Cliente>(`${this.apiUrl}/clients/${id}`, payload);
   }
 
+  eliminarCliente(id: number) {
+    return this.http.delete<void>(`${this.apiUrl}/clients/${id}`);
+  }
+
   registrarAsistencia(code: string) {
     return this.http.post<RegistroAsistencia>(`${this.apiUrl}/attendance/check-in`, { code });
   }

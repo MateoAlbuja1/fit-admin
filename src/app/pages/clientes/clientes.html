@@ -51,7 +51,18 @@
             <td>{{ client.plan }}</td>
             <td>{{ client.joined }}</td>
             <td><span class="badge" [class.badge--muted]="client.status === 'Inactivo'">{{ client.status }}</span></td>
-            <td><div class="row-actions"><button class="text-button" type="button" (click)="showDetail(client)">Ver ficha</button><button class="text-button" type="button" (click)="openEdit(client)">Editar</button><button class="text-button text-button--muted" type="button" (click)="toggleClient(client)">{{ client.status === 'Activo' ? 'Desactivar' : 'Activar' }}</button></div></td>
+            <td>
+              <div class="row-actions">
+                <button class="text-button" type="button" (click)="showDetail(client)">Ver ficha</button>
+                <button class="text-button" type="button" (click)="openEdit(client)">Editar</button>
+                <button class="text-button text-button--muted" type="button" (click)="toggleClient(client)">{{ client.status === 'Activo' ? 'Desactivar' : 'Activar' }}</button>
+                @if (canDelete) {
+                  <button class="text-button text-button--danger-icon icon-delete" type="button" (click)="remove(client)" aria-label="Eliminar cliente" title="Eliminar">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 15h10l1-15"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+                  </button>
+                }
+              </div>
+            </td>
           </tr>
         } @empty {
           <tr><td colspan="7"><div class="empty-state"><strong>Sin clientes</strong><span>No hay resultados para esta búsqueda.</span></div></td></tr>
@@ -62,6 +73,23 @@
 
   <div class="table-footer"><span>Mostrando {{ pagedClients.length }} de {{ filteredClients.length }} clientes</span><div><button type="button" (click)="changePage(-1)" [disabled]="page === 1">‹</button><b>Página {{ page }} de {{ pageCount }}</b><button type="button" (click)="changePage(1)" [disabled]="page === pageCount">›</button></div></div>
 </section>
+
+@if (clienteAEliminar) {
+  <div class="confirm-overlay" (click)="cancelarEliminacion()">
+    <section class="confirm-dialog" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="titulo-eliminar-cliente">
+      <span class="confirm-icon">!</span>
+      <div class="confirm-copy">
+        <span>CONFIRMAR ELIMINACIÓN</span>
+        <h2 id="titulo-eliminar-cliente">¿Seguro desea eliminar?</h2>
+        <p>Se eliminará <strong>{{ clienteAEliminar.name }}</strong> del directorio de clientes. Esta acción no se puede deshacer.</p>
+      </div>
+      <div class="confirm-actions">
+        <button class="secondary-button" type="button" (click)="cancelarEliminacion()">Cancelar</button>
+        <button class="confirm-danger" type="button" (click)="confirmarEliminacion()">Aceptar</button>
+      </div>
+    </section>
+  </div>
+}
 
 @if (detail) {
   <div class="detail-overlay" (click)="detail = null">
