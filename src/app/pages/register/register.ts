@@ -19,6 +19,7 @@ interface GymSlide {
 export class RegisterComponent implements OnInit, OnDestroy {
   firstName = '';
   lastName = '';
+  document = '';
   email = '';
   phone = '';
   registerPassword = '';
@@ -74,8 +75,14 @@ export class RegisterComponent implements OnInit, OnDestroy {
     this.message = '';
     this.messageType = 'error';
 
-    if (!this.firstName.trim() || !this.lastName.trim() || !this.email.trim() || !this.registerPassword) {
+    if (!this.firstName.trim() || !this.lastName.trim() || !this.document.trim() || !this.email.trim() || !this.registerPassword) {
       this.message = 'Completa los datos obligatorios.';
+      return;
+    }
+
+    const document = this.document.replace(/\D/g, '');
+    if (document.length !== 10) {
+      this.message = 'Ingresa una cedula valida de 10 digitos.';
       return;
     }
 
@@ -100,6 +107,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
       email: this.email.trim().toLowerCase(),
       password: this.registerPassword,
       fullName: `${this.firstName.trim()} ${this.lastName.trim()}`,
+      document,
       phone: this.phone.trim()
     }).pipe(
       timeout(10000),
@@ -116,6 +124,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
           this.message = 'Registro creado correctamente. Ya puedes iniciar sesion con tu correo.';
           this.firstName = '';
           this.lastName = '';
+          this.document = '';
           this.email = '';
           this.phone = '';
           this.registerPassword = '';

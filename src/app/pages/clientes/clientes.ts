@@ -21,8 +21,8 @@ export class PaginaClientesComponent implements OnInit, OnDestroy {
   planFilter: FiltroClientePlan = 'Todos';
   editingClientId: number | null = null;
   isSavingClient = false;
-  newClient = { name: '', document: '', phone: '', email: '', address: '', birthDate: '', notes: '', plan: 'Plan mensual' };
-  editClient = { name: '', document: '', phone: '', email: '', address: '', birthDate: '', notes: '', status: 'Activo' as Cliente['status'] };
+  newClient = { name: '', document: '', phone: '', email: '', notes: '', plan: 'Plan mensual' };
+  editClient = { name: '', document: '', phone: '', email: '', notes: '', status: 'Activo' as Cliente['status'] };
   private noticeTimer?: ReturnType<typeof setTimeout>;
 
   readonly statusFilters: FiltroClienteEstado[] = ['Todos', 'Activo', 'Inactivo'];
@@ -107,8 +107,6 @@ export class PaginaClientesComponent implements OnInit, OnDestroy {
         { label: 'Cedula', value: client.document },
         { label: 'Telefono', value: client.phone },
         { label: 'Correo', value: client.email || 'Sin correo' },
-        { label: 'Direccion', value: client.address || 'Sin direccion' },
-        { label: 'Fecha de nacimiento', value: client.birthDate || 'Sin fecha' },
         { label: 'Membresia', value: client.plan },
         { label: 'Ingreso', value: client.joined },
         { label: 'Notas', value: client.notes || 'Sin notas' }
@@ -123,8 +121,6 @@ export class PaginaClientesComponent implements OnInit, OnDestroy {
       document: client.document,
       phone: client.phone,
       email: client.email || '',
-      address: client.address || '',
-      birthDate: this.toDateInputValue(client.birthDate),
       notes: client.notes || '',
       status: client.status
     };
@@ -146,8 +142,6 @@ export class PaginaClientesComponent implements OnInit, OnDestroy {
       document: this.editClient.document.trim(),
       phone: this.editClient.phone.trim() || 'Sin telefono',
       email: this.editClient.email.trim() || null,
-      address: this.editClient.address.trim() || null,
-      birthDate: this.editClient.birthDate || null,
       notes: this.editClient.notes.trim() || null,
       status: this.editClient.status
     }).subscribe({
@@ -185,8 +179,6 @@ export class PaginaClientesComponent implements OnInit, OnDestroy {
       document: draft.document.trim(),
       phone: draft.phone.trim() || 'Sin telefono',
       email: draft.email.trim() || null,
-      address: draft.address.trim() || null,
-      birthDate: draft.birthDate || null,
       notes: draft.notes.trim() || null,
       status: 'Activo' as Cliente['status'],
       plan: draft.plan
@@ -213,7 +205,7 @@ export class PaginaClientesComponent implements OnInit, OnDestroy {
           ...this.data.clientes.filter(client => client.id !== created.id)
         ];
         this.data.refrescar();
-        this.newClient = { name: '', document: '', phone: '', email: '', address: '', birthDate: '', notes: '', plan: 'Plan mensual' };
+        this.newClient = { name: '', document: '', phone: '', email: '', notes: '', plan: 'Plan mensual' };
         this.showForm = false;
         this.showNotice('Cliente creado correctamente.');
         this.cdr.detectChanges();
@@ -281,13 +273,6 @@ export class PaginaClientesComponent implements OnInit, OnDestroy {
 
   private normalizePhone(value: string): string {
     return value.replace(/\D/g, '');
-  }
-
-  private toDateInputValue(value?: string | null): string {
-    if (!value) {
-      return '';
-    }
-    return String(value).slice(0, 10);
   }
 
 }

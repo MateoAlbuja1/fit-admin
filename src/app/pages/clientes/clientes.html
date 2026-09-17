@@ -84,8 +84,6 @@
         <label><span>Cédula *</span><input [(ngModel)]="editClient.document" name="editDocument" required /></label>
         <label><span>Teléfono</span><input [(ngModel)]="editClient.phone" name="editPhone" /></label>
         <label><span>Correo</span><input type="email" [(ngModel)]="editClient.email" name="editEmail" /></label>
-        <label><span>Dirección</span><input [(ngModel)]="editClient.address" name="editAddress" /></label>
-        <label><span>Fecha de nacimiento</span><input type="date" [(ngModel)]="editClient.birthDate" name="editBirthDate" /></label>
         <label><span>Notas</span><textarea [(ngModel)]="editClient.notes" name="editNotes" rows="3"></textarea></label>
         <label><span>Estado</span><select [(ngModel)]="editClient.status" name="editStatus"><option>Activo</option><option>Inactivo</option></select></label>
         <div class="form-navigation"><button class="secondary-button" type="button" (click)="cancelEdit()">Cancelar</button><button class="primary-button" type="submit">Guardar cambios</button></div>
@@ -103,8 +101,6 @@
         <label><span>Cédula *</span><input [(ngModel)]="newClient.document" name="document" required [disabled]="isSavingClient" /></label>
         <label><span>Teléfono</span><input [(ngModel)]="newClient.phone" name="phone" [disabled]="isSavingClient" /></label>
         <label><span>Correo</span><input type="email" [(ngModel)]="newClient.email" name="email" [disabled]="isSavingClient" /></label>
-        <label><span>Dirección</span><input [(ngModel)]="newClient.address" name="address" [disabled]="isSavingClient" /></label>
-        <label><span>Fecha de nacimiento</span><input type="date" [(ngModel)]="newClient.birthDate" name="birthDate" [disabled]="isSavingClient" /></label>
         <label><span>Notas</span><textarea [(ngModel)]="newClient.notes" name="notes" rows="3" [disabled]="isSavingClient"></textarea></label>
         <label><span>Plan inicial</span><select [(ngModel)]="newClient.plan" name="plan" [disabled]="isSavingClient"><option>Plan mensual</option><option>Plan trimestral</option><option>Plan anual</option></select></label>
         <button class="primary-button form-submit" type="submit" [disabled]="isSavingClient">{{ isSavingClient ? 'Guardando...' : 'Guardar cliente' }}</button>
