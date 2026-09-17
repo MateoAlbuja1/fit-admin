@@ -22,7 +22,6 @@ export interface UsuarioRegistrado {
   email: string | null;
   fullName: string;
   phone: string | null;
-  document: string | null;
   role: 'ADMIN' | 'RECEPCION' | 'CLIENTE';
   clientId: number | null;
   active: boolean;

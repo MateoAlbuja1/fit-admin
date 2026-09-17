@@ -81,7 +81,7 @@ export class PaginaUsuariosComponent implements OnInit, OnDestroy {
     const query = this.search.toLowerCase().trim();
 
     return this.usuarios.filter(usuario => {
-      const coincideBusqueda = `${usuario.fullName} ${usuario.username} ${usuario.email ?? ''} ${usuario.document ?? ''}`
+      const coincideBusqueda = `${usuario.fullName} ${usuario.username} ${usuario.email ?? ''}`
         .toLowerCase()
         .includes(query);
       const coincideRol = this.roleFilter === 'Todos' || usuario.role === this.roleFilter;

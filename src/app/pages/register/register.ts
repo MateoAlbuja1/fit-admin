@@ -19,7 +19,6 @@ interface GymSlide {
 export class RegisterComponent implements OnInit, OnDestroy {
   firstName = '';
   lastName = '';
-  document = '';
   email = '';
   phone = '';
   registerPassword = '';
@@ -75,14 +74,8 @@ export class RegisterComponent implements OnInit, OnDestroy {
     this.message = '';
     this.messageType = 'error';
 
-    if (!this.firstName.trim() || !this.lastName.trim() || !this.document.trim() || !this.email.trim() || !this.registerPassword) {
+    if (!this.firstName.trim() || !this.lastName.trim() || !this.email.trim() || !this.registerPassword) {
       this.message = 'Completa los datos obligatorios.';
-      return;
-    }
-
-    const document = this.document.replace(/\D/g, '');
-    if (document.length !== 10) {
-      this.message = 'Ingresa una cedula valida de 10 digitos.';
       return;
     }
 
@@ -107,7 +100,6 @@ export class RegisterComponent implements OnInit, OnDestroy {
       email: this.email.trim().toLowerCase(),
       password: this.registerPassword,
       fullName: `${this.firstName.trim()} ${this.lastName.trim()}`,
-      document,
       phone: this.phone.trim()
     }).pipe(
       timeout(10000),
@@ -124,7 +116,6 @@ export class RegisterComponent implements OnInit, OnDestroy {
           this.message = 'Registro creado correctamente. Ya puedes iniciar sesion con tu correo.';
           this.firstName = '';
           this.lastName = '';
-          this.document = '';
           this.email = '';
           this.phone = '';
           this.registerPassword = '';
@@ -172,8 +163,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
     });
   }
 
-  private registerErrorMessage(error: { status?: number; name?: string; error?: { error?: string } }): string {
-    const backendMessage = String(error.error?.error || '').toLowerCase();
+  private registerErrorMessage(error: { status?: number; name?: string }): string {
     if (error.name === 'TimeoutError') {
       return 'El backend tardo demasiado en responder. Revisa que Docker este levantado e intenta de nuevo.';
     }
@@ -181,9 +171,6 @@ export class RegisterComponent implements OnInit, OnDestroy {
       return 'No se pudo conectar con el backend. Levanta Docker y vuelve a intentar.';
     }
     if (error.status === 409) {
-      if (backendMessage.includes('document')) {
-        return 'Esa cedula ya esta registrada. Inicia sesion con tu correo.';
-      }
       return 'Ese correo ya esta registrado. Inicia sesion con tu correo.';
     }
     if (error.status === 400) {
