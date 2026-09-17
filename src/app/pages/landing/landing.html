@@ -533,6 +533,16 @@
               <input [(ngModel)]="checkoutForm.customerPhone" name="orderCustomerPhone" required placeholder="0969953775" />
             </label>
 
+            <label>
+              <span>Correo</span>
+              <input type="email" [(ngModel)]="checkoutForm.customerEmail" name="orderCustomerEmail" placeholder="correo@ejemplo.com" />
+            </label>
+
+            <label>
+              <span>Notas del pedido</span>
+              <textarea [(ngModel)]="checkoutForm.notes" name="orderNotes" rows="3" placeholder="Retiro en recepción, horario o referencia"></textarea>
+            </label>
+
             @if (lastOrderWhatsappUrl) {
               <a [href]="lastOrderWhatsappUrl" target="_blank" rel="noreferrer">Enviar pedido {{ lastOrderCode }} por WhatsApp</a>
             }
@@ -550,8 +560,6 @@
                 <small>Confirmando pago con PayPal...</small>
               }
             </div>
-          } @else {
-            <button class="paypal-placeholder" type="button" disabled>PayPal no configurado</button>
           }
 
           <button class="cart-clear-button" type="button" (click)="clearCart()">Vaciar carrito</button>

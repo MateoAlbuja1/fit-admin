@@ -34,9 +34,13 @@ export interface Cliente {
   name: string;
   document: string;
   phone: string;
+  email?: string | null;
+  address?: string | null;
+  birthDate?: string | null;
   plan: string;
   joined: string;
   status: 'Activo' | 'Inactivo';
+  notes?: string | null;
 }
 
 export interface Membresia {

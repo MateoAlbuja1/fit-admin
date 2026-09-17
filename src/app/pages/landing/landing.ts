@@ -1632,8 +1632,10 @@ export class LandingComponent implements OnInit, OnDestroy {
     const lines = this.cartItems
       .map(item => `- ${item.quantity} x ${item.product.name} (${item.product.price})`)
       .join('\n');
+    const email = this.checkoutForm.customerEmail ? `\nCorreo: ${this.checkoutForm.customerEmail}` : '';
+    const notes = this.checkoutForm.notes ? `\nNotas: ${this.checkoutForm.notes}` : '';
     return this.buildWhatsappUrl(
-      `Hola ${this.gymName}, ya cree el pedido ${orderCode} desde la tienda:\n${lines}\nTotal aproximado: ${this.formatCurrency(this.cartSubtotal)}.\nNombre: ${this.checkoutForm.customerName}\nTelefono: ${this.checkoutForm.customerPhone}`
+      `Hola ${this.gymName}, ya cree el pedido ${orderCode} desde la tienda:\n${lines}\nTotal aproximado: ${this.formatCurrency(this.cartSubtotal)}.\nNombre: ${this.checkoutForm.customerName}\nTelefono: ${this.checkoutForm.customerPhone}${email}${notes}`
     );
   }
 

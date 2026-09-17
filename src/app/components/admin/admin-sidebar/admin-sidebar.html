@@ -28,9 +28,9 @@
     <section class="nav-section">
       <p class="nav-label">Gestión</p>
       @if ((role$ | async) === 'ADMIN') {
-        <a class="nav-item" routerLink="/usuarios" routerLinkActive="active" title="Usuarios web" (click)="closeMobileNav.emit()">
+        <a class="nav-item" routerLink="/usuarios" routerLinkActive="active" title="Cuentas de acceso" (click)="closeMobileNav.emit()">
           <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm7-7h6M19 1v6" /></svg>
-          <span>Usuarios web</span>
+          <span>Cuentas de acceso</span>
           <i></i>
         </a>
       }
