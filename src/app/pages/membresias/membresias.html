@@ -67,8 +67,8 @@
       <header><div><span>EDITAR REGISTRO</span><h2>Membresía</h2></div><button type="button" (click)="cancelEdit()">×</button></header>
       <form (ngSubmit)="saveEdit()">
         <label><span>Cliente *</span><input [(ngModel)]="editMembership.member" name="editMember" required /></label>
-        <label><span>Plan</span><select [(ngModel)]="editMembership.plan" (ngModelChange)="onEditPlanChange()" name="editPlan"><option>Mensual</option><option>Trimestral</option><option>Anual</option></select></label>
-        <div class="form-row"><label><span>Inicio</span><input type="date" [(ngModel)]="editMembership.start" (ngModelChange)="onEditStartChange()" name="editStart" /></label><label><span>Vencimiento</span><input type="date" [(ngModel)]="editMembership.end" (ngModelChange)="onEditEndChange()" name="editEnd" /></label></div>
+        <label><span>Plan</span><select [(ngModel)]="editMembership.plan" (change)="onEditPlanChange($any($event.target).value)" name="editPlan"><option>Mensual</option><option>Trimestral</option><option>Anual</option></select></label>
+        <div class="form-row"><label><span>Inicio</span><input type="date" [(ngModel)]="editMembership.start" (change)="onEditStartChange($any($event.target).value)" name="editStart" /></label><label><span>Vencimiento</span><input type="date" [(ngModel)]="editMembership.end" (change)="onEditEndChange($any($event.target).value)" name="editEnd" /></label></div>
         <div class="form-row"><label><span>Días restantes</span><input type="number" min="0" [value]="editMembership.days" name="editDays" readonly /></label><label><span>Estado</span><select [(ngModel)]="editMembership.status" name="editStatus"><option>Activa</option><option>Por vencer</option><option>Vencida</option></select></label></div>
         <div class="form-navigation"><button class="secondary-button" type="button" (click)="cancelEdit()" [disabled]="isSavingEdit">Cancelar</button><button class="primary-button" type="submit" [disabled]="isSavingEdit">{{ isSavingEdit ? 'Guardando...' : 'Guardar cambios' }}</button></div>
       </form>

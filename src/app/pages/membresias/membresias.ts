@@ -21,6 +21,7 @@ export class PaginaMembresiasComponent implements OnDestroy {
   editMembership = { member: '', plan: 'Mensual' as PlanMembresia, start: '', end: '', days: 30, status: 'Activa' as Membresia['status'] };
   private noticeTimer?: ReturnType<typeof setTimeout>;
   private renewingTimers = new Map<number, ReturnType<typeof setTimeout>>();
+  private editingOriginalPlan: PlanMembresia = 'Mensual';
   private readonly requestTimeoutMs = 12000;
 
   readonly statusFilters: FiltroMembresiaEstado[] = ['Todos', 'Activa', 'Por vencer', 'Vencida'];
@@ -86,9 +87,11 @@ export class PaginaMembresiasComponent implements OnDestroy {
     }
 
     this.editingMembershipId = item.id;
+    const plan = this.toPlanMembership(item.plan);
+    this.editingOriginalPlan = plan;
     this.editMembership = {
       member: item.member,
-      plan: this.toPlanMembership(item.plan),
+      plan,
       start: this.toDateInputValue(item.startDate || item.start) || this.todayInputValue(),
       end: this.toDateInputValue(item.endDate || item.end),
       days: item.days,
@@ -124,7 +127,7 @@ export class PaginaMembresiasComponent implements OnDestroy {
       startDate,
       endDate,
       status: this.editMembership.status,
-      recalculateEndDate: false
+      recalculateEndDate: this.editMembership.plan !== this.editingOriginalPlan
     } as Record<string, unknown>;
 
     this.data.actualizarMembresia(item.id, payload).pipe(
@@ -151,15 +154,24 @@ export class PaginaMembresiasComponent implements OnDestroy {
     return this.renewingIds.has(item.id);
   }
 
-  onEditPlanChange(): void {
+  onEditPlanChange(value?: string): void {
+    if (value) {
+      this.editMembership.plan = this.toPlanMembership(value);
+    }
     this.recalculateEditEndDate();
   }
 
-  onEditStartChange(): void {
+  onEditStartChange(value?: string): void {
+    if (value) {
+      this.editMembership.start = value;
+    }
     this.recalculateEditEndDate();
   }
 
-  onEditEndChange(): void {
+  onEditEndChange(value?: string): void {
+    if (value) {
+      this.editMembership.end = value;
+    }
     this.editMembership.end = this.toDateInputValue(this.editMembership.end);
     this.editMembership.days = this.daysUntil(this.editMembership.end);
     this.editMembership.status = this.statusFromDays(this.editMembership.days);
